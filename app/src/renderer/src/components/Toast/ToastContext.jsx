@@ -12,11 +12,17 @@ export function ToastProvider({ children }) {
   // Track timers so we can clear them on dismiss/replace
   const timers = useRef({})
 
+  // dismiss: sets exiting:true so ToastItem plays the fade-out animation
   const dismiss = useCallback((id) => {
     if (timers.current[id]) {
       clearTimeout(timers.current[id])
       delete timers.current[id]
     }
+    setToasts(prev => prev.map(t => t.id === id ? { ...t, exiting: true } : t))
+  }, [])
+
+  // remove: called by ToastItem after the animation has finished
+  const remove = useCallback((id) => {
     setToasts(prev => prev.filter(t => t.id !== id))
   }, [])
 
@@ -56,7 +62,7 @@ export function ToastProvider({ children }) {
   }, [dismiss])
 
   return (
-    <ToastContext.Provider value={{ toasts, show, dismiss }}>
+    <ToastContext.Provider value={{ toasts, show, dismiss, remove }}>
       {children}
     </ToastContext.Provider>
   )
@@ -72,5 +78,5 @@ export function useToast() {
 export function useToastList() {
   const ctx = useContext(ToastContext)
   if (!ctx) throw new Error('useToastList must be used within a ToastProvider')
-  return { toasts: ctx.toasts, dismiss: ctx.dismiss }
+  return { toasts: ctx.toasts, dismiss: ctx.dismiss, remove: ctx.remove }
 }

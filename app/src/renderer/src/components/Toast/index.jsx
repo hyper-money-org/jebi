@@ -55,19 +55,31 @@ function ensureStyles() {
 
 // --- single toast item ---
 
-function ToastItem({ toast, onDismiss }) {
+function ToastItem({ toast, onDismiss, onRemove }) {
   const [exiting, setExiting] = useState(false)
   const exitTimer = useRef(null)
 
   // Ensure CSS is in the DOM
   useEffect(() => { ensureStyles() }, [])
 
+  // Watch for the context-driven exiting flag (e.g. from auto-dismiss timer)
+  useEffect(() => {
+    if (toast.exiting && !exiting) {
+      setExiting(true)
+      exitTimer.current = setTimeout(() => {
+        onRemove(toast.id)
+      }, 150)
+    }
+  }, [toast.exiting]) // eslint-disable-line react-hooks/exhaustive-deps
+
   function handleDismiss() {
     if (exiting) return
     setExiting(true)
     exitTimer.current = setTimeout(() => {
-      onDismiss(toast.id)
+      onRemove(toast.id)
     }, 150)
+    // Also call onDismiss so the context clears the auto-timer
+    onDismiss(toast.id)
   }
 
   useEffect(() => {
@@ -211,7 +223,7 @@ function ToastItem({ toast, onDismiss }) {
 // --- manager ---
 
 export function ToastManager() {
-  const { toasts, dismiss } = useToastList()
+  const { toasts, dismiss, remove } = useToastList()
 
   const visible = toasts.slice(-MAX_VISIBLE)
 
@@ -234,7 +246,7 @@ export function ToastManager() {
     >
       {visible.map(toast => (
         <div key={toast.id} style={{ pointerEvents: 'auto' }}>
-          <ToastItem toast={toast} onDismiss={dismiss} />
+          <ToastItem toast={toast} onDismiss={dismiss} onRemove={remove} />
         </div>
       ))}
     </div>
