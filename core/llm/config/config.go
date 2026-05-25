@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"runtime"
 )
 
 // Config holds LLM provider settings, persisted in settings.json.
@@ -14,9 +15,22 @@ type Config struct {
 	Enabled     bool   `json:"enabled"`
 }
 
+// defaultModelsDir returns the platform-specific directory where jebi looks for
+// local model files.
+//
+//   - macOS:       ~/Library/Application Support/jebi/models
+//   - Linux/other: ~/.local/share/jebi/models
+func defaultModelsDir() string {
+	home, _ := os.UserHomeDir()
+	if runtime.GOOS == "darwin" {
+		return filepath.Join(home, "Library", "Application Support", "jebi", "models")
+	}
+	return filepath.Join(home, ".local", "share", "jebi", "models")
+}
+
 var Default = Config{
 	Provider:    "llama-server",
-	Model:       "/Users/jawahar/Work/terminal/term/core/bin/qwen-2.5 1.5B-instruct.gguf",
+	Model:       "",
 	EndpointURL: "http://localhost:11434",
 	Enabled:     true,
 }

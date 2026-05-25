@@ -12,6 +12,7 @@ import (
 	"sync"
 	"syscall"
 	"time"
+	"unicode/utf8"
 
 	"terminal/core/llm"
 	"terminal/core/wire"
@@ -51,11 +52,11 @@ type Session struct {
 	cancelDetect context.CancelFunc
 
 	// AI suggestion state — session-scoped, not persisted.
-	provider        llm.Provider
-	currentCwd      string
-	lastContextDir  string // last dir for which project context banner was shown
-	contextEntries  []llm.HistoryEntry
-	cancelSuggest   context.CancelFunc
+	provider       llm.Provider
+	currentCwd     string
+	lastContextDir string // last dir for which project context banner was shown
+	contextEntries []llm.HistoryEntry
+	cancelSuggest  context.CancelFunc
 
 	// firstCwdSeen suppresses the project-context banner on initial shell
 	// startup. The first OSC 7 message is the shell's initial cwd, not the
@@ -93,7 +94,11 @@ func New(conn connection, provider llm.Provider) (*Session, error) {
 
 	unix.IoctlSetWinsize(int(pts.Fd()), unix.TIOCSWINSZ, &unix.Winsize{Row: 24, Col: 40})
 
-	cmd := exec.Command(shell)
+	cmd := exec.Command(shell, "-l")
+	cmd.Env = append(os.Environ(),
+		"TERM=xterm-256color",
+		"COLORTERM=truecolor",
+	)
 	cmd.Stdin = pts
 	cmd.Stdout = pts
 	cmd.Stderr = pts
@@ -150,6 +155,15 @@ func (s *Session) Close() {
 // Start launches the pipe goroutine and blocks reading input from the frontend.
 // Returns when the connection closes or a "kill" message is received.
 func (s *Session) Start() {
+	// Notify the frontend immediately whether AI assistance is available.
+	if s.provider != nil && s.provider.IsAvailable() {
+		payload, _ := json.Marshal(map[string]string{"status": "available", "provider": s.provider.Name()})
+		s.w.Send(wire.Message{Type: wire.TypeAIStatus, Data: payload})
+	} else {
+		payload, _ := json.Marshal(map[string]string{"status": "unavailable", "provider": ""})
+		s.w.Send(wire.Message{Type: wire.TypeAIStatus, Data: payload})
+	}
+
 	go s.pipe()
 	for {
 		msg, err := s.w.Receive()
@@ -180,9 +194,9 @@ func (s *Session) Start() {
 				break
 			}
 			if len(entry.Output) > 600 {
-					entry.Output = entry.Output[:600] + "…"
-				}
-				s.contextEntries = append(s.contextEntries, entry)
+				entry.Output = entry.Output[:600] + "…"
+			}
+			s.contextEntries = append(s.contextEntries, entry)
 			if len(s.contextEntries) > maxContextEntries {
 				s.contextEntries = s.contextEntries[len(s.contextEntries)-maxContextEntries:]
 			}
@@ -256,7 +270,6 @@ func (s *Session) Start() {
 	}
 }
 
-
 // readDir returns up to 60 entries in dir — plain names for files, name+/ for
 // directories. Hidden entries and the .git directory are included but capped.
 func readDir(dir string) []string {
@@ -291,6 +304,42 @@ func min(a, b int) int {
 
 const termReadyMarker = "__TERM_READY__"
 
+func utf8SeqLen(b byte) int {
+	switch {
+	case b < 0x80:
+		return 1
+	case b&0xe0 == 0xc0:
+		return 2
+	case b&0xf0 == 0xe0:
+		return 3
+	case b&0xf8 == 0xf0:
+		return 4
+	default:
+		return 0
+	}
+}
+
+func splitCompleteUTF8(buf []byte) (complete []byte, leftover []byte) {
+	if utf8.Valid(buf) {
+		return buf, nil
+	}
+
+	for i := len(buf) - 1; i >= 0 && i >= len(buf)-utf8.UTFMax; i-- {
+		if !utf8.RuneStart(buf[i]) {
+			continue
+		}
+		want := utf8SeqLen(buf[i])
+		if want > 1 && len(buf)-i < want && utf8.Valid(buf[:i]) {
+			return buf[:i], append([]byte(nil), buf[i:]...)
+		}
+		break
+	}
+
+	// The invalid bytes are not just an incomplete trailing rune. Forward them
+	// so the renderer can show a replacement character instead of stalling.
+	return buf, nil
+}
+
 // pipe reads PTY output, parses OSC sequences, and forwards to the frontend.
 // Drops all output until the __TERM_READY__ marker appears (emitted after shell
 // init completes), so startup noise never reaches xterm.
@@ -302,6 +351,25 @@ func (s *Session) pipe() {
 	ready := false
 	var pending []byte
 	var oscLeftover []byte
+	var utf8Leftover []byte
+
+	sendOutput := func(data []byte) {
+		if len(data) == 0 {
+			return
+		}
+		if len(utf8Leftover) > 0 {
+			joined := make([]byte, 0, len(utf8Leftover)+len(data))
+			joined = append(joined, utf8Leftover...)
+			joined = append(joined, data...)
+			data = joined
+			utf8Leftover = nil
+		}
+		complete, leftover := splitCompleteUTF8(data)
+		utf8Leftover = leftover
+		if len(complete) > 0 {
+			s.w.Send(wire.StringMessage(wire.TypeOutput, string(complete)))
+		}
+	}
 
 	for {
 		n, err := s.ptm.Read(buf)
@@ -348,9 +416,7 @@ func (s *Session) pipe() {
 					}
 				}
 
-				if len(cleaned) > 0 {
-					s.w.Send(wire.StringMessage(wire.TypeOutput, string(cleaned)))
-				}
+				sendOutput(cleaned)
 			} else {
 				pending = append(pending, data...)
 				if idx := bytes.Index(pending, []byte(termReadyMarker)); idx >= 0 {
@@ -358,9 +424,7 @@ func (s *Session) pipe() {
 					after := pending[idx+len(termReadyMarker):]
 					after = bytes.TrimPrefix(after, []byte("\r\n"))
 					after = bytes.TrimPrefix(after, []byte("\n"))
-					if len(after) > 0 {
-						s.w.Send(wire.StringMessage(wire.TypeOutput, string(after)))
-					}
+					sendOutput(after)
 					pending = nil
 				}
 			}
