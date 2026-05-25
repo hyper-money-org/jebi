@@ -1,6 +1,7 @@
 package session
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -68,6 +69,42 @@ func TestParseOSCNodePayload(t *testing.T) {
 	}
 	if leftover != nil {
 		t.Errorf("leftover = %q, want nil", string(leftover))
+	}
+}
+
+func TestSplitCompleteUTF8BuffersTrailingPartialRune(t *testing.T) {
+	full := []byte("hello ─")
+	first := full[:len(full)-1]
+	second := full[len(full)-1:]
+
+	complete, leftover := splitCompleteUTF8(first)
+	if string(complete) != "hello " {
+		t.Fatalf("complete = %q, want %q", string(complete), "hello ")
+	}
+	if string(append(leftover, second...)) != "─" {
+		t.Fatalf("leftover + second = %q, want %q", string(append(leftover, second...)), "─")
+	}
+
+	complete, leftover = splitCompleteUTF8(append(leftover, second...))
+	if string(complete) != "─" {
+		t.Fatalf("complete = %q, want %q", string(complete), "─")
+	}
+	if len(leftover) != 0 {
+		t.Fatalf("leftover = %q, want empty", string(leftover))
+	}
+}
+
+func TestGitChangeCounts(t *testing.T) {
+	status := strings.Join([]string{
+		"M  staged.go",
+		" M modified.go",
+		"AM staged-and-modified.go",
+		"?? new.go",
+	}, "\n")
+
+	staged, modified, untracked := gitChangeCounts(status)
+	if staged != 2 || modified != 2 || untracked != 1 {
+		t.Fatalf("counts = staged:%d modified:%d untracked:%d, want staged:2 modified:2 untracked:1", staged, modified, untracked)
 	}
 }
 

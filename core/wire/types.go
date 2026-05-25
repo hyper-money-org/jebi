@@ -26,6 +26,8 @@ const (
 	TypeConda    = "conda"
 
 	TypeAIAppend       = "ai_append"
+	TypeAISummary      = "ai_summary"
+	TypeAIStatus       = "ai_status"
 	TypeAISuggestion   = "ai_suggestion"
 	TypeAISuggestError = "ai_suggest_error"
 	TypeAIExplanation  = "ai_explanation"

@@ -43,6 +43,8 @@ export default function OutputArea({
   const pendingRef = useRef([]);
   const pendingSizeRef = useRef(0);
   const isVisibleRef = useRef(isVisible);
+  const fitFrameRef = useRef(null);
+  const redrawTimerRef = useRef(null);
 
   const [stickyCommand, setStickyCommand] = useState(null);
 
@@ -79,6 +81,8 @@ export default function OutputArea({
         fontFamily,
         fontSize,
         lineHeight: 1.0,
+        letterSpacing: 0,
+        customGlyphs: true,
         theme: {
           background: cssVar("--bg-surface"),
           foreground: cssVar("--text-primary"),
@@ -87,7 +91,7 @@ export default function OutputArea({
           selectionForeground: cssVar("--text-primary"),
           selectionInactiveBackground: tabAccentRef.current + "25",
         },
-        fontLigatures: renderer === "canvas",
+        fontLigatures: false,
         cursorBlink: false,
         cursorInactiveStyle: "none",
         allowProposedApi: true,
@@ -102,6 +106,9 @@ export default function OutputArea({
       const fitAddon = new FitAddon();
       const promptAddon = new PromptAddon();
       term.loadAddon(fitAddon);
+      // Ensure term is always disposed even if the rAF below never fires
+      // (component unmounted before the next frame).
+      cleanup = () => term.dispose();
       term.loadAddon(promptAddon);
       promptAddonRef.current = promptAddon;
       promptAddon.setOnReplay((command) => onReplayRef.current?.(command));
@@ -112,36 +119,90 @@ export default function OutputArea({
       });
       term.onResize(({ cols, rows }) => sendResizeRef.current?.(cols, rows));
 
-      term.open(xtermContainerRef.current);
+      const scheduleFit = (redrawRunningCommand = false) => {
+        if (fitFrameRef.current != null) {
+          cancelAnimationFrame(fitFrameRef.current);
+        }
+        fitFrameRef.current = requestAnimationFrame(() => {
+          fitFrameRef.current = requestAnimationFrame(() => {
+            fitFrameRef.current = null;
+            fitAddon.fit();
+            term.refresh(0, term.rows - 1);
 
-      // If xterm somehow has keyboard focus while InputBar is visible, redirect
-      // the key there and suppress xterm from forwarding it to the PTY.
-      term.attachCustomKeyEventHandler((e) => {
-        if (e.type === "keydown" && e.metaKey && e.key === "c" && !e.shiftKey && !e.altKey) {
-          const sel = term.getSelection();
-          if (sel && !promptAddonRef.current?._tuiActive) {
-            navigator.clipboard.writeText(sel);
+            // Full-screen terminal apps usually repaint on SIGWINCH, but Claude
+            // can leave stale cells after pane splits. Ctrl+L asks the running
+            // app to redraw after the PTY size has reached it.
+            // Always cancel any pending timer — guards against stale \x0c arriving
+            // at the shell prompt when a command finishes before the timer fires.
+            clearTimeout(redrawTimerRef.current);
+            if (redrawRunningCommand && callbacksRef.current.isRunning?.()) {
+              // Re-check isRunning at fire time: the command may finish within 35ms.
+              redrawTimerRef.current = setTimeout(() => {
+                if (callbacksRef.current.isRunning?.()) sendRaw("\x0c");
+              }, 35);
+            }
+          });
+        });
+      };
+
+      // Defer open() + fit() to the next animation frame so flexbox layout is
+      // fully resolved before FitAddon measures the container.  Opening xterm
+      // synchronously (inside fonts.load microtask) races the layout engine and
+      // produces a stale column count, which TUI apps like claude use for their
+      // initial render — causing garbled output until a manual resize fires SIGWINCH.
+      requestAnimationFrame(() => {
+        if (disposed) return;
+
+        term.open(xtermContainerRef.current);
+
+        // Padding on the xterm element (not the container) so FitAddon
+        // subtracts it when computing column count — avoiding phantom columns.
+        if (term.element) {
+          term.element.style.padding = '8px 12px 0';
+        }
+
+        term.attachCustomKeyEventHandler((e) => {
+          if (e.type === "keydown" && e.metaKey && e.key === "c" && !e.shiftKey && !e.altKey) {
+            const sel = term.getSelection();
+            if (sel && !promptAddonRef.current?._tuiActive) {
+              navigator.clipboard.writeText(sel);
+              return false;
+            }
+          }
+          if (e.type === "keydown" && !callbacksRef.current.isRunning?.()) {
+            callbacksRef.current.focusInput?.();
             return false;
           }
+          return true;
+        });
+
+        if (renderer === "webgl") {
+          const webglAddon = new WebglAddon();
+          webglAddon.onContextLoss(() => webglAddon.dispose());
+          term.loadAddon(webglAddon);
         }
-        if (e.type === "keydown" && !callbacksRef.current.isRunning?.()) {
-          callbacksRef.current.focusInput?.();
-          return false;
-        }
-        return true;
+
+        scheduleFit();
+        if (term.rows <= 2) term.resize(term.cols, 24);
+
+        termRef.current = term;
+        fitAddonRef.current = fitAddon;
+
+        // Expose a fit trigger so useTerminal can re-fit when the WebSocket
+        // opens — by then the layout is definitely settled.
+        callbacksRef.current.triggerFit = () => scheduleFit();
+
+        const observer = new ResizeObserver(() => scheduleFit(true));
+        observer.observe(xtermContainerRef.current);
+
+        cleanup = () => {
+          observer.disconnect();
+          if (fitFrameRef.current != null) cancelAnimationFrame(fitFrameRef.current);
+          clearTimeout(redrawTimerRef.current);
+          callbacksRef.current = {};
+          term.dispose();
+        };
       });
-
-      if (renderer === "webgl") {
-        const webglAddon = new WebglAddon();
-        webglAddon.onContextLoss(() => webglAddon.dispose());
-        term.loadAddon(webglAddon);
-      }
-
-      fitAddon.fit();
-      if (term.rows <= 2) term.resize(term.cols, 24);
-
-      termRef.current = term;
-      fitAddonRef.current = fitAddon;
 
       term.onScroll(() => {
         const viewportY = term.buffer.active.viewportY;
@@ -239,14 +300,6 @@ export default function OutputArea({
         setStickyCommand(promptAddon.getStickyCommand(viewportY));
       };
 
-      const observer = new ResizeObserver(() => fitAddon.fit());
-      observer.observe(rootRef.current);
-
-      cleanup = () => {
-        observer.disconnect();
-        callbacksRef.current = {};
-        term.dispose();
-      };
     });
 
     return () => {
@@ -312,12 +365,13 @@ export default function OutputArea({
 
   return (
     <div ref={rootRef} className="flex-1 min-h-0 flex flex-col relative">
-      {/* bg-[var(--bg-surface)] ensures the container padding area matches xterm's canvas
-          background. Without it, the parent's --bg-base bleeds through the px-3/pt-2
-          padding, creating a visible border when bg-base ≠ bg-surface (e.g. Catppuccin). */}
+      {/* No padding here — padding is applied directly to the xterm element after
+          term.open() so FitAddon correctly subtracts it when computing column count.
+          Container padding would be included in getComputedStyle().width but not
+          subtracted by FitAddon, producing phantom columns that clip TUI apps. */}
       <div
         ref={xtermContainerRef}
-        className="flex-1 min-h-0 px-3 pt-2 bg-[var(--bg-surface)]"
+        className="flex-1 min-h-0 bg-[var(--bg-surface)]"
       />
       {stickyCommand !== null && (
         <div

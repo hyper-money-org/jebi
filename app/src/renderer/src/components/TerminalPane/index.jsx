@@ -183,8 +183,8 @@ export default function TerminalPane({
       setBanner(null);
       const trimmed = command.trim();
       pendingCommandRef.current = trimmed;
-      sendInput(command);
       setRunning(true);
+      runningRef.current = true;
       // Navigation commands (cd/pushd/popd) shouldn't become the tab title —
       // onCwd will clear lastCommand and the folder fallback takes over.
       const firstTok = trimmed.split(/\s+/)[0];
@@ -195,7 +195,17 @@ export default function TerminalPane({
           ? { runningCommand: trimmed }
           : { runningCommand: trimmed, lastCommand: trimmed },
       );
-      callbacksRef.current.focusTerm?.();
+
+      // Hiding InputBar gives OutputArea more height. Full-screen TUIs like
+      // Claude read the PTY size immediately on startup, so wait for that
+      // layout change to commit, fit xterm, then send the command.
+      requestAnimationFrame(() => {
+        callbacksRef.current.triggerFit?.();
+        requestAnimationFrame(() => {
+          sendInput(command);
+          callbacksRef.current.focusTerm?.();
+        });
+      });
     },
     [sendInput, paneId],
   );

@@ -11,6 +11,9 @@ import { createLeaf, splitLeaf, removeLeaf, collectPaneIds, computePaneRects, co
 import StatusBar from './components/StatusBar/index.jsx'
 import PreferencesModal from './components/Preferences'
 import PaneContextMenu from './components/PaneContextMenu'
+import { ToastProvider, useToast } from './components/Toast/ToastContext.jsx'
+import ToastManager from './components/Toast'
+import { useAIStatus } from './hooks/useAIStatus'
 
 function createTab(counter) {
   const leaf = createLeaf()
@@ -24,6 +27,15 @@ function createTab(counter) {
 }
 
 export default function App() {
+  return (
+    <ToastProvider>
+      <AppInner />
+      <ToastManager />
+    </ToastProvider>
+  )
+}
+
+function AppInner() {
   const tabCounterRef = useRef(1)
   const [tabs, setTabs] = useState(() => [createTab(tabCounterRef.current)])
   const [activeTabId, setActiveTabId] = useState(tabs[0].id)
@@ -38,7 +50,33 @@ export default function App() {
   const paneWrapperRef = useRef(null)
   const { startDrag, dragCursor } = usePaneResize(paneWrapperRef, setTabs)
   const [isPrefsOpen, setIsPrefsOpen] = useState(false)
+  const [prefsInitialTab, setPrefsInitialTab] = useState(null)
   const [ctxMenu, setCtxMenu] = useState(null) // { x, y, tabId, paneId, paneCount }
+  const { show: showToast } = useToast()
+  const aiStatus = useAIStatus()
+
+  // Open prefs to a specific tab (e.g. 'ai' from the status bar chip or toast).
+  const openPreferences = useCallback((tab = null) => {
+    setPrefsInitialTab(tab)
+    setIsPrefsOpen(true)
+  }, [])
+
+  // First-run AI setup toast: show once when AI is unavailable.
+  useEffect(() => {
+    if (aiStatus.status !== 'unavailable') return
+    if (localStorage.getItem('ai-setup-toast-dismissed')) return
+    showToast({
+      id: 'ai-setup',
+      type: 'info',
+      message: '✦ AI features need a model to work. Download one to enable suggestions and error explanations.',
+      action: {
+        label: 'Open AI Settings',
+        onClick: () => openPreferences('ai'),
+      },
+      duration: 0, // sticky until dismissed
+      onDismiss: () => localStorage.setItem('ai-setup-toast-dismissed', '1'),
+    })
+  }, [aiStatus.status, showToast, openPreferences])
 
   // Close context menu on any click/Escape
   useEffect(() => {
@@ -377,7 +415,7 @@ export default function App() {
         </div>
       </div>
 
-      <StatusBar />
+      <StatusBar onOpenAISettings={() => openPreferences('ai')} />
 
       {/* Pointer-capture overlay — sits over xterm canvases during drag so the
           cursor stays consistent and mouse events don't get swallowed by xterm */}
@@ -385,7 +423,11 @@ export default function App() {
         <div style={{ position: 'fixed', inset: 0, zIndex: 9999, cursor: dragCursor }} />
       )}
 
-      <PreferencesModal isOpen={isPrefsOpen} onClose={() => setIsPrefsOpen(false)} />
+      <PreferencesModal
+        isOpen={isPrefsOpen}
+        onClose={() => setIsPrefsOpen(false)}
+        initialTab={prefsInitialTab}
+      />
 
       {/* Pane context menu */}
       {ctxMenu && (

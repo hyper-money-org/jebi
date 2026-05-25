@@ -24,10 +24,11 @@ export const TypeC        = 'c'
 export const TypeConda    = 'conda'
 
 export const TypeAIAppend       = 'ai_append'
+export const TypeAISummary      = 'ai_summary'
+export const TypeAIStatus       = 'ai_status'
 export const TypeAISuggestion   = 'ai_suggestion'
 export const TypeAISuggestError = 'ai_suggest_error'
 export const TypeAIExplanation  = 'ai_explanation'
 export const TypeAIBannerStart  = 'ai_banner_start'
 export const TypeAIBannerToken  = 'ai_banner_token'
 export const TypeAIBannerCancel = 'ai_banner_cancel'
-

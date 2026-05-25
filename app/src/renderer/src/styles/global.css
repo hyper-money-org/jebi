@@ -50,34 +50,34 @@
   --prompt-conda-tint:       #74c7ec;   /* sapphire — conda brand */
 
   --prompt-cwd-bg:    color-mix(in srgb, var(--prompt-cwd-tint)    var(--prompt-tint-strength), var(--bg-elevated));
-  --prompt-cwd-fg:    var(--text-primary);
+  --prompt-cwd-fg:    color-mix(in srgb, var(--text-primary) 88%, var(--prompt-cwd-tint));
   --prompt-git-bg:    color-mix(in srgb, var(--prompt-git-tint)    var(--prompt-tint-strength), var(--bg-elevated));
-  --prompt-git-fg:    var(--text-primary);
+  --prompt-git-fg:    color-mix(in srgb, var(--text-primary) 88%, var(--prompt-git-tint));
   --prompt-node-bg:   color-mix(in srgb, var(--prompt-node-tint)   var(--prompt-tint-strength), var(--bg-elevated));
-  --prompt-node-fg:   var(--text-primary);
+  --prompt-node-fg:   color-mix(in srgb, var(--text-primary) 88%, var(--prompt-node-tint));
   --prompt-go-bg:     color-mix(in srgb, var(--prompt-go-tint)     var(--prompt-tint-strength), var(--bg-elevated));
-  --prompt-go-fg:     var(--text-primary);
+  --prompt-go-fg:     color-mix(in srgb, var(--text-primary) 88%, var(--prompt-go-tint));
   --prompt-python-bg: color-mix(in srgb, var(--prompt-python-tint) var(--prompt-tint-strength), var(--bg-elevated));
-  --prompt-python-fg: var(--text-primary);
+  --prompt-python-fg: color-mix(in srgb, var(--text-primary) 88%, var(--prompt-python-tint));
   --prompt-docker-bg: color-mix(in srgb, var(--prompt-docker-tint) var(--prompt-tint-strength), var(--bg-elevated));
-  --prompt-docker-fg: var(--text-primary);
+  --prompt-docker-fg: color-mix(in srgb, var(--text-primary) 88%, var(--prompt-docker-tint));
   --prompt-k8s-bg:    color-mix(in srgb, var(--prompt-k8s-tint)    var(--prompt-tint-strength), var(--bg-elevated));
-  --prompt-k8s-fg:    var(--text-primary);
+  --prompt-k8s-fg:    color-mix(in srgb, var(--text-primary) 88%, var(--prompt-k8s-tint));
 
   --prompt-rust-bg:        color-mix(in srgb, var(--prompt-rust-tint)        var(--prompt-tint-strength), var(--bg-elevated));
-  --prompt-rust-fg:        var(--text-primary);
+  --prompt-rust-fg:        color-mix(in srgb, var(--text-primary) 88%, var(--prompt-rust-tint));
   --prompt-c-bg:           color-mix(in srgb, var(--prompt-c-tint)           var(--prompt-tint-strength), var(--bg-elevated));
-  --prompt-c-fg:           var(--text-primary);
+  --prompt-c-fg:           color-mix(in srgb, var(--text-primary) 88%, var(--prompt-c-tint));
   --prompt-php-bg:         color-mix(in srgb, var(--prompt-php-tint)         var(--prompt-tint-strength), var(--bg-elevated));
-  --prompt-php-fg:         var(--text-primary);
+  --prompt-php-fg:         color-mix(in srgb, var(--text-primary) 88%, var(--prompt-php-tint));
   --prompt-java-bg:        color-mix(in srgb, var(--prompt-java-tint)        var(--prompt-tint-strength), var(--bg-elevated));
-  --prompt-java-fg:        var(--text-primary);
+  --prompt-java-fg:        color-mix(in srgb, var(--text-primary) 88%, var(--prompt-java-tint));
   --prompt-kotlin-bg:      color-mix(in srgb, var(--prompt-kotlin-tint)      var(--prompt-tint-strength), var(--bg-elevated));
-  --prompt-kotlin-fg:      var(--text-primary);
+  --prompt-kotlin-fg:      color-mix(in srgb, var(--text-primary) 88%, var(--prompt-kotlin-tint));
   --prompt-haskell-bg:     color-mix(in srgb, var(--prompt-haskell-tint)     var(--prompt-tint-strength), var(--bg-elevated));
-  --prompt-haskell-fg:     var(--text-primary);
+  --prompt-haskell-fg:     color-mix(in srgb, var(--text-primary) 88%, var(--prompt-haskell-tint));
   --prompt-conda-bg:       color-mix(in srgb, var(--prompt-conda-tint)       var(--prompt-tint-strength), var(--bg-elevated));
-  --prompt-conda-fg:       var(--text-primary);
+  --prompt-conda-fg:       color-mix(in srgb, var(--text-primary) 88%, var(--prompt-conda-tint));
 }
 
 html,
@@ -110,22 +110,10 @@ body {
 /* xterm 6.x uses a VS Code-style custom scrollbar (not native webkit).
    Override the .scrollbar track and .slider thumb directly. */
 .xterm .xterm-scrollable-element > .scrollbar.vertical {
-  width: 6px !important;
+  display: none !important;
 }
 .xterm .xterm-scrollable-element > .scrollbar.horizontal {
-  height: 6px !important;
-}
-.xterm .xterm-scrollable-element > .scrollbar > .slider {
-  width: 6px !important;
-  border-radius: 3px;
-  background: var(--border) !important;
-}
-.xterm .xterm-scrollable-element > .scrollbar.horizontal > .slider {
-  height: 6px !important;
-  width: auto !important;
-}
-.xterm .xterm-scrollable-element > .scrollbar > .slider:hover {
-  background: var(--text-muted) !important;
+  display: none !important;
 }
 
 /* Thin styled scrollbar for overlay panels (Preferences, dropdowns) */
@@ -157,18 +145,3 @@ body {
   animation: ai-pulse 1.8s ease-in-out infinite;
   transform-origin: center;
 }
-
-@keyframes promptRunning {
-  0%   { transform: translateX(-100%); }
-  100% { transform: translateX(333%); }
-}
-
-@keyframes tab-icon-spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-.tab-icon-spin {
-  animation: tab-icon-spin 1s linear infinite;
-  transform-origin: center;
-}
-

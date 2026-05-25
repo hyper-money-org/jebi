@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { EditorView, keymap, ViewPlugin, WidgetType, Decoration } from '@codemirror/view'
-import { EditorState, StateEffect, RangeSet } from '@codemirror/state'
+import { EditorState, StateEffect, RangeSet, Prec } from '@codemirror/state'
 import { defaultKeymap, insertNewlineAndIndent } from '@codemirror/commands'
 import { StreamLanguage, HighlightStyle, syntaxHighlighting } from '@codemirror/language'
 import { shell } from '@codemirror/legacy-modes/mode/shell'
@@ -460,32 +460,44 @@ export function useShellEditor(callbacksRef) {
         //   7. otherwise                    → noop
         key: 'Tab',
         run(view) {
-          if (completionStatus(view.state) != null) return acceptCompletion(view)
+          if (completionStatus(view.state) != null) {
+            acceptCompletion(view)
+            return true
+          }
 
           const { head } = view.state.selection.main
           // Accept AI suggestion before the empty-doc guard so Tab doesn't blur
           if (head === 0) {
             const plugin = view.plugin(ghostPlugin)
             if (plugin?.aiSuggestion) return plugin.accept(view)
-            return false
+            return true // consume Tab — never let it blur the input
           }
 
           const before = view.state.sliceDoc(Math.max(0, head - 1), head)
-          if (/\s/.test(before)) return startCompletion(view)
+          if (/\s/.test(before)) {
+            startCompletion(view)
+            return true
+          }
 
           const lineFrom = view.state.doc.lineAt(head).from
           const wordSoFar = view.state.sliceDoc(lineFrom, head).match(/\S*$/)?.[0] ?? ''
-          if (wordSoFar.includes('/')) return startCompletion(view)
+          if (wordSoFar.includes('/')) {
+            startCompletion(view)
+            return true
+          }
 
           // Relative path argument without a slash (e.g. `cd ter`): open the
           // file picker filtered by the partial name. Guard: only when the
           // word doesn't start at the beginning of the line, so we don't
           // accidentally open the picker for the command token itself.
-          if (wordSoFar && head - wordSoFar.length > lineFrom) return startCompletion(view)
+          if (wordSoFar && head - wordSoFar.length > lineFrom) {
+            startCompletion(view)
+            return true
+          }
 
           const plugin = view.plugin(ghostPlugin)
           if (plugin?.suggestion) return plugin.accept(view)
-          return false
+          return true // consume Tab — never let it blur the input
         },
       },
       {
@@ -533,7 +545,7 @@ export function useShellEditor(callbacksRef) {
               position: 20,
             }],
           }),
-          submitKeymap,
+          Prec.highest(submitKeymap),
           keymap.of(defaultKeymap),
           ghostPlugin,
         ],

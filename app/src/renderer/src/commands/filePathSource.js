@@ -55,18 +55,19 @@ function shellEscape(name) {
 
 export function makeFilePathSource(callbacksRef) {
   return async function filePathSource(context) {
-    // STRICT gate: only run when the user explicitly asked via Tab
-    // (startCompletion sets context.explicit). Never auto-open while typing
-    // — a passive popup would hijack Up/Down history nav and feel noisy.
-    // CM filters within an open popup using validFor without re-calling the
-    // source, so this gate doesn't break type-to-filter. Folder accept
-    // re-triggers explicitly via startCompletion in the apply handler.
     if (!context.explicit) return null
 
     const cwd = callbacksRef.current?.cwd
+    const head = context.pos
+
+    // Extend `to` past the cursor to cover the full word so accepting a
+    // completion replaces it entirely (e.g. cursor mid-"Work" replaces all of "Work").
+    const after = context.state.sliceDoc(head, context.state.doc.length)
+    const tokenEnd = head + (after.match(/^\S*/)?.[0].length ?? 0)
+
     const { parentDirPath, basenamePrefix, basenameStart } = parseTokenAtCursor(
       context.state,
-      context.pos,
+      head,
     )
 
     const dir = resolveDir(parentDirPath, cwd)
@@ -80,27 +81,43 @@ export function makeFilePathSource(callbacksRef) {
     }
     if (!Array.isArray(entries) || entries.length === 0) return null
 
-    // Dotfile rule: hide entries starting with '.' unless the user typed a
-    // leading '.' in the basename prefix.
+    // Hide dotfiles unless the user typed a leading '.'.
     const showHidden = basenamePrefix.startsWith('.')
-    const filtered = showHidden ? entries : entries.filter((e) => !e.name.startsWith('.'))
+    let filtered = showHidden ? entries : entries.filter((e) => !e.name.startsWith('.'))
 
-    // Sort: folders first (A–Z), then files (A–Z) — case-insensitive.
+    // Pre-filter by basename prefix (case-insensitive) so the dropdown only
+    // shows relevant entries. Without this CM's fuzzy scorer may suppress
+    // matches or show unfiltered results when a partial name is typed.
+    if (basenamePrefix) {
+      const lc = basenamePrefix.toLowerCase()
+      filtered = filtered.filter((e) => e.name.toLowerCase().startsWith(lc))
+    }
+
+    if (filtered.length === 0) return null
+
+    // Single match: insert directly without showing the dropdown.
+    if (filtered.length === 1) {
+      const entry = filtered[0]
+      const insert = entry.isDir ? `${shellEscape(entry.name)}/` : shellEscape(entry.name)
+      context.view.dispatch({
+        changes: { from: basenameStart, to: tokenEnd, insert },
+        selection: { anchor: basenameStart + insert.length },
+      })
+      return null
+    }
+
+    // Sort: folders first (A–Z), then files (A–Z).
     filtered.sort((a, b) => {
       if (a.isDir !== b.isDir) return a.isDir ? -1 : 1
       return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
     })
 
-    // Boost preserves our (folder-first, alpha) ordering against CM's
-    // default scoring; without it, fuzzy matching can re-rank by relevance.
     const total = filtered.length
     const folderUrl = getFolderIconUrl()
     const options = filtered.map((entry, idx) => ({
       label: entry.name,
       type: entry.isDir ? 'folder' : 'file',
       iconUrl: entry.isDir ? folderUrl : getFileIconUrl(entry.name),
-      // Descending boost preserves our folder-first alpha sort against
-      // CodeMirror's default fuzzy-match re-ranking by relevance score.
       boost: total - idx,
       apply: (view, _completion, from, to) => {
         const insert = entry.isDir ? `${shellEscape(entry.name)}/` : shellEscape(entry.name)
@@ -108,19 +125,13 @@ export function makeFilePathSource(callbacksRef) {
           changes: { from, to, insert },
           selection: { anchor: from + insert.length },
         })
-        // Do NOT auto-reopen. After accepting, the user decides what's next:
-        // Tab again to dive deeper, Enter to execute, or type more (with
-        // ghost text in play). Auto-reopening forces an Escape just to run
-        // the command, which is the wrong default.
       },
     }))
 
     return {
       from: basenameStart,
-      to: context.pos,
+      to: tokenEnd,
       options,
-      // Keep the popup live while the user types more basename chars; it
-      // closes naturally on '/' or whitespace, which is exactly what we want.
       validFor: /^[\w.-]*$/,
     }
   }

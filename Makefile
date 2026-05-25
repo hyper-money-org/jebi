@@ -5,7 +5,7 @@ APP_NAME    := term
 APP_BUNDLE  := $(APP_DIR)/dist/mac-arm64/$(APP_NAME).app
 INSTALL_DIR := /Applications
 
-.PHONY: all build build-core build-app install clean
+.PHONY: all build build-core build-app install clean dev
 
 all: build
 
@@ -26,6 +26,13 @@ install:
 	rm -rf "$(INSTALL_DIR)/$(APP_NAME).app"
 	cp -r "$(APP_BUNDLE)" "$(INSTALL_DIR)/$(APP_NAME).app"
 	@echo "Installed → $(INSTALL_DIR)/$(APP_NAME).app"
+
+## dev: run Go core + Electron dev server together (Ctrl-C stops both)
+dev:
+	(cd $(CORE_DIR) && go run .) & \
+	CORE_PID=$$!; \
+	trap "kill $$CORE_PID 2>/dev/null" EXIT INT TERM; \
+	cd $(APP_DIR) && npm run dev
 
 ## clean: remove build artifacts
 clean:

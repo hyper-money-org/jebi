@@ -152,6 +152,9 @@ export default function Prompt({
           dirty={gitData.dirty}
           ahead={gitData.ahead}
           behind={gitData.behind}
+          staged={gitData.staged}
+          modified={gitData.modified}
+          untracked={gitData.untracked}
           onClick={onGitClick}
         />
       );
@@ -286,35 +289,13 @@ export default function Prompt({
       {
         <div
           style={{
-            height: running ? "2px" : "2px",
-            background: "var(--tab-accent)",
+            height: "2px",
+            background: "var(--prompt-cwd-tint)",
             flexShrink: 0,
             opacity: running ? 0.45 : 0.2,
-            position: "relative",
-            overflow: "hidden",
-            transition: "height 0.25s ease, opacity 0.25s ease",
-            boxShadow: running
-              ? "0 0 6px 1px color-mix(in srgb, var(--tab-accent) 50%, transparent)"
-              : "none",
+            transition: "opacity 0.25s ease",
           }}
         >
-          {running && (
-            <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
-              <div
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  bottom: 0,
-                  left: 0,
-                  width: "30%",
-                  background:
-                    "linear-gradient(90deg, transparent 0%, var(--tab-accent) 35%, white 50%, var(--tab-accent) 65%, transparent 100%)",
-                  opacity: 0.9,
-                  animation: "promptRunning 1.4s linear infinite",
-                }}
-              />
-            </div>
-          )}
         </div>
       }
       <div
@@ -329,6 +310,7 @@ export default function Prompt({
             key={s.kind}
             style={{ display: "inline-flex", alignItems: "center" }}
           >
+            {minimal && i > 0 && SEP}
             {renderSegment(s, i)}
           </span>
         ))}
@@ -554,9 +536,9 @@ export default function Prompt({
                 width: 13,
                 height: 15,
                 borderLeft:
-                  "2px dotted color-mix(in srgb, var(--tab-accent) 30%, transparent)",
+                  "2px dotted color-mix(in srgb, var(--prompt-cwd-tint) 30%, transparent)",
                 borderBottom:
-                  "2px dotted color-mix(in srgb, var(--tab-accent) 30%, transparent)",
+                  "2px dotted color-mix(in srgb, var(--prompt-cwd-tint) 30%, transparent)",
                 borderBottomLeftRadius: 3,
                 pointerEvents: "none",
               }}
@@ -566,7 +548,7 @@ export default function Prompt({
             style={{
               marginLeft: 10,
               color:
-                "color-mix(in srgb, var(--tab-accent) 70%, var(--text-primary))",
+                "color-mix(in srgb, var(--prompt-cwd-tint) 70%, var(--text-primary))",
             }}
           >
             {line}

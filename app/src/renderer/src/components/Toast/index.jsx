@@ -66,6 +66,7 @@ function ToastItem({ toast, onDismiss, onRemove }) {
   useEffect(() => {
     if (toast.exiting && !exiting) {
       setExiting(true)
+      toast.onDismiss?.()
       exitTimer.current = setTimeout(() => {
         onRemove(toast.id)
       }, 150)
@@ -75,6 +76,7 @@ function ToastItem({ toast, onDismiss, onRemove }) {
   function handleDismiss() {
     if (exiting) return
     setExiting(true)
+    toast.onDismiss?.()
     exitTimer.current = setTimeout(() => {
       onRemove(toast.id)
     }, 150)

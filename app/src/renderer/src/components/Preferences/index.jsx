@@ -9,8 +9,13 @@ const TABS = [
   { id: 'ai',         label: 'AI' },
 ]
 
-export default function PreferencesModal({ isOpen, onClose }) {
+export default function PreferencesModal({ isOpen, onClose, initialTab }) {
   const [activeTab, setActiveTab] = useState('appearance')
+
+  // Switch to initialTab whenever the modal opens with one specified.
+  useEffect(() => {
+    if (isOpen && initialTab) setActiveTab(initialTab)
+  }, [isOpen, initialTab])
 
   useEffect(() => {
     if (!isOpen) return

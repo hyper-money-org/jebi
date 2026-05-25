@@ -230,6 +230,43 @@ func ParseExplainResponse(raw string) string {
 	return strings.TrimSpace(raw)
 }
 
+// BuildSessionSummaryMessages returns messages for summarising the recent
+// command session into a compact, useful note for the user.
+func BuildSessionSummaryMessages(req SuggestRequest) []ChatMessage {
+	system := fmt.Sprintf("You are an expert terminal assistant. Summarize the user's recent shell session.\n\n"+
+		"Environment:\nShell: %s\nOS: %s\nCurrent directory: %s\n\n"+
+		"Rules:\n"+
+		"- Output 3-5 concise bullets.\n"+
+		"- Focus on what changed, failures, useful next steps, and notable project state.\n"+
+		"- Mention exact commands or files only when present in the provided history.\n"+
+		"- Do not invent facts. If there is not enough history, say that briefly.\n"+
+		"- Markdown bullets are allowed. No headings.", req.Shell, req.OS, req.Cwd)
+
+	var sb strings.Builder
+	if len(req.DirListing) > 0 {
+		fmt.Fprintf(&sb, "Current directory files: %s\n\n", strings.Join(req.DirListing, "  "))
+	}
+	start := len(req.Entries) - explainMaxContextEntries
+	if start < 0 {
+		start = 0
+	}
+	for _, e := range req.Entries[start:] {
+		status := "ok"
+		if e.ExitCode != 0 {
+			status = fmt.Sprintf("exit %d", e.ExitCode)
+		}
+		fmt.Fprintf(&sb, "$ %s  [%s]\n%s\n\n", e.Command, status, truncate(e.Output, explainMaxFailingOutputBytes))
+	}
+	if len(req.Entries) == 0 {
+		sb.WriteString("No completed commands are available yet.")
+	}
+
+	return []ChatMessage{
+		{Role: "system", Content: system},
+		{Role: "user", Content: sb.String()},
+	}
+}
+
 // BuildProjectContextMessages returns messages for a one-sentence project summary.
 func BuildProjectContextMessages(info ProjectInfo) []ChatMessage {
 	var parts []string

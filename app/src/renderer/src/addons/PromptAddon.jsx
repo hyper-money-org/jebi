@@ -306,11 +306,13 @@ export class PromptAddon {
       ? () => this._onReplay?.(entry.command)
       : null;
 
-    // Read the container's left padding so the decoration can bleed back to the true left edge.
-    const termContainer = this._term.element?.parentElement;
-    const paddingLeft = termContainer
-      ? parseInt(getComputedStyle(termContainer).paddingLeft) || 0
-      : 0;
+    // xterm's padding belongs to its grid measurement. Decorations are placed
+    // inside that padded content area, so only the React prompt overlay bleeds
+    // over the visual padding without changing xterm geometry.
+    const termElement = this._term.element;
+    const termStyle = termElement ? getComputedStyle(termElement) : null;
+    const paddingLeft = termStyle ? parseInt(termStyle.paddingLeft, 10) || 0 : 0;
+    const paddingRight = termStyle ? parseInt(termStyle.paddingRight, 10) || 0 : 0;
 
     // paddingTop creates the gap between previous output and the separator line
     // rendered at the top of the React component.
@@ -318,7 +320,9 @@ export class PromptAddon {
 
     decoration.onRender((el) => {
       el.style.marginLeft = `-${paddingLeft}px`;
-      el.style.width = `calc(100% + ${paddingLeft}px)`;
+      el.style.width = termElement?.clientWidth
+        ? `${termElement.clientWidth}px`
+        : `calc(100% + ${paddingLeft + paddingRight}px)`;
       el.style.paddingTop = `${paddingTop}px`;
       el.style.boxSizing = "border-box";
       el.style.overflow = "visible";

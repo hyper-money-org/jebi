@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types'
 import { useAIStatus } from '../../hooks/useAIStatus'
 
 export default function StatusBar({ onOpenAISettings }) {
@@ -51,6 +50,3 @@ export default function StatusBar({ onOpenAISettings }) {
   )
 }
 
-StatusBar.propTypes = {
-  onOpenAISettings: PropTypes.func,
-}

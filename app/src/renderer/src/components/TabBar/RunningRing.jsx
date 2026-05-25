@@ -1,24 +1,20 @@
-import loadingUrl from '../../assets/loading.png'
-
-export default function RunningRing({ children, running, size = 18 }) {
-  if (running) {
-    return (
-      <span className="inline-flex items-center justify-center shrink-0" style={{ width: 22, height: 22 }}>
-        <img
-          src={loadingUrl}
-          alt=""
-          aria-hidden="true"
-          width={size}
-          height={size}
-          className="tab-icon-spin"
-          style={{ width: size, height: size, objectFit: 'contain' }}
-        />
-      </span>
-    )
-  }
+export default function RunningRing({ children, running }) {
   return (
-    <span className="inline-flex items-center justify-center shrink-0" style={{ width: 22, height: 22 }}>
+    <span className="relative inline-flex items-center justify-center shrink-0" style={{ width: 22, height: 22 }}>
       {children}
+      {running && (
+        <span
+          style={{
+            position: 'absolute',
+            bottom: 1,
+            right: 1,
+            width: 5,
+            height: 5,
+            borderRadius: '50%',
+            backgroundColor: 'var(--color-accent, #3b82f6)',
+          }}
+        />
+      )}
     </span>
   )
 }

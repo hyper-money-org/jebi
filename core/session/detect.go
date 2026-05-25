@@ -150,7 +150,7 @@ func newDetectContext() (context.Context, context.CancelFunc) {
 
 // ── Git ──────────────────────────────────────────────────────────────────────
 
-// detectGit returns "branch|dirty|ahead|behind", or "" when dir is not a git repo.
+// detectGit returns "branch|dirty|ahead|behind|staged|modified|untracked", or "" when dir is not a git repo.
 func detectGit(ctx context.Context, dir string) string {
 	branch := git(ctx, dir, "symbolic-ref", "--short", "HEAD")
 	if branch == "" {
@@ -160,8 +160,9 @@ func detectGit(ctx context.Context, dir string) string {
 		return ""
 	}
 
+	staged, modified, untracked := gitChangeCounts(git(ctx, dir, "status", "--porcelain"))
 	dirty := "0"
-	if git(ctx, dir, "status", "--porcelain") != "" {
+	if staged+modified+untracked > 0 {
 		dirty = "1"
 	}
 
@@ -174,12 +175,32 @@ func detectGit(ctx context.Context, dir string) string {
 		behind = "0"
 	}
 
-	return fmt.Sprintf("%s|%s|%s|%s", branch, dirty, ahead, behind)
+	return fmt.Sprintf("%s|%s|%s|%s|%d|%d|%d", branch, dirty, ahead, behind, staged, modified, untracked)
 }
 
 // git runs a git -C <dir> command and returns trimmed stdout, or "".
 func git(ctx context.Context, dir string, args ...string) string {
 	return cmd(ctx, "git", append([]string{"-C", dir}, args...)...)
+}
+
+func gitChangeCounts(status string) (staged, modified, untracked int) {
+	for _, line := range strings.Split(status, "\n") {
+		if len(line) < 2 {
+			continue
+		}
+		x, y := line[0], line[1]
+		if x == '?' && y == '?' {
+			untracked++
+			continue
+		}
+		if x != ' ' {
+			staged++
+		}
+		if y != ' ' {
+			modified++
+		}
+	}
+	return staged, modified, untracked
 }
 
 // ── Node ─────────────────────────────────────────────────────────────────────

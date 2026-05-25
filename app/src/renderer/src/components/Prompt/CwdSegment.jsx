@@ -16,7 +16,7 @@ export default function CwdSegment({
 }) {
   const [hovered, setHovered] = useState(false);
   const compact = rowHeight != null;
-  const tint = "var(--tab-accent)";
+  const tint = "var(--prompt-cwd-tint)";
   const base = neonGlassStyle({ tint, compact, rowHeight, onClick, minimal });
   const style = hovered ? { ...base, ...neonGlassHoverStyle(tint, minimal) } : base;
 
@@ -38,8 +38,8 @@ export default function CwdSegment({
           key={i}
           style={{ display: "inline-flex", alignItems: "center", gap: "3px" }}
         >
-          {i > 0 && <span style={{ opacity: 0.45, fontSize: "0.8em" }}>›</span>}
-          <span style={{ opacity: i === parts.length - 1 ? 1 : 0.65 }}>
+          {i > 0 && <span style={{ opacity: 0.7, fontSize: "8" }}>/</span>}
+          <span style={{ opacity: 1 }}>
             {p}
           </span>
         </span>
