@@ -9,6 +9,28 @@
     "preview": "electron-vite preview",
     "pack": "electron-builder"
   },
+  "build": {
+    "appId": "com.jawahar.term",
+    "productName": "term",
+    "directories": { "output": "dist" },
+    "files": ["out/**/*"],
+    "extraResources": [
+      { "from": "../core/term-core", "to": "term-core" },
+      { "from": "../core/bin/llama-server", "to": "llama-server" },
+      { "from": "../core/bin/libggml-base.dylib", "to": "libggml-base.dylib" },
+      { "from": "../core/bin/libggml-blas.dylib", "to": "libggml-blas.dylib" },
+      { "from": "../core/bin/libggml-cpu.dylib", "to": "libggml-cpu.dylib" },
+      { "from": "../core/bin/libggml-metal.dylib", "to": "libggml-metal.dylib" },
+      { "from": "../core/bin/libggml-rpc.dylib", "to": "libggml-rpc.dylib" },
+      { "from": "../core/bin/libggml.dylib", "to": "libggml.dylib" },
+      { "from": "../core/bin/libllama.dylib", "to": "libllama.dylib" },
+      { "from": "../core/bin/libmtmd.dylib", "to": "libmtmd.dylib" }
+    ],
+    "mac": {
+      "target": [{ "target": "dir", "arch": "arm64" }],
+      "category": "public.app-category.developer-tools"
+    }
+  },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",
     "electron": "^41.1.1",
