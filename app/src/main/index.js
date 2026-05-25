@@ -36,6 +36,10 @@ const MODEL_REGISTRY = [
 
 const activeDownloads = new Map()
 
+function safeSend(sender, channel, payload) {
+  if (!sender.isDestroyed()) sender.send(channel, payload)
+}
+
 function aiSettingsPath() {
   return join(homedir(), '.config', 'term', 'settings.json')
 }
@@ -72,6 +76,18 @@ function stopCore() {
     coreProcess.kill('SIGTERM')
     coreProcess = null
   }
+}
+
+function stopCoreAndWait() {
+  return new Promise(resolve => {
+    if (!coreProcess) return resolve()
+    const proc = coreProcess
+    proc.once('exit', resolve)
+    proc.kill('SIGTERM')
+    coreProcess = null
+    // Fallback: resolve after 5s if exit never fires
+    setTimeout(resolve, 5000)
+  })
 }
 
 // Poll until the Go server accepts TCP connections, then resolve.
@@ -162,8 +178,7 @@ ipcMain.handle('ai:save-config', async (_, llmConfig) => {
   await fs.mkdir(dir, { recursive: true })
   await fs.writeFile(aiSettingsPath(), JSON.stringify({ ...existing, llm: llmConfig }, null, 2))
   // 3. Restart core
-  stopCore()
-  await new Promise(r => setTimeout(r, 300))
+  await stopCoreAndWait()
   startCore()
   await waitForCore(7070)
   return { ok: true }
@@ -188,6 +203,9 @@ ipcMain.handle('ai:start-download', async (event, modelId) => {
   const model = MODEL_REGISTRY.find(m => m.id === modelId)
   if (!model) return { ok: false, error: 'Unknown model' }
 
+  // Duplicate download guard
+  if (activeDownloads.has(modelId)) return { ok: false, error: 'Already downloading' }
+
   const modelsDir = join(app.getPath('userData'), 'models')
   await fs.mkdir(modelsDir, { recursive: true })
   const destPath = join(modelsDir, model.filename)
@@ -200,7 +218,8 @@ ipcMain.handle('ai:start-download', async (event, modelId) => {
     const response = await fetch(model.url, { signal: controller.signal })
     if (!response.ok) throw new Error(`HTTP ${response.status}`)
 
-    const total = parseInt(response.headers.get('content-length') ?? '0', 10)
+    const totalHeader = response.headers.get('content-length')
+    const total = totalHeader ? parseInt(totalHeader, 10) : 0
     let received = 0
     let lastReport = Date.now()
     let lastBytes = 0
@@ -208,29 +227,33 @@ ipcMain.handle('ai:start-download', async (event, modelId) => {
     const fileHandle = await fs.open(tmpPath, 'w')
     const writer = fileHandle.createWriteStream()
 
-    for await (const chunk of response.body) {
-      if (controller.signal.aborted) break
-      writer.write(chunk)
-      received += chunk.length
+    try {
+      for await (const chunk of response.body) {
+        if (controller.signal.aborted) break
+        const ok = writer.write(chunk)
+        if (!ok) await new Promise(r => writer.once('drain', r))
+        received += chunk.length
 
-      const now = Date.now()
-      if (now - lastReport >= 250) {
-        const elapsed = (now - lastReport) / 1000
-        const speedBps = (received - lastBytes) / elapsed
-        lastReport = now
-        lastBytes = received
-        event.sender.send('ai:download-progress', { modelId, bytesReceived: received, totalBytes: total, speedBps })
+        const now = Date.now()
+        if (now - lastReport >= 250) {
+          const elapsed = (now - lastReport) / 1000
+          const speedBps = (received - lastBytes) / elapsed
+          lastReport = now
+          lastBytes = received
+          safeSend(event.sender, 'ai:download-progress', { modelId, bytesReceived: received, totalBytes: total, speedBps })
+        }
       }
-    }
 
-    await new Promise((resolve, reject) => {
-      writer.end((err) => err ? reject(err) : resolve())
-    })
-    await fileHandle.close()
+      await new Promise((resolve, reject) => {
+        writer.end((err) => err ? reject(err) : resolve())
+      })
+    } finally {
+      await fileHandle.close().catch(() => {})
+    }
 
     if (!controller.signal.aborted) {
       await fs.rename(tmpPath, destPath)
-      event.sender.send('ai:download-complete', { modelId, path: destPath })
+      safeSend(event.sender, 'ai:download-complete', { modelId, path: destPath })
       return { ok: true, path: destPath }
     } else {
       await fs.unlink(tmpPath).catch(() => {})
@@ -239,7 +262,7 @@ ipcMain.handle('ai:start-download', async (event, modelId) => {
   } catch (err) {
     await fs.unlink(tmpPath).catch(() => {})
     if (!controller.signal.aborted) {
-      event.sender.send('ai:download-error', { modelId, error: err.message })
+      safeSend(event.sender, 'ai:download-error', { modelId, error: err.message })
     }
     return { ok: false, error: err.message }
   } finally {
