@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types'
 import { useAIStatus } from '../../hooks/useAIStatus'
 
 export default function StatusBar({ onOpenAISettings }) {
@@ -19,7 +20,7 @@ export default function StatusBar({ onOpenAISettings }) {
       gap: 6,
     }}>
       <button
-        onClick={available ? undefined : onOpenAISettings}
+        onClick={available ? undefined : () => onOpenAISettings?.()}
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -48,4 +49,8 @@ export default function StatusBar({ onOpenAISettings }) {
       </button>
     </div>
   )
+}
+
+StatusBar.propTypes = {
+  onOpenAISettings: PropTypes.func,
 }
