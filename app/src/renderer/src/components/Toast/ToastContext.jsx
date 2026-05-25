@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useRef, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 
 const ToastContext = createContext(null)
 
@@ -11,6 +11,14 @@ export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([])
   // Track timers so we can clear them on dismiss/replace
   const timers = useRef({})
+
+  // Clear all pending timers on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(timers.current).forEach(clearTimeout)
+      timers.current = {}
+    }
+  }, [])
 
   // dismiss: sets exiting:true so ToastItem plays the fade-out animation
   const dismiss = useCallback((id) => {
