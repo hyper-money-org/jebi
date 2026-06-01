@@ -11,6 +11,7 @@ import HistoryPanel from "../HistoryPanel";
 import RunPanel from "../RunPanel";
 import SlashCommandPanel from "../SlashCommandPanel";
 import PortsPanel from "../PortsPanel";
+import CustomListPanel from "../CustomListPanel";
 import { usePreferences } from "../../hooks/usePreferences";
 
 const BUFFER_CAP = 512 * 1024; // 512 KB
@@ -53,6 +54,9 @@ export default function OutputArea({
   onPortsSelect,
   onPortsKill,
   onPortsClose,
+  customList = null,
+  onCustomListSelect,
+  onCustomListClose,
 }) {
   const { prefs, activeColors } = usePreferences();
   const rootRef = useRef(null);
@@ -433,6 +437,14 @@ export default function OutputArea({
           onSelect={onPortsSelect}
           onKill={onPortsKill}
           onClose={onPortsClose}
+        />
+      )}
+      {customList && (
+        <CustomListPanel
+          title={customList.title}
+          items={customList.items}
+          onSelect={onCustomListSelect}
+          onClose={onCustomListClose}
         />
       )}
       {stickyCommand !== null && (

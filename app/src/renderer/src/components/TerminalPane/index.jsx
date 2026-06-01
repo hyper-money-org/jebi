@@ -44,6 +44,7 @@ export default function TerminalPane({
   const [slashOpen, setSlashOpen] = useState(false);
   const [slashQuery, setSlashQuery] = useState('');
   const [portsOpen, setPortsOpen] = useState(false);
+  const [customList, setCustomList] = useState(null); // { title, items } | null
   const [banner, setBanner] = useState(null); // { text: string, type: 'error'|'info'|'warning'|'suggestion' }
   const [cwd, setCwd] = useState("");
   const [exitCode, setExitCode] = useState(0);
@@ -233,6 +234,7 @@ export default function TerminalPane({
       newTab: () => onNewTab?.(),
       toggleTabPosition: () => onToggleTabPosition?.(),
       runCommand: (cmd) => handleSubmit(cmd),
+      openCustomList: (data) => setCustomList(data),
       openFileList: () => setFileListOpen(true),
       openHistory: () => setHistoryOpen(true),
       openRun: () => setRunOpen(true),
@@ -243,7 +245,7 @@ export default function TerminalPane({
     [paneId, onSplitRight, onSplitDown, onClose, onNewTab, onToggleTabPosition],
   );
 
-  callbacksRef.current.fileListOpen = fileListOpen || historyOpen || runOpen || slashOpen || portsOpen;
+  callbacksRef.current.fileListOpen = fileListOpen || historyOpen || runOpen || slashOpen || portsOpen || !!customList;
 
   const handleFileListSelect = useCallback((entry) => {
     setFileListOpen(false)
@@ -260,6 +262,11 @@ export default function TerminalPane({
   const handleRunSelect = useCallback((command) => {
     setRunOpen(false)
     handleSubmit(command)
+  }, [handleSubmit])
+
+  const handleCustomListSelect = useCallback((item) => {
+    setCustomList(null)
+    handleSubmit(item.command)
   }, [handleSubmit])
 
   const handlePortsSelect = useCallback((entry) => {
@@ -335,6 +342,9 @@ export default function TerminalPane({
         onPortsSelect={handlePortsSelect}
         onPortsKill={handlePortsKill}
         onPortsClose={() => setPortsOpen(false)}
+        customList={customList}
+        onCustomListSelect={handleCustomListSelect}
+        onCustomListClose={() => setCustomList(null)}
       />
 
       {banner?.text && (
@@ -344,7 +354,7 @@ export default function TerminalPane({
           onDismiss={() => setBanner(null)}
         />
       )}
-      {!running && !fileListOpen && !historyOpen && !runOpen && !portsOpen && (
+      {!running && !fileListOpen && !historyOpen && !runOpen && !portsOpen && !customList && (
         <InputBar
           ref={inputBarRef}
           onSubmit={handleSubmit}
