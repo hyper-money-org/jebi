@@ -50,7 +50,7 @@ function joinPath(dir, name) {
 
 const BACK_ENTRY = { name: '..', isDir: true, size: 0, mtime: 0, mode: 0, isMeta: true }
 
-export default function FileListPanel({ cwd, onSelect, onClose }) {
+export default function FileListPanel({ cwd, onSelect, onPreview, onClose }) {
   const [currentDir, setCurrentDir] = useState(cwd)
   const [entries, setEntries] = useState([])
   const [selected, setSelected] = useState(0)
@@ -110,7 +110,9 @@ export default function FileListPanel({ cwd, onSelect, onClose }) {
       if (e.key === 'Enter') {
         e.preventDefault()
         if (entry.isMeta) { navigate(parentDir(currentDir)); return }
-        onSelect({ ...entry, fullPath: joinPath(currentDir, entry.name) })
+        const full = { ...entry, fullPath: joinPath(currentDir, entry.name) }
+        if (entry.isDir) onSelect(full)
+        else onPreview?.(full)
       }
     }
     window.addEventListener('keydown', onKey, true)
@@ -174,7 +176,7 @@ export default function FileListPanel({ cwd, onSelect, onClose }) {
           {currentDir}
         </span>
         <span style={{ color: 'var(--text-muted)', fontSize: 11, whiteSpace: 'nowrap', flexShrink: 0 }}>
-          ↑↓ · → expand · enter · esc
+          ↑↓ navigate · → expand dir · enter select · esc close
         </span>
       </div>
 
@@ -201,7 +203,9 @@ export default function FileListPanel({ cwd, onSelect, onClose }) {
             key={entry.isMeta ? '..' : entry.name}
             onClick={() => {
               if (entry.isMeta) { navigate(parentDir(currentDir)); return }
-              onSelect({ ...entry, fullPath: joinPath(currentDir, entry.name) })
+              const full = { ...entry, fullPath: joinPath(currentDir, entry.name) }
+              if (entry.isDir) onSelect(full)
+              else onPreview?.(full)
             }}
             onMouseEnter={() => setSelected(i)}
             style={{

@@ -7,6 +7,7 @@ import { WebglAddon } from "@xterm/addon-webgl";
 import { PromptAddon } from "../../addons/PromptAddon";
 import Prompt from "../Prompt";
 import FileListPanel from "../FileListPanel";
+import FilePreviewPanel from "../FilePreviewPanel";
 import HistoryPanel from "../HistoryPanel";
 import RunPanel from "../RunPanel";
 import SlashCommandPanel from "../SlashCommandPanel";
@@ -37,7 +38,10 @@ export default function OutputArea({
   fileListOpen = false,
   fileListCwd = '',
   onFileListSelect,
+  onFileListPreview,
   onFileListClose,
+  previewFile = null,
+  onPreviewClose,
   historyOpen = false,
   history = [],
   onHistorySelect,
@@ -408,7 +412,14 @@ export default function OutputArea({
         <FileListPanel
           cwd={fileListCwd}
           onSelect={onFileListSelect}
+          onPreview={onFileListPreview}
           onClose={onFileListClose}
+        />
+      )}
+      {previewFile && (
+        <FilePreviewPanel
+          filePath={previewFile}
+          onClose={onPreviewClose}
         />
       )}
       {historyOpen && (

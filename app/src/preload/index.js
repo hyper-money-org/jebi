@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld('electron', {
   fs: {
     listDir: (dirPath) => ipcRenderer.invoke('fs:list-dir', dirPath),
     readFile: (filePath) => ipcRenderer.invoke('fs:read-file', filePath),
+    writeFile: (filePath, content) => ipcRenderer.invoke('fs:write-file', filePath, content),
   },
   ports: {
     list: () => ipcRenderer.invoke('ports:list'),

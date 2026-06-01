@@ -45,6 +45,7 @@ export default function TerminalPane({
   const [slashQuery, setSlashQuery] = useState('');
   const [portsOpen, setPortsOpen] = useState(false);
   const [customList, setCustomList] = useState(null); // { title, items } | null
+  const [previewFile, setPreviewFile] = useState(null); // file path | null
   const [banner, setBanner] = useState(null); // { text: string, type: 'error'|'info'|'warning'|'suggestion' }
   const [cwd, setCwd] = useState("");
   const [exitCode, setExitCode] = useState(0);
@@ -247,14 +248,19 @@ export default function TerminalPane({
     [paneId, onSplitRight, onSplitDown, onClose, onNewTab, onToggleTabPosition],
   );
 
-  callbacksRef.current.fileListOpen = fileListOpen || historyOpen || runOpen || slashOpen || portsOpen || !!customList;
+  callbacksRef.current.fileListOpen = fileListOpen || historyOpen || runOpen || slashOpen || portsOpen || !!customList || !!previewFile;
 
   const handleFileListSelect = useCallback((entry) => {
     setFileListOpen(false)
     const q = (s) => `'${s.replace(/'/g, "'\\''")}'`
     const target = entry.fullPath ?? entry.name
-    handleSubmit(entry.isDir ? `cd ${q(target)}` : `cat ${q(target)}`)
+    handleSubmit(`cd ${q(target)}`)
   }, [handleSubmit])
+
+  const handleFilePreview = useCallback((entry) => {
+    setFileListOpen(false)
+    setPreviewFile(entry.fullPath ?? entry.name)
+  }, [])
 
   const handleHistorySelect = useCallback((command) => {
     setHistoryOpen(false)
@@ -327,7 +333,10 @@ export default function TerminalPane({
         fileListOpen={fileListOpen}
         fileListCwd={cwd}
         onFileListSelect={handleFileListSelect}
+        onFileListPreview={handleFilePreview}
         onFileListClose={() => setFileListOpen(false)}
+        previewFile={previewFile}
+        onPreviewClose={() => setPreviewFile(null)}
         historyOpen={historyOpen}
         history={getHistory()}
         onHistorySelect={handleHistorySelect}
@@ -356,7 +365,7 @@ export default function TerminalPane({
           onDismiss={() => setBanner(null)}
         />
       )}
-      {!running && !fileListOpen && !historyOpen && !runOpen && !portsOpen && !customList && (
+      {!running && !fileListOpen && !historyOpen && !runOpen && !portsOpen && !customList && !previewFile && (
         <InputBar
           ref={inputBarRef}
           onSubmit={handleSubmit}

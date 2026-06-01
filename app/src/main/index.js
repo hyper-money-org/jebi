@@ -206,6 +206,22 @@ ipcMain.handle('fs:read-file', async (_, filePath) => {
   }
 })
 
+ipcMain.handle('fs:write-file', async (_, filePath, content) => {
+  if (typeof filePath !== 'string' || filePath === '') return { ok: false, error: 'Invalid path' }
+  let abs = filePath
+  if (abs === '~' || abs.startsWith('~/')) {
+    abs = abs === '~' ? homedir() : join(homedir(), abs.slice(2))
+  }
+  if (!isAbsolute(abs)) return { ok: false, error: 'Path must be absolute' }
+  abs = resolve(abs)
+  try {
+    await fs.writeFile(abs, content, 'utf8')
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, error: e.message }
+  }
+})
+
 // ─── User commands IPC handlers ──────────────────────────────────────────────
 
 function userCommandsPath() {
