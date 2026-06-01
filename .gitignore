@@ -2,5 +2,6 @@
 **/bin
 **/out
 **/dist
+core/term-core
 .DS_Store
 .claude
