@@ -11,6 +11,7 @@ const InputBar = forwardRef(function InputBar(
     isNavigatingHistory,
     commandContext,
     onDismissExplanation,
+    onSlashChange,
     cwd,
     exitCode,
     gitData,
@@ -45,6 +46,9 @@ const InputBar = forwardRef(function InputBar(
   // callbacksRef keeps latest prop values accessible inside the CodeMirror
   // keybinding closures without rebuilding the EditorView when props change.
   const callbacksRef = useRef({});
+  callbacksRef.current.onValueChange = (value) => {
+    onSlashChange?.(value.startsWith('/') ? value.slice(1) : null);
+  };
   callbacksRef.current.onSubmit = onSubmit;
   callbacksRef.current.onNavigateHistory = onNavigateHistory;
   callbacksRef.current.resetNavigation = resetNavigation;

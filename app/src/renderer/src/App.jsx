@@ -14,6 +14,7 @@ import PaneContextMenu from './components/PaneContextMenu'
 import { ToastProvider, useToast } from './components/Toast/ToastContext.jsx'
 import ToastManager from './components/Toast'
 import { useAIStatus } from './hooks/useAIStatus'
+import { setUserCommands } from './commands/registry'
 
 function createTab(counter) {
   const leaf = createLeaf()
@@ -54,6 +55,10 @@ function AppInner() {
   const [ctxMenu, setCtxMenu] = useState(null) // { x, y, tabId, paneId, paneCount }
   const { show: showToast } = useToast()
   const aiStatus = useAIStatus()
+
+  useEffect(() => {
+    window.electron?.commands?.load().then((cmds) => setUserCommands(cmds ?? []))
+  }, [])
 
   // Open prefs to a specific tab (e.g. 'ai' from the status bar chip or toast).
   const openPreferences = useCallback((tab = null) => {

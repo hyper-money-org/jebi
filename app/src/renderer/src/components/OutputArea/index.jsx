@@ -6,6 +6,11 @@ import "@xterm/xterm/css/xterm.css";
 import { WebglAddon } from "@xterm/addon-webgl";
 import { PromptAddon } from "../../addons/PromptAddon";
 import Prompt from "../Prompt";
+import FileListPanel from "../FileListPanel";
+import HistoryPanel from "../HistoryPanel";
+import RunPanel from "../RunPanel";
+import SlashCommandPanel from "../SlashCommandPanel";
+import PortsPanel from "../PortsPanel";
 import { usePreferences } from "../../hooks/usePreferences";
 
 const BUFFER_CAP = 512 * 1024; // 512 KB
@@ -28,6 +33,26 @@ export default function OutputArea({
   isVisible,
   tabAccent = '#3b82f6',
   renderer = DEFAULT_RENDERER,
+  fileListOpen = false,
+  fileListCwd = '',
+  onFileListSelect,
+  onFileListClose,
+  historyOpen = false,
+  history = [],
+  onHistorySelect,
+  onHistoryClose,
+  runOpen = false,
+  runCwd = '',
+  onRunSelect,
+  onRunClose,
+  slashOpen = false,
+  slashQuery = '',
+  onSlashSelect,
+  onSlashClose,
+  portsOpen = false,
+  onPortsSelect,
+  onPortsKill,
+  onPortsClose,
 }) {
   const { prefs, activeColors } = usePreferences();
   const rootRef = useRef(null);
@@ -129,16 +154,16 @@ export default function OutputArea({
             fitAddon.fit();
             term.refresh(0, term.rows - 1);
 
-            // Full-screen terminal apps usually repaint on SIGWINCH, but Claude
-            // can leave stale cells after pane splits. Ctrl+L asks the running
-            // app to redraw after the PTY size has reached it.
-            // Always cancel any pending timer — guards against stale \x0c arriving
-            // at the shell prompt when a command finishes before the timer fires.
+            // Full-screen TUI apps (vim, htop, claude) don't always repaint on
+            // SIGWINCH alone after a pane split. Ctrl+L triggers a forced redraw,
+            // but ONLY when a TUI is actually active — sending it to the shell
+            // prompt (cd, ls, etc.) injects a literal ^L into the command buffer.
             clearTimeout(redrawTimerRef.current);
             if (redrawRunningCommand && callbacksRef.current.isRunning?.()) {
-              // Re-check isRunning at fire time: the command may finish within 35ms.
               redrawTimerRef.current = setTimeout(() => {
-                if (callbacksRef.current.isRunning?.()) sendRaw("\x0c");
+                if (callbacksRef.current.isRunning?.() && promptAddonRef.current?._tuiActive) {
+                  sendRaw("\x0c");
+                }
               }, 35);
             }
           });
@@ -162,6 +187,8 @@ export default function OutputArea({
         }
 
         term.attachCustomKeyEventHandler((e) => {
+          // File list panel captures all keyboard input while open.
+          if (callbacksRef.current.fileListOpen) return false;
           if (e.type === "keydown" && e.metaKey && e.key === "c" && !e.shiftKey && !e.altKey) {
             const sel = term.getSelection();
             if (sel && !promptAddonRef.current?._tuiActive) {
@@ -373,6 +400,41 @@ export default function OutputArea({
         ref={xtermContainerRef}
         className="flex-1 min-h-0 bg-[var(--bg-surface)]"
       />
+      {fileListOpen && (
+        <FileListPanel
+          cwd={fileListCwd}
+          onSelect={onFileListSelect}
+          onClose={onFileListClose}
+        />
+      )}
+      {historyOpen && (
+        <HistoryPanel
+          history={history}
+          onSelect={onHistorySelect}
+          onClose={onHistoryClose}
+        />
+      )}
+      {runOpen && (
+        <RunPanel
+          cwd={runCwd}
+          onSelect={onRunSelect}
+          onClose={onRunClose}
+        />
+      )}
+      {slashOpen && (
+        <SlashCommandPanel
+          query={slashQuery}
+          onSelect={onSlashSelect}
+          onClose={onSlashClose}
+        />
+      )}
+      {portsOpen && (
+        <PortsPanel
+          onSelect={onPortsSelect}
+          onKill={onPortsKill}
+          onClose={onPortsClose}
+        />
+      )}
       {stickyCommand !== null && (
         <div
           style={{

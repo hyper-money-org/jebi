@@ -189,7 +189,7 @@ func truncate(s string, max int) string {
 	if len(s) <= max {
 		return s
 	}
-	return s[:max] + "…"
+	return "…" + s[len(s)-max:]
 }
 
 // BuildExplainMessages returns the message list for an error explanation request.
@@ -317,28 +317,29 @@ func BuildProjectContextMessages(info ProjectInfo) []ChatMessage {
 
 	system := "You are a terminal assistant. A user just cd'd into a directory.\n" +
 		"You will receive structured facts about the project. Write ONE short sentence surfacing something genuinely useful the user should know.\n\n" +
-		"IMPORTANT: Only use the facts provided. Do not invent or infer anything not in the facts.\n" +
-		"- virtualenv / venv concerns apply ONLY when Python is detected\n" +
-		"- npm / yarn / node_modules concerns apply ONLY when Node.js is detected\n" +
-		"- Never mix concepts from different ecosystems\n\n" +
-		"Focus on actionable status:\n" +
-		"- Uncommitted or unpushed git changes\n" +
-		"- Python venv not activated (only when Python is in the facts)\n" +
-		"- Dirty git state on a non-main branch\n" +
-		"- Notable combinations (e.g. Go + Kubernetes context pointing to production)\n\n" +
-		"Rules:\n" +
+		"STRICT RULES — violating any of these means output empty string:\n" +
+		"- Only use concepts that belong to the technologies listed in the facts.\n" +
+		"- virtualenv / venv: ONLY mention when Python appears in the facts.\n" +
+		"- npm / yarn / node_modules: ONLY when Node.js appears in the facts.\n" +
+		"- go mod / go build: ONLY when Go appears in the facts.\n" +
+		"- Never apply a concept from one ecosystem to another language.\n\n" +
+		"Focus on actionable status (only when the relevant technology is in the facts):\n" +
+		"- Uncommitted git changes on a non-main branch\n" +
+		"- Python venv not activated (Python facts only)\n" +
+		"- Notable cross-technology combinations (e.g. Go + Kubernetes context pointing to prod)\n\n" +
+		"Output rules:\n" +
 		"- One sentence only. No labels. No markdown except backticks.\n" +
 		"- Do NOT suggest what command to run next.\n" +
-		"- If there is nothing genuinely useful to surface, output empty string.\n" +
-		"- Generic observations like 'this is a Node.js project' are not useful — output empty string.\n\n" +
+		"- Generic observations ('this is a Go project') → output empty string.\n" +
+		"- If nothing genuinely useful → output empty string.\n\n" +
 		"Good examples:\n" +
+		"- \"On branch `feature/auth` with 3 uncommitted files.\"\n" +
 		"- \"Python 3.11 detected but no virtualenv is active — dependencies may not resolve.\"\n" +
-		"- \"On branch `feature/auth` with 5 uncommitted files.\"\n" +
 		"- \"Go service with Kubernetes context pointing to `prod-cluster`.\"\n\n" +
 		"Bad examples (output empty string for these):\n" +
-		"- \"This is a Next.js project.\"\n" +
-		"- \"Node.js project with no virtualenv active.\"  ← wrong: virtualenv is Python only\n" +
-		"- \"You can run npm run dev to start.\"\n\n" +
+		"- \"This is a Go project.\"\n" +
+		"- \"Go 1.26 is installed but no virtualenv is active.\"  ← WRONG: virtualenv is Python-only\n" +
+		"- \"You can run go build to compile.\"\n\n" +
 		"Return only the sentence, or empty string."
 
 	user := fmt.Sprintf("Directory: %s\nDetected: %s", info.Dir, detected)

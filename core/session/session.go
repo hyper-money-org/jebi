@@ -194,11 +194,18 @@ func (s *Session) Start() {
 				break
 			}
 			if len(entry.Output) > 600 {
-				entry.Output = entry.Output[:600] + "…"
+				entry.Output = "…" + entry.Output[len(entry.Output)-600:]
 			}
 			s.contextEntries = append(s.contextEntries, entry)
 			if len(s.contextEntries) > maxContextEntries {
 				s.contextEntries = s.contextEntries[len(s.contextEntries)-maxContextEntries:]
+			}
+			// Skip AI for trivial commands and exit 127 (command not found — self-explanatory).
+			if entry.ExitCode == 127 {
+				break
+			}
+			if entry.ExitCode == 0 && isTrivialCommand(entry.Command) {
+				break
 			}
 			if s.cancelSuggest != nil {
 				s.cancelSuggest()
@@ -268,6 +275,29 @@ func (s *Session) Start() {
 			return
 		}
 	}
+}
+
+var trivialCommands = map[string]bool{
+	"ls": true, "ll": true, "la": true, "l": true,
+	"pwd": true, "cd": true,
+	"cat": true, "less": true, "more": true, "head": true, "tail": true,
+	"echo": true, "printf": true,
+	"clear": true, "reset": true,
+	"whoami": true, "id": true, "hostname": true, "uname": true, "date": true,
+	"history": true, "which": true, "type": true, "where": true,
+	"exit": true, "logout": true, "q": true,
+}
+
+// isTrivialCommand returns true when the command is read-only or produces no
+// meaningful follow-up — so we skip the AI suggestion call for it.
+func isTrivialCommand(command string) bool {
+	cmd := strings.TrimSpace(command)
+	// Extract the bare command name (strip path and arguments).
+	if i := strings.IndexByte(cmd, ' '); i > 0 {
+		cmd = cmd[:i]
+	}
+	cmd = filepath.Base(cmd)
+	return trivialCommands[cmd]
 }
 
 // readDir returns up to 60 entries in dir — plain names for files, name+/ for

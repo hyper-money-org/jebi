@@ -13,7 +13,6 @@ import {
 } from '@codemirror/autocomplete'
 import { SHELL_COLORS } from '../../utils/tokenizeShell'
 import bulbIconUrl from '../../assets/bulb.png'
-import { makeSlashCommandSource } from '../../commands/completionSource'
 import { makeFilePathSource } from '../../commands/filePathSource'
 import { tryExecuteSlashCommand } from '../../commands/executor'
 
@@ -337,8 +336,12 @@ export function useShellEditor(callbacksRef) {
     const cssVar = (name) => style.getPropertyValue(name).trim()
 
     const ghostPlugin = makeGhostPlugin(callbacksRef)
-    const slashSource = makeSlashCommandSource(callbacksRef)
     const filePathSource = makeFilePathSource(callbacksRef)
+    const valueChangeListener = EditorView.updateListener.of((update) => {
+      if (update.docChanged) {
+        callbacksRef.current.onValueChange?.(update.state.doc.toString())
+      }
+    })
 
     const submitKeymap = keymap.of([
       {
@@ -526,7 +529,7 @@ export function useShellEditor(callbacksRef) {
           //   - filePathSource: gates on context.explicit (Tab-only). Will not
           //     spontaneously open while typing — protects Up/Down history nav.
           autocompletion({
-            override: [slashSource, filePathSource],
+            override: [filePathSource],
             activateOnTyping: true,
             closeOnBlur: true,
             icons: false,
@@ -548,6 +551,7 @@ export function useShellEditor(callbacksRef) {
           Prec.highest(submitKeymap),
           keymap.of(defaultKeymap),
           ghostPlugin,
+          valueChangeListener,
         ],
       }),
       parent: container,

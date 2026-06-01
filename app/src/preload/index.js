@@ -3,6 +3,17 @@ import { contextBridge, ipcRenderer } from 'electron'
 contextBridge.exposeInMainWorld('electron', {
   openPath: (path) => ipcRenderer.invoke('open-path', path),
   listFiles: (dirPath) => ipcRenderer.invoke('list-files', dirPath),
+  fs: {
+    listDir: (dirPath) => ipcRenderer.invoke('fs:list-dir', dirPath),
+    readFile: (filePath) => ipcRenderer.invoke('fs:read-file', filePath),
+  },
+  ports: {
+    list: () => ipcRenderer.invoke('ports:list'),
+  },
+  commands: {
+    load: () => ipcRenderer.invoke('commands:load'),
+    save: (cmds) => ipcRenderer.invoke('commands:save', cmds),
+  },
   onAppShortcut: (cb) => {
     const handler = (_, name) => cb(name)
     ipcRenderer.on('app-shortcut', handler)

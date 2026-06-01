@@ -1,6 +1,9 @@
 import { app, BrowserWindow, globalShortcut, ipcMain, shell } from 'electron'
 import { join, isAbsolute, resolve } from 'path'
-import { spawn } from 'child_process'
+import { spawn, execFile } from 'child_process'
+import { promisify } from 'util'
+
+const execFileAsync = promisify(execFile)
 import { promises as fs } from 'fs'
 import { homedir } from 'os'
 import net from 'net'
@@ -154,6 +157,106 @@ ipcMain.handle('list-files', async (_, dirPath) => {
   try {
     const entries = await fs.readdir(abs, { withFileTypes: true })
     return entries.map((e) => ({ name: e.name, isDir: e.isDirectory() }))
+  } catch {
+    return []
+  }
+})
+
+ipcMain.handle('fs:list-dir', async (_, dirPath) => {
+  if (typeof dirPath !== 'string' || dirPath === '') return []
+  let abs = dirPath
+  if (abs === '~' || abs.startsWith('~/')) {
+    abs = abs === '~' ? homedir() : join(homedir(), abs.slice(2))
+  }
+  if (!isAbsolute(abs)) return []
+  abs = resolve(abs)
+  try {
+    const entries = await fs.readdir(abs, { withFileTypes: true })
+    const results = await Promise.all(entries.map(async (e) => {
+      try {
+        const stat = await fs.stat(join(abs, e.name))
+        return { name: e.name, isDir: e.isDirectory(), size: stat.size, mtime: stat.mtimeMs, mode: stat.mode }
+      } catch {
+        return { name: e.name, isDir: e.isDirectory(), size: 0, mtime: 0, mode: 0 }
+      }
+    }))
+    return results.sort((a, b) => {
+      if (a.isDir !== b.isDir) return a.isDir ? -1 : 1
+      return a.name.localeCompare(b.name)
+    })
+  } catch {
+    return []
+  }
+})
+
+ipcMain.handle('fs:read-file', async (_, filePath) => {
+  if (typeof filePath !== 'string' || filePath === '') return null
+  let abs = filePath
+  if (abs === '~' || abs.startsWith('~/')) {
+    abs = abs === '~' ? homedir() : join(homedir(), abs.slice(2))
+  }
+  if (!isAbsolute(abs)) return null
+  abs = resolve(abs)
+  try {
+    const stat = await fs.stat(abs)
+    if (stat.size > 512 * 1024) return null // skip files > 512 KB
+    return await fs.readFile(abs, 'utf8')
+  } catch {
+    return null
+  }
+})
+
+// ─── User commands IPC handlers ──────────────────────────────────────────────
+
+function userCommandsPath() {
+  return join(homedir(), '.config', 'jebi', 'commands.json')
+}
+
+ipcMain.handle('commands:load', async () => {
+  try {
+    const data = await fs.readFile(userCommandsPath(), 'utf8')
+    const parsed = JSON.parse(data)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+})
+
+ipcMain.handle('commands:save', async (_, commands) => {
+  const path = userCommandsPath()
+  await fs.mkdir(join(homedir(), '.config', 'jebi'), { recursive: true })
+  await fs.writeFile(path, JSON.stringify(commands, null, 2), 'utf8')
+  return { ok: true }
+})
+
+// ─── Ports IPC handler ───────────────────────────────────────────────────────
+
+ipcMain.handle('ports:list', async () => {
+  try {
+    const { stdout } = await execFileAsync('lsof', ['-iTCP', '-sTCP:LISTEN', '-P', '-n'], {
+      timeout: 5000,
+    })
+    const lines = stdout.split('\n').slice(1)
+    const seen = new Set()
+    const ports = []
+    for (const line of lines) {
+      if (!line.trim()) continue
+      const parts = line.trim().split(/\s+/)
+      if (parts.length < 9) continue
+      const command = parts[0]
+      const pid = parts[1]
+      // NAME column is second-to-last; last is "(LISTEN)"
+      const nameField = parts[parts.length - 2]
+      const portMatch = nameField.match(/:(\d+)$/)
+      if (!portMatch) continue
+      const port = parseInt(portMatch[1])
+      const addr = nameField.slice(0, nameField.lastIndexOf(':'))
+      const key = `${pid}:${port}`
+      if (seen.has(key)) continue
+      seen.add(key)
+      ports.push({ command, pid, port, addr })
+    }
+    return ports.sort((a, b) => a.port - b.port)
   } catch {
     return []
   }

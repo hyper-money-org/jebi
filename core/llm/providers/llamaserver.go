@@ -187,14 +187,23 @@ func resolveBinaryPath() (string, error) {
 
 	if exe, err := os.Executable(); err == nil {
 		log.Printf("llm: executable path: %s", exe)
-		c1 := filepath.Join(filepath.Dir(exe), name)
+		exeDir := filepath.Dir(exe)
+		// <exe_dir>/llama-server  (packaged: binary next to term-core)
+		c1 := filepath.Join(exeDir, name)
 		checked = append(checked, c1)
 		if fileExists(c1) {
 			return c1, nil
 		}
-		c2 := filepath.Join(filepath.Dir(exe), "..", name)
+		// <exe_dir>/bin/llama-server  (dev: core/bin/ layout)
+		c2 := filepath.Join(exeDir, "bin", name)
 		checked = append(checked, c2)
-		if abs, err := filepath.Abs(c2); err == nil && fileExists(abs) {
+		if fileExists(c2) {
+			return c2, nil
+		}
+		// <exe_dir>/../llama-server  (some packaged layouts)
+		c3 := filepath.Join(exeDir, "..", name)
+		checked = append(checked, c3)
+		if abs, err := filepath.Abs(c3); err == nil && fileExists(abs) {
 			return abs, nil
 		}
 	}

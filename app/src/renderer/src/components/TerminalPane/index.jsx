@@ -38,6 +38,12 @@ export default function TerminalPane({
     resetNavigation,
   } = useSharedHistory();
   const [running, setRunning] = useState(false);
+  const [fileListOpen, setFileListOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [runOpen, setRunOpen] = useState(false);
+  const [slashOpen, setSlashOpen] = useState(false);
+  const [slashQuery, setSlashQuery] = useState('');
+  const [portsOpen, setPortsOpen] = useState(false);
   const [banner, setBanner] = useState(null); // { text: string, type: 'error'|'info'|'warning'|'suggestion' }
   const [cwd, setCwd] = useState("");
   const [exitCode, setExitCode] = useState(0);
@@ -113,8 +119,8 @@ export default function TerminalPane({
     setExitCode(code);
     callbacksRef.current.currentExitCode = code;
     callbacksRef.current.onExitCodeDecoration?.(code);
-    if (code === 0 && pendingCommandRef.current)
-      pushHistory(pendingCommandRef.current);
+    if (pendingCommandRef.current)
+      pushHistory(pendingCommandRef.current, code);
     if (code === 0) setBanner(null);
     pendingCommandRef.current = null;
     setRunning(false);
@@ -226,11 +232,74 @@ export default function TerminalPane({
       closePane: () => onClose?.(),
       newTab: () => onNewTab?.(),
       toggleTabPosition: () => onToggleTabPosition?.(),
+      runCommand: (cmd) => handleSubmit(cmd),
+      openFileList: () => setFileListOpen(true),
+      openHistory: () => setHistoryOpen(true),
+      openRun: () => setRunOpen(true),
+      openPorts: () => setPortsOpen(true),
       clearScrollback: () => callbacksRef.current.clearScrollback?.(),
       copyLastOutput: () => callbacksRef.current.copyLastOutput?.(),
     }),
     [paneId, onSplitRight, onSplitDown, onClose, onNewTab, onToggleTabPosition],
   );
+
+  callbacksRef.current.fileListOpen = fileListOpen || historyOpen || runOpen || slashOpen || portsOpen;
+
+  const handleFileListSelect = useCallback((entry) => {
+    setFileListOpen(false)
+    const q = (s) => `'${s.replace(/'/g, "'\\''")}'`
+    const target = entry.fullPath ?? entry.name
+    handleSubmit(entry.isDir ? `cd ${q(target)}` : `cat ${q(target)}`)
+  }, [handleSubmit])
+
+  const handleHistorySelect = useCallback((command) => {
+    setHistoryOpen(false)
+    setTimeout(() => { inputBarRef.current?.setValue(command); inputBarRef.current?.focus() }, 0)
+  }, [])
+
+  const handleRunSelect = useCallback((command) => {
+    setRunOpen(false)
+    handleSubmit(command)
+  }, [handleSubmit])
+
+  const handlePortsSelect = useCallback((entry) => {
+    setPortsOpen(false)
+    handleSubmit(`lsof -p ${entry.pid}`)
+  }, [handleSubmit])
+
+  const handlePortsKill = useCallback((entry) => {
+    setPortsOpen(false)
+    handleSubmit(`kill ${entry.pid}`)
+  }, [handleSubmit])
+
+  const handleSlashChange = useCallback((query) => {
+    if (query === null) {
+      setSlashOpen(false)
+      setSlashQuery('')
+    } else {
+      setSlashOpen(true)
+      setSlashQuery(query)
+    }
+  }, [])
+
+  const handleSlashSelect = useCallback((cmd) => {
+    setSlashOpen(false)
+    setSlashQuery('')
+    setTimeout(() => {
+      inputBarRef.current?.setValue('')
+      inputBarRef.current?.focus()
+    }, 0)
+    cmd.run(commandContext)
+  }, [commandContext])
+
+  const handleSlashClose = useCallback(() => {
+    setSlashOpen(false)
+    setSlashQuery('')
+    setTimeout(() => {
+      inputBarRef.current?.setValue('')
+      inputBarRef.current?.focus()
+    }, 0)
+  }, [])
 
   return (
     <div
@@ -246,6 +315,26 @@ export default function TerminalPane({
         isActive={isActive}
         isVisible={isVisible}
         tabAccent={tabAccent}
+        fileListOpen={fileListOpen}
+        fileListCwd={cwd}
+        onFileListSelect={handleFileListSelect}
+        onFileListClose={() => setFileListOpen(false)}
+        historyOpen={historyOpen}
+        history={getHistory()}
+        onHistorySelect={handleHistorySelect}
+        onHistoryClose={() => setHistoryOpen(false)}
+        runOpen={runOpen}
+        runCwd={cwd}
+        onRunSelect={handleRunSelect}
+        onRunClose={() => setRunOpen(false)}
+        slashOpen={slashOpen}
+        slashQuery={slashQuery}
+        onSlashSelect={handleSlashSelect}
+        onSlashClose={handleSlashClose}
+        portsOpen={portsOpen}
+        onPortsSelect={handlePortsSelect}
+        onPortsKill={handlePortsKill}
+        onPortsClose={() => setPortsOpen(false)}
       />
 
       {banner?.text && (
@@ -255,10 +344,11 @@ export default function TerminalPane({
           onDismiss={() => setBanner(null)}
         />
       )}
-      {!running && (
+      {!running && !fileListOpen && !historyOpen && !runOpen && !portsOpen && (
         <InputBar
           ref={inputBarRef}
           onSubmit={handleSubmit}
+          onSlashChange={handleSlashChange}
           onNavigateHistory={navigateHistory}
           resetNavigation={resetNavigation}
           getHistory={getHistory}
