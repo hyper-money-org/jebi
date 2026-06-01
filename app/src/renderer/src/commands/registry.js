@@ -100,7 +100,7 @@ let _userCommands = []
 
 export function setUserCommands(rawList) {
   _userCommands = rawList
-    .filter((c) => c.id && (c.command || Array.isArray(c.items)))
+    .filter((c) => c.id && (c.command || Array.isArray(c.items) || c.itemsFrom))
     .map((c) => ({
       id: c.id,
       title: c.title ?? c.id,
@@ -108,7 +108,13 @@ export function setUserCommands(rawList) {
       section: c.section ?? 'Custom',
       run: Array.isArray(c.items)
         ? (ctx) => ctx.openCustomList({ title: c.title ?? c.id, items: c.items })
-        : (ctx) => ctx.runCommand(c.command),
+        : c.itemsFrom
+          ? (ctx) => ctx.openCustomList({
+              title: c.title ?? c.id,
+              itemsFrom: c.itemsFrom,
+              onSelectTemplate: c.onSelect ?? '{label}',
+            })
+          : (ctx) => ctx.runCommand(c.command),
     }))
 }
 

@@ -443,6 +443,9 @@ export default function OutputArea({
         <CustomListPanel
           title={customList.title}
           items={customList.items}
+          itemsFrom={customList.itemsFrom}
+          onSelectTemplate={customList.onSelectTemplate}
+          cwd={customList.cwd}
           onSelect={onCustomListSelect}
           onClose={onCustomListClose}
         />

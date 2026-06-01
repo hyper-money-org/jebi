@@ -234,7 +234,9 @@ export default function TerminalPane({
       newTab: () => onNewTab?.(),
       toggleTabPosition: () => onToggleTabPosition?.(),
       runCommand: (cmd) => handleSubmit(cmd),
-      openCustomList: (data) => setCustomList(data),
+      openCustomList: (data) => setCustomList(
+        data.itemsFrom ? { ...data, cwd: callbacksRef.current.currentCwd ?? '' } : data
+      ),
       openFileList: () => setFileListOpen(true),
       openHistory: () => setHistoryOpen(true),
       openRun: () => setRunOpen(true),

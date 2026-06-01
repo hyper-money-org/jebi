@@ -222,6 +222,21 @@ ipcMain.handle('commands:load', async () => {
   }
 })
 
+ipcMain.handle('commands:run-items-from', async (_, { command, cwd }) => {
+  try {
+    const { stdout } = await execFileAsync('/bin/sh', ['-c', command], {
+      cwd: cwd || homedir(),
+      timeout: 8000,
+    })
+    return stdout
+      .split('\n')
+      .map((l) => l.trim())
+      .filter(Boolean)
+  } catch {
+    return []
+  }
+})
+
 ipcMain.handle('commands:save', async (_, commands) => {
   const path = userCommandsPath()
   await fs.mkdir(join(homedir(), '.config', 'jebi'), { recursive: true })

@@ -1,12 +1,29 @@
 import { useState, useEffect, useRef } from 'react'
 
-export default function CustomListPanel({ title, items = [], onSelect, onClose }) {
+export default function CustomListPanel({ title, items: staticItems, itemsFrom, onSelectTemplate, cwd, onSelect, onClose }) {
+  const [items, setItems] = useState(staticItems ?? [])
+  const [loading, setLoading] = useState(!!itemsFrom)
   const [filter, setFilter] = useState('')
   const [selected, setSelected] = useState(0)
   const inputRef = useRef(null)
   const panelRef = useRef(null)
 
-  useEffect(() => { inputRef.current?.focus() }, [])
+  useEffect(() => {
+    if (!itemsFrom) return
+    setLoading(true)
+    window.electron.commands.runItemsFrom(itemsFrom, cwd).then((labels) => {
+      const template = onSelectTemplate ?? '{label}'
+      setItems(labels.map((label) => ({
+        label,
+        command: template.replace(/\{label\}/g, label),
+      })))
+      setLoading(false)
+    })
+  }, [itemsFrom, cwd, onSelectTemplate])
+
+  useEffect(() => {
+    if (!loading) inputRef.current?.focus()
+  }, [loading])
 
   const filtered = filter
     ? items.filter((item) => {
@@ -95,7 +112,12 @@ export default function CustomListPanel({ title, items = [], onSelect, onClose }
 
       {/* List */}
       <div ref={panelRef} style={{ overflowY: 'auto', flex: 1 }}>
-        {filtered.length === 0 && (
+        {loading && (
+          <div style={{ padding: '10px 14px', fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-muted)' }}>
+            Loading…
+          </div>
+        )}
+        {!loading && filtered.length === 0 && (
           <div style={{ padding: '10px 14px', fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-muted)' }}>
             No items match.
           </div>
