@@ -11,7 +11,7 @@
     "postinstall": "node scripts/patch-electron-name.js"
   },
   "build": {
-    "appId": "com.jawahar.term",
+    "appId": "com.jawahar.jebi",
     "productName": "jebi",
     "directories": {
       "output": "dist"
