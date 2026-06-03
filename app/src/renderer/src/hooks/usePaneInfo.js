@@ -21,6 +21,10 @@ export function setPaneInfo(paneId, patch) {
   emit()
 }
 
+export function getPaneInfo(paneId) {
+  return store.get(paneId)
+}
+
 export function deletePaneInfo(paneId) {
   if (store.delete(paneId)) emit()
 }

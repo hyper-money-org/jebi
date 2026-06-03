@@ -14,6 +14,7 @@ export default function TerminalPane({
   isActive,
   isVisible,
   tabAccent,
+  initialCwd,
   onFocus,
   onSplitRight,
   onSplitDown,
@@ -29,7 +30,7 @@ export default function TerminalPane({
   // the latest values without causing extra renders or requiring re-registration.
   const callbacksRef = useRef({});
   const { prefs } = usePreferences();
-  const { sendInput, sendRaw, sendResize, sendAIAppend } = useTerminal(paneId, callbacksRef);
+  const { sendInput, sendRaw, sendResize, sendAIAppend } = useTerminal(paneId, callbacksRef, initialCwd);
   const {
     push: pushHistory,
     navigate: navigateHistory,

@@ -77,7 +77,7 @@ func resolveShell(cfg Config) string {
 
 // New creates a Session, opens a PTY, spawns the shell, and injects the shell hook.
 // The caller must call Close when the session ends.
-func New(conn connection, provider llm.Provider) (*Session, error) {
+func New(conn connection, provider llm.Provider, initialCwd string) (*Session, error) {
 	s := &Session{
 		conn:     conn,
 		w:        wire.New(conn),
@@ -95,6 +95,11 @@ func New(conn connection, provider llm.Provider) (*Session, error) {
 	unix.IoctlSetWinsize(int(pts.Fd()), unix.TIOCSWINSZ, &unix.Winsize{Row: 24, Col: 40})
 
 	cmd := exec.Command(shell, "-l")
+	if initialCwd != "" {
+		if info, err := os.Stat(initialCwd); err == nil && info.IsDir() {
+			cmd.Dir = initialCwd
+		}
+	}
 	cmd.Env = append(os.Environ(),
 		"TERM=xterm-256color",
 		"COLORTERM=truecolor",

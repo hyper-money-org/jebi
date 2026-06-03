@@ -66,7 +66,8 @@ func main() {
 			return
 		}
 
-		s, err := session.New(conn, provider)
+		initialCwd := r.URL.Query().Get("cwd")
+		s, err := session.New(conn, provider, initialCwd)
 		if err != nil {
 			log.Println("session:", err)
 			conn.Close()

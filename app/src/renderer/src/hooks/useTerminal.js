@@ -2,7 +2,7 @@ import { useEffect, useRef, useCallback } from 'react'
 import * as wire from '../wire'
 import { notifyAIStatus } from './useAIStatus'
 
-export function useTerminal(paneId, callbacksRef) {
+export function useTerminal(paneId, callbacksRef, initialCwd) {
   const ws = useRef(null)
   const terminalSizeRef = useRef(null)
 
@@ -11,7 +11,10 @@ export function useTerminal(paneId, callbacksRef) {
     let retryTimer = null
 
     function connect() {
-      const socket = new WebSocket('ws://localhost:7070')
+      const url = initialCwd
+        ? `ws://localhost:7070/?cwd=${encodeURIComponent(initialCwd)}`
+        : 'ws://localhost:7070'
+      const socket = new WebSocket(url)
       ws.current = socket
       socket.onopen = () => {
         console.log(`[terminal:${paneId}] connected`)

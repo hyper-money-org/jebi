@@ -199,7 +199,7 @@ ipcMain.handle('fs:read-file', async (_, filePath) => {
   abs = resolve(abs)
   try {
     const stat = await fs.stat(abs)
-    if (stat.size > 512 * 1024) return null // skip files > 512 KB
+    if (stat.size > 5 * 1024 * 1024) return null // skip files > 5 MB
     return await fs.readFile(abs, 'utf8')
   } catch {
     return null

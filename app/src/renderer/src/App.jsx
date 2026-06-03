@@ -4,7 +4,7 @@ import TerminalPane from './components/TerminalPane'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useSessionStore } from './hooks/useSessionStore.jsx'
 import { usePaneResize } from './hooks/usePaneResize'
-import { deletePaneInfo } from './hooks/usePaneInfo'
+import { deletePaneInfo, getPaneInfo } from './hooks/usePaneInfo'
 import { triggerCopy } from './hooks/paneCopyRegistry'
 import { triggerFocus } from './hooks/paneFocusRegistry'
 import { createLeaf, splitLeaf, removeLeaf, collectPaneIds, computePaneRects, computeDividers } from './utils/layoutTree'
@@ -38,6 +38,8 @@ export default function App() {
 
 function AppInner() {
   const tabCounterRef = useRef(1)
+  // Maps newPaneId → inherited cwd string, consumed once by TerminalPane on mount.
+  const paneInitialCwdRef = useRef({})
   const [tabs, setTabs] = useState(() => [createTab(tabCounterRef.current)])
   const [activeTabId, setActiveTabId] = useState(tabs[0].id)
   const [tabBarPosition, setTabBarPosition] = useState('top')
@@ -129,9 +131,11 @@ function AppInner() {
   }, [])
 
   const splitPane = useCallback((tabId, paneId, direction) => {
+    const sourceCwd = getPaneInfo(paneId)?.cwd
     setTabs(prev => prev.map(t => {
       if (t.id !== tabId) return t
       const { tree, newPaneId } = splitLeaf(t.layout, paneId, direction)
+      if (sourceCwd) paneInitialCwdRef.current[newPaneId] = sourceCwd
       return { ...t, layout: tree, activePaneId: newPaneId }
     }))
   }, [])
@@ -377,6 +381,7 @@ function AppInner() {
                 isActive={isActive}
                 isVisible={tab.id === activeTabId}
                 tabAccent={tab.accent ?? '#3b82f6'}
+                initialCwd={paneInitialCwdRef.current[paneId]}
                 onFocus={() => setActivePane(tab.id, paneId)}
                 onSplitRight={() => splitPane(tab.id, paneId, 'horizontal')}
                 onSplitDown={() => splitPane(tab.id, paneId, 'vertical')}
