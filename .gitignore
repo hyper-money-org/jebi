@@ -3,5 +3,6 @@
 **/out
 **/dist
 core/term-core
+core/main
 .DS_Store
 .claude
