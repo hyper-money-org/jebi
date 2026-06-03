@@ -29,7 +29,7 @@ function renderTabIcon(info, size) {
   return <FsIcon kind="folder" size={size} />;
 }
 
-const TAB_WIDTH = 180;
+const TAB_WIDTH = 220;
 const TAB_HEIGHT = 32;
 const LEFT_TAB_H = 34;
 
@@ -106,7 +106,7 @@ function OverflowTabItem({ tab, isActive, onSelect, onClose }) {
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
           fontFamily: "var(--font-mono)",
-          fontSize: "12px",
+          fontSize: "var(--font-size-ui)",
           color: isActive ? "var(--text-primary)" : "var(--text-muted)",
           direction: isCmd ? "ltr" : "rtl",
         }}
@@ -620,6 +620,7 @@ function TabPill({ tab, isActive, onSelect, onClose, onContextMenu, tabNum }) {
           whiteSpace: "nowrap",
           direction: isCmd ? "ltr" : "rtl",
           fontFamily: "var(--font-mono)",
+          fontSize: "var(--font-size-ui)",
           letterSpacing: "0.01em",
           color: textColor,
         }}
@@ -679,7 +680,7 @@ function LeftTabPill({ tab, isActive, onSelect, onClose, onContextMenu, tabNum }
           whiteSpace: "nowrap",
           direction: isCmd ? "ltr" : "rtl",
           fontFamily: "var(--font-mono)",
-          fontSize: "12.5px",
+          fontSize: "var(--font-size-ui)",
           letterSpacing: "0.01em",
           color: textColor,
         }}

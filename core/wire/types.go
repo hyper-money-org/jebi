@@ -39,4 +39,13 @@ const (
 	TypeAIBannerToken = "ai_banner_token"
 	// TypeAIBannerCancel clears a partially-streamed banner (context cancelled mid-stream).
 	TypeAIBannerCancel = "ai_banner_cancel"
+
+	// TypeAsk is sent frontend → backend: JSON {"history":[…ChatMessage],"query":"…"}
+	TypeAsk = "ask"
+	// TypeAskChunk is streamed backend → frontend: one token string.
+	TypeAskChunk = "ask_chunk"
+	// TypeAskDone signals stream complete, no payload.
+	TypeAskDone = "ask_done"
+	// TypeAskError signals a streaming failure: error string payload.
+	TypeAskError = "ask_error"
 )

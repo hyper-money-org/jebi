@@ -13,7 +13,9 @@ import RunPanel from "../RunPanel";
 import SlashCommandPanel from "../SlashCommandPanel";
 import PortsPanel from "../PortsPanel";
 import CustomListPanel from "../CustomListPanel";
+import AskPanel from "../AskPanel";
 import { usePreferences } from "../../hooks/usePreferences";
+import EmptyState from "./EmptyState";
 
 const BUFFER_CAP = 512 * 1024; // 512 KB
 
@@ -61,6 +63,11 @@ export default function OutputArea({
   customList = null,
   onCustomListSelect,
   onCustomListClose,
+  askOpen = false,
+  askMessages = [],
+  onAskSend,
+  onAskClose,
+  hasCommands = false,
 }) {
   const { prefs, activeColors } = usePreferences();
   const rootRef = useRef(null);
@@ -253,6 +260,7 @@ export default function OutputArea({
       // Slash-command hooks — invoked from the InputBar's command executor
       // via the pane's commandContext.
       callbacksRef.current.clearScrollback = () => term.clear();
+      callbacksRef.current.clearScreen = () => { promptAddon.clear(); term.clear(); };
       callbacksRef.current.copyLastOutput = () => promptAddon.copyLastOutput();
       callbacksRef.current.copySelection = () => {
         const sel = term.getSelection();
@@ -408,6 +416,7 @@ export default function OutputArea({
         ref={xtermContainerRef}
         className="flex-1 min-h-0 bg-[var(--bg-surface)]"
       />
+      {!hasCommands && <EmptyState />}
       {fileListOpen && (
         <FileListPanel
           cwd={fileListCwd}
@@ -459,6 +468,13 @@ export default function OutputArea({
           cwd={customList.cwd}
           onSelect={onCustomListSelect}
           onClose={onCustomListClose}
+        />
+      )}
+      {askOpen && (
+        <AskPanel
+          messages={askMessages}
+          onSend={onAskSend}
+          onClose={onAskClose}
         />
       )}
       {stickyCommand !== null && (

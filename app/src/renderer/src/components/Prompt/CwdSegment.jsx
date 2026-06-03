@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { VscFolder, VscFolderActive } from "react-icons/vsc";
+import folderIcon from "../../assets/file-icons/folder.png";
 import {
   neonGlassStyle,
   neonGlassHoverStyle,
@@ -15,9 +15,8 @@ export default function CwdSegment({
   minimal,
 }) {
   const [hovered, setHovered] = useState(false);
-  const compact = rowHeight != null;
   const tint = "var(--prompt-cwd-tint)";
-  const base = neonGlassStyle({ tint, compact, rowHeight, onClick, minimal });
+  const base = neonGlassStyle({ tint, onClick, minimal, accentBorder: true });
   const style = hovered ? { ...base, ...neonGlassHoverStyle(tint, minimal) } : base;
 
   const parts = buildParts(cwd);
@@ -29,17 +28,18 @@ export default function CwdSegment({
       onPointerDown={stopSegmentEvents}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      tabIndex={-1}
       title={cwd}
       style={style}
     >
-      <VscFolder size={iconSize ?? 12} style={{ flexShrink: 0 }} />
+      <img src={folderIcon} style={{ width: 14, height: 14, flexShrink: 0 }} alt="" />
       {parts.map((p, i) => (
         <span
           key={i}
           style={{ display: "inline-flex", alignItems: "center", gap: "3px" }}
         >
-          {i > 0 && <span style={{ opacity: 0.7, fontSize: "8" }}>/</span>}
-          <span style={{ opacity: 1 }}>
+          {i > 0 && <span style={{ opacity: 0.45, fontSize: "0.8em" }}>›</span>}
+          <span style={{ fontWeight: 700, fontSize: "1.05em" }}>
             {p}
           </span>
         </span>

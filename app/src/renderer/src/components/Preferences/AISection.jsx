@@ -3,8 +3,9 @@ import { usePreferences } from '../../hooks/usePreferences'
 import { ToggleRow } from './Toggle'
 import ModelCard from './ModelCard'
 
+
 export default function AISection() {
-  const { prefs, setAiExplainErrors, setAiDirectoryContext } = usePreferences()
+  const { prefs, setAiExplainErrors, setAiDirectoryContext, setAiCommandSuggestions } = usePreferences()
   const [runtimeTab, setRuntimeTab] = useState('builtin')
   const [aiConfig, setAiConfig] = useState(null)
   const [models, setModels] = useState([])
@@ -191,6 +192,12 @@ export default function AISection() {
       {/* Features toggles */}
       <div style={{ ...sectionLabel, marginTop: 20 }}>Features</div>
       <ToggleRow
+        label="Command suggestions"
+        description="Show AI-suggested next commands after each run."
+        checked={prefs.aiCommandSuggestions ?? true}
+        onChange={setAiCommandSuggestions}
+      />
+      <ToggleRow
         label="Explain command errors"
         description="Show an AI explanation banner when a command exits with an error."
         checked={prefs.aiExplainErrors}
@@ -202,6 +209,7 @@ export default function AISection() {
         checked={prefs.aiDirectoryContext}
         onChange={setAiDirectoryContext}
       />
+
     </div>
   )
 }

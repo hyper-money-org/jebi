@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react'
 import AppearanceSection from './AppearanceSection'
 import AISection from './AISection'
-import PromptSection from './PromptSection'
+import CustomCommandsEditor from './CustomCommandsEditor'
+import AboutSection from './AboutSection'
+import { PaintBrush, Sparkle, Terminal, Info } from '@phosphor-icons/react'
 
 const TABS = [
-  { id: 'appearance', label: 'Appearance' },
-  { id: 'prompt',     label: 'Prompt' },
-  { id: 'ai',         label: 'AI' },
+  { id: 'appearance', label: 'Appearance', Icon: PaintBrush },
+  { id: 'ai',         label: 'AI',         Icon: Sparkle    },
+  { id: 'commands',   label: 'Commands',   Icon: Terminal   },
+  { id: 'about',      label: 'About',      Icon: Info       },
 ]
 
 export default function PreferencesModal({ isOpen, onClose, initialTab }) {
@@ -103,32 +106,45 @@ export default function PreferencesModal({ isOpen, onClose, initialTab }) {
         {/* Tab strip */}
         <div style={{
           display: 'flex',
+          justifyContent: 'center',
+          gap: 2,
+          padding: '8px 16px',
           borderBottom: '1px solid var(--border)',
-          padding: '0 20px',
           flexShrink: 0,
-          gap: 4,
         }}>
-          {TABS.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              style={{
-                padding: '10px 12px',
-                fontSize: '13px',
-                fontFamily: 'var(--font-ui)',
-                fontWeight: 500,
-                background: 'none',
-                border: 'none',
-                borderBottom: activeTab === tab.id ? '2px solid var(--accent)' : '2px solid transparent',
-                marginBottom: '-1px',
-                color: activeTab === tab.id ? 'var(--accent)' : 'var(--text-muted)',
-                cursor: 'pointer',
-                transition: 'color 0.15s',
-              }}
-            >
-              {tab.label}
-            </button>
-          ))}
+          {TABS.map(tab => {
+            const active = activeTab === tab.id
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 4,
+                  padding: '6px 14px',
+                  borderRadius: 8,
+                  border: 'none',
+                  background: active ? 'var(--bg-elevated)' : 'none',
+                  color: active ? 'var(--text-primary)' : 'var(--text-muted)',
+                  cursor: 'pointer',
+                  transition: 'background 0.15s, color 0.15s',
+                  minWidth: 64,
+                }}
+              >
+                <tab.Icon size={20} weight={active ? 'fill' : 'regular'} />
+                <span style={{
+                  fontSize: 11,
+                  fontFamily: 'var(--font-ui)',
+                  fontWeight: active ? 600 : 400,
+                  whiteSpace: 'nowrap',
+                }}>
+                  {tab.label}
+                </span>
+              </button>
+            )
+          })}
         </div>
 
         {/* Content */}
@@ -140,8 +156,9 @@ export default function PreferencesModal({ isOpen, onClose, initialTab }) {
           scrollbarColor: 'var(--border) transparent',
         }}>
           {activeTab === 'appearance' && <AppearanceSection />}
-          {activeTab === 'prompt'     && <PromptSection />}
           {activeTab === 'ai'         && <AISection />}
+          {activeTab === 'commands'   && <CustomCommandsEditor />}
+          {activeTab === 'about'      && <AboutSection />}
         </div>
       </div>
     </>

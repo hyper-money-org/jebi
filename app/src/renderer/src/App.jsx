@@ -205,13 +205,18 @@ function AppInner() {
     splitPane(activeTab.id, activeTab.activePaneId, direction)
   }, [activeTab, splitPane])
 
-  // Cmd+Shift+D is intercepted via before-input-event in main (Chromium swallows it otherwise)
+  // Cmd+Shift+D is intercepted via before-input-event in main (Chromium swallows it otherwise).
+  // Menu item clicks also route through here via app-shortcut IPC.
   useEffect(() => {
     return window.electron?.onAppShortcut?.((name) => {
-      if (name === 'split-down') splitActivePane('vertical')
-      if (name === 'copy') triggerCopy(activeTab.activePaneId)
+      if (name === 'split-down')   splitActivePane('vertical')
+      if (name === 'split-right')  splitActivePane('horizontal')
+      if (name === 'copy')         triggerCopy(activeTab.activePaneId)
+      if (name === 'new-tab')      addTab()
+      if (name === 'close-tab')    closeActivePane()
+      if (name === 'preferences')  setIsPrefsOpen(true)
     })
-  }, [splitActivePane, activeTab.activePaneId])
+  }, [splitActivePane, activeTab.activePaneId, addTab, closeActivePane])
 
   const setTabAccent = useCallback((tabId, accent) => {
     setTabs(prev => prev.map(t => t.id === tabId ? { ...t, accent } : t))

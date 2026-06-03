@@ -60,10 +60,10 @@ func (p *LlamaServerProvider) CheckAvailability() (string, bool) {
 		return "llama-server binary not found at: " + p.binaryPath, false
 	}
 	if p.modelPath == "" {
-		return "no model path configured — set llm.model to a .gguf file path in ~/.config/term/settings.json", false
+		return "no model path configured — set llm.model to a .gguf file path in ~/.config/jebi/settings.json", false
 	}
 	if !fileExists(p.modelPath) {
-		return "model file not found: " + p.modelPath + "\nDownload a .gguf model and set its path in ~/.config/term/settings.json: {\"llm\":{\"provider\":\"llama-server\",\"model\":\"/path/to/model.gguf\"}}", false
+		return "model file not found: " + p.modelPath + "\nDownload a .gguf model and set its path in ~/.config/jebi/settings.json: {\"llm\":{\"provider\":\"llama-server\",\"model\":\"/path/to/model.gguf\"}}", false
 	}
 	return "", true
 }

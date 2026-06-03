@@ -12,7 +12,6 @@ import {
   completionStatus,
 } from '@codemirror/autocomplete'
 import { SHELL_COLORS } from '../../utils/tokenizeShell'
-import bulbIconUrl from '../../assets/bulb.png'
 import { makeFilePathSource } from '../../commands/filePathSource'
 import { tryExecuteSlashCommand } from '../../commands/executor'
 
@@ -140,7 +139,6 @@ function buildHighlightStyle(cssVar) {
 // ─── Ghost text ───────────────────────────────────────────────────────────────
 
 const ghostCycleEffect = StateEffect.define()
-const aiSuggestionEffect = StateEffect.define()
 
 class GhostWidget extends WidgetType {
   constructor(text) {
@@ -161,42 +159,12 @@ class GhostWidget extends WidgetType {
   }
 }
 
-class AIGhostWidget extends WidgetType {
-  constructor(text) {
-    super()
-    this.text = text
-  }
-
-  toDOM() {
-    const wrap = document.createElement('span')
-    wrap.setAttribute('aria-hidden', 'true')
-    wrap.style.cssText = 'display:inline-flex;align-items:center;gap:5px;pointer-events:none;user-select:none;opacity:0.65;'
-
-    const icon = document.createElement('img')
-    icon.src = bulbIconUrl
-    icon.className = 'ai-suggestion-icon'
-    icon.style.cssText = 'width:20px;height:20px;flex-shrink:0;'
-
-    const text = document.createElement('span')
-    text.textContent = this.text
-    text.style.cssText = 'color:var(--text-secondary);'
-
-    // wrap.appendChild(icon)
-    wrap.appendChild(text)
-    return wrap
-  }
-
-  eq(other) {
-    return other.text === this.text
-  }
-}
 
 function makeGhostPlugin(callbacksRef) {
   class GhostTextPlugin {
     constructor(view) {
       this.suggestion = null
       this.matchIndex = 0
-      this.aiSuggestion = null
       this.decorations = Decoration.none
       this._recompute(view)
     }
@@ -207,15 +175,6 @@ function makeGhostPlugin(callbacksRef) {
         for (const e of tr.effects) {
           if (e.is(ghostCycleEffect)) {
             this._cycle(e.value, update.view)
-            cycled = true
-          }
-          if (e.is(aiSuggestionEffect)) {
-            // Only show AI suggestion when editor is empty
-            const doc = update.state.doc.toString()
-            if (!doc.trim()) {
-              this.aiSuggestion = e.value
-              this._buildAIDecoration(update.view)
-            }
             cycled = true
           }
         }
@@ -242,13 +201,9 @@ function makeGhostPlugin(callbacksRef) {
     _recompute(view) {
       const doc = view.state.doc.toString()
       if (!doc.trim()) {
-        // Empty editor: show AI suggestion if one is pending, otherwise clear
-        if (this.aiSuggestion) { this._buildAIDecoration(view); return }
         this._clear()
         return
       }
-      // User has typed something — discard AI suggestion, show history ghost instead
-      this.aiSuggestion = null
       // Don't offer ghost suggestions while the user is walking history;
       // otherwise a fetched entry picks up an unwanted grey tail.
       if (callbacksRef.current.isNavigatingHistory?.()) { this._clear(); return }
@@ -285,23 +240,14 @@ function makeGhostPlugin(callbacksRef) {
       ])
     }
 
-    _buildAIDecoration(view) {
-      if (!this.aiSuggestion) { this.decorations = Decoration.none; return }
-      const widget = new AIGhostWidget(this.aiSuggestion)
-      this.decorations = RangeSet.of([
-        Decoration.widget({ widget, side: 1 }).range(0),
-      ])
-    }
-
     _clear() {
       this.suggestion = null
       this.matchIndex = 0
-      this.aiSuggestion = null
       this.decorations = Decoration.none
     }
 
     accept(view) {
-      const text = this.suggestion ?? this.aiSuggestion
+      const text = this.suggestion
       if (!text) return false
       view.dispatch({
         changes: { from: 0, to: view.state.doc.length, insert: text },
@@ -326,7 +272,6 @@ function makeGhostPlugin(callbacksRef) {
 export function useShellEditor(callbacksRef) {
   const editorContainerRef = useRef(null)
   const viewRef = useRef(null)
-  const dispatchAISuggestionRef = useRef(null)
 
   useEffect(() => {
     const container = editorContainerRef.current
@@ -349,11 +294,6 @@ export function useShellEditor(callbacksRef) {
         run(view) {
           let text = view.state.doc.toString()
           if (!text.trim()) {
-            // Empty editor with AI suggestion: accept into editor only, don't submit yet.
-            const plugin = view.plugin(ghostPlugin)
-            if (plugin?.aiSuggestion) {
-              plugin.accept(view)
-            }
             return true
           }
 
@@ -380,8 +320,6 @@ export function useShellEditor(callbacksRef) {
         key: 'Escape',
         run(view) {
           callbacksRef.current.onDismissExplanation?.()
-          const plugin = view.plugin(ghostPlugin)
-          if (plugin?.aiSuggestion) { plugin._clear(); return true }
           if (view.state.doc.length === 0) return false
           view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: '' } })
           callbacksRef.current.resetNavigation?.()
@@ -469,10 +407,7 @@ export function useShellEditor(callbacksRef) {
           }
 
           const { head } = view.state.selection.main
-          // Accept AI suggestion before the empty-doc guard so Tab doesn't blur
           if (head === 0) {
-            const plugin = view.plugin(ghostPlugin)
-            if (plugin?.aiSuggestion) return plugin.accept(view)
             return true // consume Tab — never let it blur the input
           }
 
@@ -558,14 +493,12 @@ export function useShellEditor(callbacksRef) {
     })
 
     viewRef.current = view
-    dispatchAISuggestionRef.current = (cmd) => view.dispatch({ effects: aiSuggestionEffect.of(cmd) })
     view.focus()
     return () => {
       view.destroy()
       viewRef.current = null
-      dispatchAISuggestionRef.current = null
     }
   }, [])
 
-  return { editorContainerRef, viewRef, dispatchAISuggestionRef }
+  return { editorContainerRef, viewRef }
 }

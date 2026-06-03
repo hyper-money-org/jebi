@@ -1,5 +1,5 @@
 {
-  "name": "term",
+  "name": "jebi",
   "version": "0.1.0",
   "description": "A modern developer terminal",
   "main": "out/main/index.js",
@@ -7,11 +7,12 @@
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "preview": "electron-vite preview",
-    "pack": "electron-builder"
+    "pack": "electron-builder",
+    "postinstall": "node scripts/patch-electron-name.js"
   },
   "build": {
     "appId": "com.jawahar.term",
-    "productName": "term",
+    "productName": "jebi",
     "directories": {
       "output": "dist"
     },

@@ -76,6 +76,7 @@ export function applyThemeToCSSVars(colors, fontSize, fontFamily) {
   }
   if (fontSize) {
     el.style.setProperty('--font-size-mono', `${fontSize}px`)
+    el.style.setProperty('--font-size-ui', `${fontSize}px`)
   }
   if (fontFamily) {
     el.style.setProperty('--font-mono', fontFamily)

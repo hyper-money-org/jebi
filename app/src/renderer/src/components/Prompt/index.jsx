@@ -1,4 +1,37 @@
 import { useState, useSyncExternalStore } from "react";
+
+function SuggestionChip({ cmd, onPick }) {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <button
+      tabIndex={-1}
+      onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); onPick?.(cmd) }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        padding: '1px 8px',
+        borderRadius: 3,
+        border: '1px solid color-mix(in srgb, var(--text-muted) 22%, transparent)',
+        background: hovered
+          ? 'color-mix(in srgb, var(--text-muted) 14%, var(--bg-elevated))'
+          : 'var(--bg-elevated)',
+        fontFamily: 'var(--font-mono)',
+        fontSize: 'var(--font-size-mono)',
+        color: 'var(--text-primary)',
+        cursor: 'pointer',
+        whiteSpace: 'nowrap',
+        userSelect: 'none',
+        flexShrink: 0,
+        margin: 4,
+        transition: 'background 0.1s',
+      }}
+    >
+      {cmd}
+    </button>
+  )
+}
 import { VscCopy, VscCheck, VscDebugRestart, VscWatch } from "react-icons/vsc";
 import CwdSegment from "./CwdSegment";
 import GitSegment from "./GitSegment";
@@ -56,6 +89,8 @@ export default function Prompt({
   onReplay,
   startTime,
   duration,
+  aiSuggestions = [],
+  onSuggestionPick,
   gitData,
   onGitClick,
   nodeData,
@@ -360,6 +395,11 @@ export default function Prompt({
 
         {/* Spacer */}
         <div style={{ flex: 1 }} />
+
+        {/* AI suggestion chips — right-aligned in the prompt row */}
+        {aiSuggestions.length > 0 && aiSuggestions.map((cmd, i) => (
+          <SuggestionChip key={i} cmd={cmd} onPick={onSuggestionPick} />
+        ))}
 
         {/* Timing — always visible but minimal; hover reveals full timestamp */}
         {duration != null && (

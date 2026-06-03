@@ -4,19 +4,9 @@ export function stopSegmentEvents(e) {
   e.preventDefault()
 }
 
-function promptVar(tint, suffix) {
-  const match = /^var\((--prompt-[^)]+)-tint\)$/.exec(tint)
-  return match ? `var(${match[1]}-${suffix})` : null
-}
-
-// Neon glass pill: translucent tinted background + left border accent.
-// compact/rowHeight used only in xterm decoration mode.
-// minimal: strips background and border, showing only icon + colored text.
-export function neonGlassStyle({ tint, compact, rowHeight, onClick, minimal }) {
-  const bg = promptVar(tint, 'bg')
-  const textColor = '#ffffff'
-  const surface = bg ?? `color-mix(in srgb, ${tint} 24%, #10131a)`
-
+// Flat neutral pill. accentBorder: true on CwdSegment only — draws the tab
+// accent as the left border. All other segments use a dim neutral separator.
+export function neonGlassStyle({ tint, onClick, minimal, accentBorder = false }) {
   if (minimal) {
     return {
       display: 'inline-flex',
@@ -25,14 +15,13 @@ export function neonGlassStyle({ tint, compact, rowHeight, onClick, minimal }) {
       lineHeight: 1,
       padding: '3px 6px',
       background: 'transparent',
-      color: `color-mix(in srgb, ${tint} 82%, #ffffff)`,
+      color: 'var(--text-primary)',
       border: 'none',
       flexShrink: 0,
       whiteSpace: 'nowrap',
       fontFamily: 'var(--font-mono)',
       fontSize: 'var(--font-size-mono)',
-      fontWeight: 800,
-      textShadow: '0 0 1px rgba(255,255,255,0.45), 0 1px 1px rgba(0,0,0,0.65)',
+      fontWeight: 600,
       cursor: onClick ? 'pointer' : 'default',
       userSelect: 'none',
     }
@@ -40,21 +29,24 @@ export function neonGlassStyle({ tint, compact, rowHeight, onClick, minimal }) {
   return {
     display: 'inline-flex',
     alignItems: 'center',
-    gap: '5px',
+    gap: '6px',
     lineHeight: 1,
     padding: '5px 10px',
-    background: `linear-gradient(90deg, color-mix(in srgb, ${tint} 38%, #000000) 0%, ${surface} 100%)`,
-    color: textColor,
-    borderLeft: `4px solid color-mix(in srgb, ${tint} 94%, #ffffff)`,
-    // boxShadow: `inset 0 1px 0 rgba(255,255,255,0.16), inset 0 -1px 0 rgba(0,0,0,0.35), 0 0 0 1px color-mix(in srgb, ${tint} 18%, transparent)`,
+    background: 'color-mix(in srgb, var(--text-muted) 10%, var(--bg-elevated))',
+    color: 'var(--text-primary)',
+    borderLeft: accentBorder
+      ? `3px solid color-mix(in srgb, ${tint} 75%, transparent)`
+      : `3px solid color-mix(in srgb, ${tint} 35%, transparent)`,
+    borderTop: 'none',
+    borderRight: 'none',
+    borderBottom: 'none',
     flexShrink: 0,
     whiteSpace: 'nowrap',
     fontFamily: 'var(--font-mono)',
     fontSize: 'var(--font-size-mono)',
-    fontWeight: 800,
-    textShadow: '0 0 1px rgba(255,255,255,0.35), 0 1px 1px rgba(0,0,0,0.7)',
+    fontWeight: 600,
     cursor: onClick ? 'pointer' : 'default',
-    transition: 'background 0.15s ease, box-shadow 0.15s ease',
+    transition: 'background 0.15s ease',
     userSelect: 'none',
   }
 }
@@ -64,7 +56,6 @@ export function neonGlassHoverStyle(tint, minimal) {
     return { opacity: 0.75 }
   }
   return {
-    background: `linear-gradient(90deg, color-mix(in srgb, ${tint} 42%, var(--bg-elevated)) 0%, color-mix(in srgb, ${tint} 26%, var(--bg-elevated)) 100%)`,
-    boxShadow: `inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -1px 0 rgba(0,0,0,0.2), -2px 0 8px color-mix(in srgb, ${tint} 24%, transparent)`,
+    background: 'color-mix(in srgb, var(--text-muted) 8%, var(--bg-elevated))',
   }
 }

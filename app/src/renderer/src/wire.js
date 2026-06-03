@@ -32,3 +32,8 @@ export const TypeAIExplanation  = 'ai_explanation'
 export const TypeAIBannerStart  = 'ai_banner_start'
 export const TypeAIBannerToken  = 'ai_banner_token'
 export const TypeAIBannerCancel = 'ai_banner_cancel'
+
+export const TypeAsk      = 'ask'
+export const TypeAskChunk = 'ask_chunk'
+export const TypeAskDone  = 'ask_done'
+export const TypeAskError = 'ask_error'

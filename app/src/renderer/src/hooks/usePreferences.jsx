@@ -1,9 +1,10 @@
-import { createContext, useContext, useState, useEffect, useMemo } from 'react'
+import { createContext, useContext, useState, useEffect, useMemo, useRef } from 'react'
 import { THEMES } from '../preferences/themes'
 import { DEFAULT_PREFS } from '../preferences/defaults'
 import { applyThemeToCSSVars } from '../preferences/cssVars'
 import { setPromptStyleId } from '../preferences/promptStyles'
 import { setAllSegmentPrefs, SEGMENT_MAP } from '../preferences/segments'
+import { showStatusMessage } from './useStatusMessage'
 
 const STORAGE_KEY = 'term-prefs'
 
@@ -18,6 +19,9 @@ function loadPrefs() {
 const PreferencesContext = createContext(null)
 
 export function PreferencesProvider({ children }) {
+  const isFirstRender = useRef(true)
+  const saveTimerRef = useRef(null)
+
   const [prefs, setPrefs] = useState(() => {
     const loaded = loadPrefs()
     // Apply immediately so there's no flash of default colors on first paint.
@@ -27,8 +31,7 @@ export function PreferencesProvider({ children }) {
     applyThemeToCSSVars(colors, loaded.fontSize, loaded.fontFamily)
     // Seed module-level stores so xterm-decoration React roots
     // (outside this provider) pick up the user's choices on first paint.
-    setPromptStyleId(loaded.promptStyleId)
-    if (loaded.promptSegments) setAllSegmentPrefs(loaded.promptSegments)
+    setPromptStyleId('pill')
     return loaded
   })
 
@@ -39,9 +42,12 @@ export function PreferencesProvider({ children }) {
       ? prefs.customColors
       : THEMES[prefs.themeId]?.colors ?? THEMES['default'].colors
     applyThemeToCSSVars(colors, prefs.fontSize, prefs.fontFamily)
-    setPromptStyleId(prefs.promptStyleId)
-    if (prefs.promptSegments) setAllSegmentPrefs(prefs.promptSegments)
+    setPromptStyleId('pill')
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs)) } catch {}
+
+    if (isFirstRender.current) { isFirstRender.current = false; return }
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+    saveTimerRef.current = setTimeout(() => showStatusMessage('Preferences saved'), 400)
   }, [prefs])
 
   const activeColors = useMemo(() =>
@@ -91,6 +97,10 @@ export function PreferencesProvider({ children }) {
     setPrefs(prev => ({ ...prev, aiDirectoryContext: value }))
   }
 
+  function setAiCommandSuggestions(value) {
+    setPrefs(prev => ({ ...prev, aiCommandSuggestions: value }))
+  }
+
   function setSegmentEnabled(id, enabled) {
     const def = SEGMENT_MAP[id]
     if (def?.required) return
@@ -100,7 +110,7 @@ export function PreferencesProvider({ children }) {
     }))
   }
 
-  const value = { prefs, activeColors, setTheme, setCustomColor, setFontFamily, setFontSize, setPromptStyle, setAiExplainErrors, setAiDirectoryContext, setSegmentEnabled }
+  const value = { prefs, activeColors, setTheme, setCustomColor, setFontFamily, setFontSize, setPromptStyle, setAiExplainErrors, setAiDirectoryContext, setAiCommandSuggestions, setSegmentEnabled }
 
   return (
     <PreferencesContext.Provider value={value}>

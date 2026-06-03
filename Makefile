@@ -1,7 +1,7 @@
 CORE_DIR    := core
 APP_DIR     := app
 BINARY      := term-core
-APP_NAME    := term
+APP_NAME    := jebi
 APP_BUNDLE  := $(APP_DIR)/dist/mac-arm64/$(APP_NAME).app
 INSTALL_DIR := /Applications
 
@@ -27,12 +27,9 @@ install:
 	cp -r "$(APP_BUNDLE)" "$(INSTALL_DIR)/$(APP_NAME).app"
 	@echo "Installed → $(INSTALL_DIR)/$(APP_NAME).app"
 
-## dev: run Go core + Electron dev server together (Ctrl-C stops both)
+## dev: build Go core then start Electron dev server
 dev:
-	(cd $(CORE_DIR) && go run .) & \
-	CORE_PID=$$!; \
-	trap "kill $$CORE_PID 2>/dev/null" EXIT INT TERM; \
-	cd $(APP_DIR) && npm run dev
+	cd $(CORE_DIR) && go build -o $(BINARY) . && cd ../$(APP_DIR) && npm run dev
 
 ## clean: remove build artifacts
 clean:

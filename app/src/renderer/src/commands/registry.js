@@ -11,6 +11,13 @@
 
 export const ALL_COMMANDS = [
   {
+    id: 'ask',
+    title: 'Ask AI',
+    description: 'Ask a question about your terminal session',
+    section: 'Terminal',
+    run: (ctx) => ctx.openAsk(),
+  },
+  {
     id: 'run',
     title: 'Run script',
     description: 'Run a project script (npm, make, go, cargo…)',

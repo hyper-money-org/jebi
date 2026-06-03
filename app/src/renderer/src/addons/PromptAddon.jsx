@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client";
 import Prompt from "../components/Prompt";
+import { showStatusMessage } from "../hooks/useStatusMessage";
 
 // Rows for the prompt elements line (➜, cwd, etc.)
 const PROMPT_HEADER_ROWS = 2;
@@ -44,6 +45,17 @@ export class PromptAddon {
         d.dispose();
       } catch {}
     });
+    this._roots = [];
+    this._decorations = [];
+    this._elements = [];
+    this._commands = [];
+  }
+
+  // Clears all rendered prompt decorations and resets internal state.
+  // Call alongside term.clear() to fully wipe the screen.
+  clear() {
+    this._roots.forEach((r) => { try { r.unmount() } catch {} });
+    this._decorations.forEach((d) => { try { d.dispose() } catch {} });
     this._roots = [];
     this._decorations = [];
     this._elements = [];
@@ -297,7 +309,7 @@ export class PromptAddon {
     entry.onCopy = () => {
       const output = this._getOutput(entry);
       const text = (entry.command ? `$ ${entry.command}\n` : "") + output;
-      navigator.clipboard.writeText(text).catch(() => {});
+      navigator.clipboard.writeText(text).then(() => showStatusMessage('Copied!')).catch(() => {});
     };
 
     // onReplay delegates to the pane-level handler so replay goes through the

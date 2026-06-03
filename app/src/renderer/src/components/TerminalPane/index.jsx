@@ -30,7 +30,7 @@ export default function TerminalPane({
   // the latest values without causing extra renders or requiring re-registration.
   const callbacksRef = useRef({});
   const { prefs } = usePreferences();
-  const { sendInput, sendRaw, sendResize, sendAIAppend } = useTerminal(paneId, callbacksRef, initialCwd);
+  const { sendInput, sendRaw, sendResize, sendAIAppend, sendAsk } = useTerminal(paneId, callbacksRef, initialCwd);
   const {
     push: pushHistory,
     navigate: navigateHistory,
@@ -47,6 +47,10 @@ export default function TerminalPane({
   const [portsOpen, setPortsOpen] = useState(false);
   const [customList, setCustomList] = useState(null); // { title, items } | null
   const [previewFile, setPreviewFile] = useState(null); // file path | null
+  const [aiSuggestions, setAiSuggestions] = useState([]);
+  const [hasCommands, setHasCommands] = useState(false)
+  const [askOpen, setAskOpen] = useState(false);
+  const [askMessages, setAskMessages] = useState([]); // [{ role, content, streaming?, error? }]
   const [banner, setBanner] = useState(null); // { text: string, type: 'error'|'info'|'warning'|'suggestion' }
   const [cwd, setCwd] = useState("");
   const [exitCode, setExitCode] = useState(0);
@@ -132,14 +136,17 @@ export default function TerminalPane({
       inputBarRef.current?.focus();
       // Send the just-completed command + output to the backend for AI suggestion.
       const entry = callbacksRef.current.getLastEntry?.();
-      if (entry) sendAIAppend(entry);
+      if (entry && prefs.aiCommandSuggestions !== false) {
+        setAiSuggestions([]);
+        sendAIAppend(entry);
+      }
     }, 0);
   };
 
-  callbacksRef.current.onAISuggestion = (cmd) => {
-    inputBarRef.current?.setSuggestion(cmd);
+  callbacksRef.current.onAISuggestion = (cmds) => {
+    setAiSuggestions(cmds);
   };
-  callbacksRef.current.onAISuggestError = () => {};
+  callbacksRef.current.onAISuggestError = () => { setAiSuggestions([]); };
   callbacksRef.current.onAIBannerStart = (type) => {
     if (type === 'error' && !prefs.aiExplainErrors) return;
     if (type === 'info'  && !prefs.aiDirectoryContext) return;
@@ -187,10 +194,24 @@ export default function TerminalPane({
   callbacksRef.current.onC       = (data) => { setCData(data);       callbacksRef.current.onCDecoration?.(data); };
   callbacksRef.current.onConda   = (data) => { setCondaData(data);   callbacksRef.current.onCondaDecoration?.(data); };
 
+  const clearScreen = useCallback(() => {
+    setBanner(null);
+    setAiSuggestions([]);
+    setHasCommands(false);
+    callbacksRef.current.clearScreen?.();
+    setTimeout(() => inputBarRef.current?.focus(), 0);
+  }, []);
+
   const handleSubmit = useCallback(
     (command) => {
       setBanner(null);
+      setAiSuggestions([]);
       const trimmed = command.trim();
+      setHasCommands(true);
+      if (trimmed === 'clear') {
+        clearScreen();
+        return;
+      }
       pendingCommandRef.current = trimmed;
       setRunning(true);
       runningRef.current = true;
@@ -216,12 +237,27 @@ export default function TerminalPane({
         });
       });
     },
-    [sendInput, paneId],
+    [sendInput, paneId, clearScreen],
   );
 
   function handleMouseDown() {
     if (!runningRef.current) setTimeout(() => inputBarRef.current?.focus(), 0);
   }
+
+  useEffect(() => {
+    if (!isActive) return;
+    const onKeyDown = (e) => {
+      if (e.metaKey && e.key === 'k') {
+        e.preventDefault();
+        clearScreen();
+      }
+      if (e.metaKey && e.key === 'r') {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isActive, clearScreen]);
 
   // Per-pane slash command context. Each method is a thin adapter over
   // existing pane / app callbacks. Terminal-level methods (clearScrollback,
@@ -243,13 +279,47 @@ export default function TerminalPane({
       openHistory: () => setHistoryOpen(true),
       openRun: () => setRunOpen(true),
       openPorts: () => setPortsOpen(true),
+      openAsk: () => { setAskMessages([]); setAskOpen(true) },
       clearScrollback: () => callbacksRef.current.clearScrollback?.(),
       copyLastOutput: () => callbacksRef.current.copyLastOutput?.(),
     }),
     [paneId, onSplitRight, onSplitDown, onClose, onNewTab, onToggleTabPosition],
   );
 
-  callbacksRef.current.fileListOpen = fileListOpen || historyOpen || runOpen || slashOpen || portsOpen || !!customList || !!previewFile;
+  callbacksRef.current.fileListOpen = fileListOpen || historyOpen || runOpen || slashOpen || portsOpen || !!customList || !!previewFile || askOpen;
+
+  callbacksRef.current.onAskChunk = (token) => {
+    setAskMessages((prev) => {
+      const msgs = [...prev]
+      const last = msgs[msgs.length - 1]
+      if (last?.role === 'assistant' && last.streaming) {
+        msgs[msgs.length - 1] = { ...last, content: last.content + token }
+      }
+      return msgs
+    })
+  }
+  callbacksRef.current.onAskDone = () => {
+    setAskMessages((prev) => {
+      const msgs = [...prev]
+      const last = msgs[msgs.length - 1]
+      if (last?.role === 'assistant' && last.streaming) {
+        msgs[msgs.length - 1] = { ...last, streaming: false }
+      }
+      return msgs
+    })
+  }
+  callbacksRef.current.onAskError = (err) => {
+    setAskMessages((prev) => {
+      const msgs = [...prev]
+      const last = msgs[msgs.length - 1]
+      if (last?.role === 'assistant' && last.streaming) {
+        msgs[msgs.length - 1] = { role: 'assistant', content: err || 'AI not available', error: true }
+      } else {
+        msgs.push({ role: 'assistant', content: err || 'AI not available', error: true })
+      }
+      return msgs
+    })
+  }
 
   const handleFileListSelect = useCallback((entry) => {
     setFileListOpen(false)
@@ -320,6 +390,7 @@ export default function TerminalPane({
   return (
     <div
       className="flex-1 min-h-0 flex flex-col overflow-hidden"
+      style={tabAccent ? { '--accent': tabAccent, '--prompt-cwd-tint': tabAccent } : undefined}
       onClick={onFocus}
       onMouseDown={handleMouseDown}
     >
@@ -357,6 +428,18 @@ export default function TerminalPane({
         customList={customList}
         onCustomListSelect={handleCustomListSelect}
         onCustomListClose={() => setCustomList(null)}
+        hasCommands={hasCommands}
+        askOpen={askOpen}
+        askMessages={askMessages}
+        onAskSend={(history, query) => {
+          setAskMessages((prev) => [
+            ...prev,
+            { role: 'user', content: query },
+            { role: 'assistant', content: '', streaming: true },
+          ])
+          sendAsk(history, query)
+        }}
+        onAskClose={() => { setAskOpen(false); setTimeout(() => inputBarRef.current?.focus(), 0) }}
       />
 
       {banner?.text && (
@@ -366,11 +449,13 @@ export default function TerminalPane({
           onDismiss={() => setBanner(null)}
         />
       )}
-      {!running && !fileListOpen && !historyOpen && !runOpen && !portsOpen && !customList && !previewFile && (
+      {!running && !fileListOpen && !historyOpen && !runOpen && !portsOpen && !customList && !previewFile && !askOpen && (
         <InputBar
           ref={inputBarRef}
           onSubmit={handleSubmit}
           onSlashChange={handleSlashChange}
+          aiSuggestions={aiSuggestions}
+          onSuggestionPick={(cmd) => { setAiSuggestions([]); handleSubmit(cmd); }}
           onNavigateHistory={navigateHistory}
           resetNavigation={resetNavigation}
           getHistory={getHistory}

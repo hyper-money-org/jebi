@@ -1,4 +1,6 @@
-import { app, BrowserWindow, globalShortcut, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, ipcMain, Menu, shell } from 'electron'
+
+app.setName('jebi')
 import { join, isAbsolute, resolve } from 'path'
 import { spawn, execFile } from 'child_process'
 import { promisify } from 'util'
@@ -43,13 +45,127 @@ function safeSend(sender, channel, payload) {
   if (!sender.isDestroyed()) sender.send(channel, payload)
 }
 
+function sendToFocused(channel, payload) {
+  const win = BrowserWindow.getFocusedWindow()
+  if (win && !win.webContents.isDestroyed()) win.webContents.send(channel, payload)
+}
+
+function buildAppMenu() {
+  const template = [
+    {
+      label: 'jebi',
+      submenu: [
+        { label: 'About jebi', role: 'about' },
+        { type: 'separator' },
+        {
+          label: 'Preferences…',
+          accelerator: 'Cmd+,',
+          registerAccelerator: false,
+          click: () => sendToFocused('app-shortcut', 'preferences'),
+        },
+        { type: 'separator' },
+        { role: 'hide' },
+        { role: 'hideOthers' },
+        { role: 'unhide' },
+        { type: 'separator' },
+        { role: 'quit' },
+      ],
+    },
+    {
+      label: 'File',
+      submenu: [
+        { label: 'New Window', accelerator: 'Cmd+N', click: createWindow },
+        {
+          label: 'New Tab',
+          accelerator: 'Cmd+T',
+          registerAccelerator: false,
+          click: () => sendToFocused('app-shortcut', 'new-tab'),
+        },
+        {
+          label: 'Close Tab',
+          accelerator: 'Cmd+W',
+          registerAccelerator: false,
+          click: () => sendToFocused('app-shortcut', 'close-tab'),
+        },
+      ],
+    },
+    {
+      label: 'Edit',
+      submenu: [
+        { role: 'undo' },
+        { role: 'redo' },
+        { type: 'separator' },
+        { role: 'cut' },
+        { role: 'copy' },
+        { role: 'paste' },
+        { role: 'selectAll' },
+        { type: 'separator' },
+        {
+          label: 'Copy Last Output',
+          accelerator: 'Cmd+Shift+C',
+          registerAccelerator: false,
+          click: () => sendToFocused('app-shortcut', 'copy'),
+        },
+      ],
+    },
+    {
+      label: 'View',
+      submenu: [
+        {
+          label: 'Clear Screen',
+          accelerator: 'Cmd+K',
+          registerAccelerator: false,
+          click: () => sendToFocused('app-shortcut', 'clear'),
+        },
+        { type: 'separator' },
+        {
+          label: 'Split Right',
+          accelerator: 'Cmd+D',
+          registerAccelerator: false,
+          click: () => sendToFocused('app-shortcut', 'split-right'),
+        },
+        {
+          label: 'Split Down',
+          accelerator: 'Cmd+Shift+D',
+          registerAccelerator: false,
+          click: () => sendToFocused('app-shortcut', 'split-down'),
+        },
+        { type: 'separator' },
+        { role: 'togglefullscreen' },
+      ],
+    },
+    {
+      role: 'window',
+      submenu: [
+        { role: 'minimize' },
+        { role: 'zoom' },
+        { type: 'separator' },
+        { role: 'front' },
+      ],
+    },
+  ]
+  return Menu.buildFromTemplate(template)
+}
+
 function aiSettingsPath() {
-  return join(homedir(), '.config', 'term', 'settings.json')
+  return join(homedir(), '.config', 'jebi', 'settings.json')
 }
 
 // ─── Go core lifecycle ────────────────────────────────────────────────────────
 
 let coreProcess = null
+let corePort = 7070
+
+function getFreePort() {
+  return new Promise((resolve, reject) => {
+    const srv = net.createServer()
+    srv.listen(0, '127.0.0.1', () => {
+      const { port } = srv.address()
+      srv.close(() => resolve(port))
+    })
+    srv.on('error', reject)
+  })
+}
 
 function coreBinaryPath() {
   const bin = process.platform === 'win32' ? 'term-core.exe' : 'term-core'
@@ -59,11 +175,11 @@ function coreBinaryPath() {
   return join(app.getAppPath(), '..', 'core', bin)
 }
 
-function startCore() {
+function startCore(port) {
   const bin = coreBinaryPath()
   const env = { ...process.env }
   if (app.isPackaged) env.RESOURCES_PATH = process.resourcesPath
-  coreProcess = spawn(bin, [], { stdio: 'pipe', env })
+  coreProcess = spawn(bin, ['--port', String(port)], { stdio: 'pipe', env })
   coreProcess.stdout.on('data', d => console.log('[core]', d.toString().trim()))
   coreProcess.stderr.on('data', d => console.error('[core]', d.toString().trim()))
   coreProcess.on('exit', (code, signal) => {
@@ -139,6 +255,8 @@ function createWindow() {
     win.loadFile(join(__dirname, '../renderer/index.html'))
   }
 }
+
+ipcMain.handle('core:port', () => corePort)
 
 ipcMain.handle('open-path', (_, path) => shell.openPath(path))
 
@@ -308,7 +426,7 @@ ipcMain.handle('ai:save-config', async (_, llmConfig) => {
   let existing = {}
   try { existing = JSON.parse(await fs.readFile(aiSettingsPath(), 'utf8')) } catch {}
   // 2. Write merged settings
-  const dir = join(homedir(), '.config', 'term')
+  const dir = join(homedir(), '.config', 'jebi')
   await fs.mkdir(dir, { recursive: true })
   await fs.writeFile(aiSettingsPath(), JSON.stringify({ ...existing, llm: llmConfig }, null, 2))
   // 3. Restart core
@@ -411,9 +529,11 @@ ipcMain.handle('ai:cancel-download', async (_, modelId) => {
 })
 
 app.whenReady().then(async () => {
-  startCore()
+  Menu.setApplicationMenu(buildAppMenu())
+  corePort = await getFreePort()
+  startCore(corePort)
   try {
-    await waitForCore(7070)
+    await waitForCore(corePort)
   } catch (e) {
     console.error('[core] failed to start:', e)
   }
@@ -424,14 +544,6 @@ app.on('before-quit', () => {
   stopCore()
 })
 
-// Register Cmd+N only while a terminal window is focused so it doesn't
-// fire as a system-wide shortcut when other apps are in the foreground.
-app.on('browser-window-focus', () => {
-  globalShortcut.register('CommandOrControl+N', createWindow)
-})
-app.on('browser-window-blur', () => {
-  globalShortcut.unregister('CommandOrControl+N')
-})
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {

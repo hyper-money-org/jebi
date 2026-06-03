@@ -1,19 +1,18 @@
 import { useState } from 'react'
-import { SiC } from 'react-icons/si'
+import cIcon from '../../assets/c.png'
 import { neonGlassStyle, neonGlassHoverStyle, stopSegmentEvents } from './segmentStyle'
 
 export default function CSegment({ version, onClick, rowHeight, iconSize, minimal }) {
   const [hovered, setHovered] = useState(false)
-  const compact = rowHeight != null
   const tint = 'var(--prompt-c-tint)'
-  const base = neonGlassStyle({ tint, compact, rowHeight, onClick, minimal })
+  const base = neonGlassStyle({ tint, onClick, minimal })
   const style = hovered ? { ...base, ...neonGlassHoverStyle(tint, minimal) } : base
 
   return (
-    <button onClick={onClick} onMouseDown={stopSegmentEvents} onPointerDown={stopSegmentEvents}
+    <button tabIndex={-1} onClick={onClick} onMouseDown={stopSegmentEvents} onPointerDown={stopSegmentEvents}
             onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
             title={`C/C++ ${version}`} style={style}>
-      <SiC size={(iconSize ?? 12) + 1} style={{ flexShrink: 0 }} />
+      <img src={cIcon} style={{ width: 14, height: 14, flexShrink: 0 }} alt="" />
       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '12ch' }}>{version}</span>
     </button>
   )

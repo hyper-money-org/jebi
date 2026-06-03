@@ -35,10 +35,10 @@ var Default = Config{
 	Enabled:     true,
 }
 
-// SettingsPath returns ~/.config/term/settings.json.
+// SettingsPath returns ~/.config/jebi/settings.json.
 func SettingsPath() string {
 	home, _ := os.UserHomeDir()
-	return filepath.Join(home, ".config", "term", "settings.json")
+	return filepath.Join(home, ".config", "jebi", "settings.json")
 }
 
 type settings struct {

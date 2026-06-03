@@ -81,7 +81,7 @@ func (p *OllamaProvider) CheckAvailability() (string, bool) {
 		return "model '" + p.model + "' not found — no models in ollama. Run: ollama pull " + p.model, false
 	}
 	return "model '" + p.model + "' not found in ollama. Available: " + strings.Join(available, ", ") +
-		"\nSet your model in ~/.config/term/settings.json: {\"llm\":{\"model\":\"" + available[0] + "\"}}", false
+		"\nSet your model in ~/.config/jebi/settings.json: {\"llm\":{\"model\":\"" + available[0] + "\"}}", false
 }
 
 func (p *OllamaProvider) StreamQuery(ctx context.Context, req llm.QueryRequest) (<-chan llm.ResponseChunk, error) {

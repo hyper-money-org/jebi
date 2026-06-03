@@ -1,7 +1,10 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -40,10 +43,9 @@ func resolveProvider(cfg config.Config) llm.Provider {
 }
 
 func main() {
-	// Resolve the LLM provider once at startup — shared across all sessions.
-	// llama-server is heavy (loads model into memory), so one instance is correct.
-	// The provider is not yet wired to any session feature; it is loaded here so
-	// future features can access it without startup delay.
+	port := flag.Int("port", 7070, "port to listen on")
+	flag.Parse()
+
 	cfg := config.Load()
 	provider := resolveProvider(cfg)
 
@@ -77,6 +79,10 @@ func main() {
 		s.Start()
 	})
 
-	log.Println("core listening on :7070")
-	log.Fatal(http.ListenAndServe(":7070", nil))
+	ln, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", *port))
+	if err != nil {
+		log.Fatalf("core: failed to listen on port %d: %v", *port, err)
+	}
+	log.Printf("core listening on :%d", *port)
+	log.Fatal(http.Serve(ln, nil))
 }

@@ -2,6 +2,7 @@ import { useRef, forwardRef, useImperativeHandle } from "react";
 import Prompt from "../Prompt";
 import { useShellEditor } from "./useShellEditor";
 
+
 const InputBar = forwardRef(function InputBar(
   {
     onSubmit,
@@ -12,6 +13,8 @@ const InputBar = forwardRef(function InputBar(
     commandContext,
     onDismissExplanation,
     onSlashChange,
+    aiSuggestions = [],
+    onSuggestionPick,
     cwd,
     exitCode,
     gitData,
@@ -58,8 +61,7 @@ const InputBar = forwardRef(function InputBar(
   callbacksRef.current.cwd = cwd;
   callbacksRef.current.onDismissExplanation = onDismissExplanation;
 
-  const { editorContainerRef, viewRef, dispatchAISuggestionRef } =
-    useShellEditor(callbacksRef);
+  const { editorContainerRef, viewRef } = useShellEditor(callbacksRef);
 
   useImperativeHandle(ref, () => ({
     focus: () => viewRef.current?.focus(),
@@ -71,7 +73,6 @@ const InputBar = forwardRef(function InputBar(
       });
       view.focus();
     },
-    setSuggestion: (cmd) => dispatchAISuggestionRef.current?.(cmd),
   }));
 
   return (
@@ -83,10 +84,12 @@ const InputBar = forwardRef(function InputBar(
         flexShrink: 0,
       }}
     >
-      {/* Prompt row — pills above the editor */}
+      {/* Prompt row — pills + right-aligned suggestion chips */}
       <div>
         <Prompt
           cwd={cwd}
+          aiSuggestions={aiSuggestions}
+          onSuggestionPick={onSuggestionPick}
           gitData={gitData}
           onGitClick={onGitClick}
           nodeData={nodeData}

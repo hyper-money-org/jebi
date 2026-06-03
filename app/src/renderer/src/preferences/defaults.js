@@ -10,5 +10,6 @@ export const DEFAULT_PREFS = {
   promptStyleId:      'pill',
   aiExplainErrors:    true,
   aiDirectoryContext: true,
+  aiCommandSuggestions: true,
   promptSegments:     Object.fromEntries(SEGMENT_DEFINITIONS.map(s => [s.id, s.defaultEnabled])),
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -57,6 +58,7 @@ type Session struct {
 	lastContextDir string // last dir for which project context banner was shown
 	contextEntries []llm.HistoryEntry
 	cancelSuggest  context.CancelFunc
+	cancelAsk      context.CancelFunc // cancels any in-flight /ask stream
 
 	// firstCwdSeen suppresses the project-context banner on initial shell
 	// startup. The first OSC 7 message is the shell's initial cwd, not the
@@ -253,33 +255,112 @@ func (s *Session) Start() {
 					}()
 					go func() {
 						defer wg.Done()
-						result, err := llm.Suggest(ctx, s.provider, req)
-						if err != nil || result == "" {
+						suggestions, err := llm.Suggest(ctx, s.provider, req)
+						if err != nil || len(suggestions) == 0 {
 							return
 						}
-						data, _ := json.Marshal(result)
+						data, _ := json.Marshal(suggestions)
 						s.w.Send(wire.Message{Type: wire.TypeAISuggestion, Data: data})
 					}()
 					wg.Wait()
 				}()
 			} else {
-				// Success path: suggest next command (from first command onwards)
+				// Success path: suggest next commands (from first command onwards)
 				go func() {
 					defer cancel()
-					result, err := llm.Suggest(ctx, s.provider, req)
-					if err != nil || result == "" {
+					suggestions, err := llm.Suggest(ctx, s.provider, req)
+					if err != nil || len(suggestions) == 0 {
 						s.w.Send(wire.Message{Type: wire.TypeAISuggestError})
 						return
 					}
-					data, _ := json.Marshal(result)
+					data, _ := json.Marshal(suggestions)
 					s.w.Send(wire.Message{Type: wire.TypeAISuggestion, Data: data})
 				}()
 			}
+
+		case wire.TypeAsk:
+			var payload struct {
+				History []llm.ChatMessage `json:"history"`
+				Query   string            `json:"query"`
+			}
+			if err := json.Unmarshal(msg.Data, &payload); err != nil || s.provider == nil || !s.provider.IsAvailable() {
+				s.w.Send(wire.StringMessage(wire.TypeAskError, "AI not available"))
+				break
+			}
+			if s.cancelAsk != nil {
+				s.cancelAsk()
+			}
+			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			s.cancelAsk = cancel
+			messages := buildAskMessages(s, payload.History, payload.Query)
+			go func() {
+				defer cancel()
+				err := llm.AskStream(ctx, s.provider, messages,
+					func(token string) {
+						data, _ := json.Marshal(token)
+						s.w.Send(wire.Message{Type: wire.TypeAskChunk, Data: data})
+					},
+					func(_ string) {
+						s.w.Send(wire.Message{Type: wire.TypeAskDone})
+					},
+				)
+				if err != nil && ctx.Err() == nil {
+					s.w.Send(wire.StringMessage(wire.TypeAskError, err.Error()))
+				}
+			}()
 
 		case wire.TypeKill:
 			return
 		}
 	}
+}
+
+// buildAskMessages constructs the message list for a /ask request.
+// The system prompt is built server-side to enforce scope and inject fresh context.
+func buildAskMessages(s *Session, history []llm.ChatMessage, query string) []llm.ChatMessage {
+	system := "You are a terminal assistant embedded in a developer terminal called jebi.\n" +
+		"You ONLY answer questions about:\n" +
+		"- The current terminal session (commands run, their output, exit codes)\n" +
+		"- The current directory and its files\n" +
+		"- Shell usage, command errors, and how to fix them\n" +
+		"- General terminal/shell/developer tool questions\n\n" +
+		"You MUST politely decline any question outside this scope by saying:\n" +
+		"\"I can only help with terminal and shell questions in this session.\"\n\n" +
+		"Be concise. Use backticks for commands and file paths. No unnecessary preamble.\n\n" +
+		"Current directory: " + s.currentCwd + "\n"
+
+	if listing := readDir(s.currentCwd); len(listing) > 0 {
+		system += "\nFiles in current directory: " + strings.Join(listing, "  ")
+	}
+
+	if cmds := formatRecentCommands(s.contextEntries); cmds != "" {
+		system += "\n\nRecent commands:\n" + cmds
+	}
+
+	messages := []llm.ChatMessage{{Role: "system", Content: system}}
+	messages = append(messages, history...)
+	messages = append(messages, llm.ChatMessage{Role: "user", Content: query})
+	return messages
+}
+
+// formatRecentCommands formats the last 3 history entries as a compact log.
+func formatRecentCommands(entries []llm.HistoryEntry) string {
+	if len(entries) == 0 {
+		return ""
+	}
+	start := len(entries) - 3
+	if start < 0 {
+		start = 0
+	}
+	var sb strings.Builder
+	for _, e := range entries[start:] {
+		status := "ok"
+		if e.ExitCode != 0 {
+			status = fmt.Sprintf("exit %d", e.ExitCode)
+		}
+		fmt.Fprintf(&sb, "$ %s  [%s]\n", e.Command, status)
+	}
+	return sb.String()
 }
 
 var trivialCommands = map[string]bool{

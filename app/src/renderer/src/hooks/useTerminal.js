@@ -10,10 +10,11 @@ export function useTerminal(paneId, callbacksRef, initialCwd) {
     let destroyed = false
     let retryTimer = null
 
-    function connect() {
+    async function connect() {
+      const port = await window.electron.getCorePort()
       const url = initialCwd
-        ? `ws://localhost:7070/?cwd=${encodeURIComponent(initialCwd)}`
-        : 'ws://localhost:7070'
+        ? `ws://localhost:${port}/?cwd=${encodeURIComponent(initialCwd)}`
+        : `ws://localhost:${port}`
       const socket = new WebSocket(url)
       ws.current = socket
       socket.onopen = () => {
@@ -97,9 +98,11 @@ export function useTerminal(paneId, callbacksRef, initialCwd) {
           case wire.TypeConda:
             callbacksRef.current.onConda?.({ env: msg.data })
             break
-          case wire.TypeAISuggestion:
-            callbacksRef.current.onAISuggestion?.(msg.data)
+          case wire.TypeAISuggestion: {
+            const cmds = Array.isArray(msg.data) ? msg.data : [msg.data]
+            callbacksRef.current.onAISuggestion?.(cmds)
             break
+          }
           case wire.TypeAISuggestError:
             callbacksRef.current.onAISuggestError?.()
             break
@@ -118,6 +121,15 @@ export function useTerminal(paneId, callbacksRef, initialCwd) {
             break
           case wire.TypeAIStatus:
             notifyAIStatus(msg.data)
+            break
+          case wire.TypeAskChunk:
+            callbacksRef.current.onAskChunk?.(msg.data)
+            break
+          case wire.TypeAskDone:
+            callbacksRef.current.onAskDone?.()
+            break
+          case wire.TypeAskError:
+            callbacksRef.current.onAskError?.(msg.data)
             break
         }
       }
@@ -159,5 +171,10 @@ export function useTerminal(paneId, callbacksRef, initialCwd) {
     ws.current.send(JSON.stringify({ type: wire.TypeAIAppend, data: entry }))
   }, [paneId])
 
-  return { sendInput, sendRaw, sendResize, sendAIAppend }
+  const sendAsk = useCallback((history, query) => {
+    if (ws.current?.readyState !== WebSocket.OPEN) return
+    ws.current.send(JSON.stringify({ type: wire.TypeAsk, data: { history, query } }))
+  }, [paneId])
+
+  return { sendInput, sendRaw, sendResize, sendAIAppend, sendAsk }
 }

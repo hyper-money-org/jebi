@@ -73,7 +73,7 @@ type finalResponse struct {
 	Explanation string `json:"explanation"`
 }
 
-const suggestPromptTemplate = `You are an expert terminal assistant. Your job is to predict the single most useful next shell command based on the session.
+const suggestPromptTemplate = `You are an expert terminal assistant. Your job is to predict the 3 most useful next shell commands based on the session.
 
 Environment:
 Shell: %s
@@ -90,26 +90,24 @@ Decision Process (follow strictly):
 3. Check if the last command failed:
    - If yes, prioritize fixing the error.
 4. If no error:
-   - Continue the workflow logically (next step, not random suggestion).
+   - Continue the workflow logically. Line 1 = most likely next step, line 2 = useful alternative, line 3 = explore/inspect option.
 5. Prefer safe, minimal, and commonly used commands.
 
 Rules:
-- Output ONLY the raw shell command.
-- No explanations. No markdown. No prompt symbols.
-- Never prefix the command with a shell name (no bash, sh, zsh). The user is already in a terminal.
+- Output EXACTLY 3 shell commands, one per line, no blank lines between them.
+- No explanations. No markdown. No numbering. No prompt symbols.
+- Never prefix a command with a shell name (no bash, sh, zsh). The user is already in a terminal.
 - Do NOT suggest destructive commands (rm -rf, reset, etc.) unless clearly implied.
 - Do NOT repeat the last command if it failed — suggest a fix or something different instead.
 - Never suggest a command that appeared with [exit N] in the history — it failed and should not be repeated as-is.
-- If the last command was "command not found", output an empty string — do not guess at broken commands.
-- If context is unclear or there is no confident next step, output an empty string.
+- If context is unclear or there is no confident next step, output 3 safe generic commands (e.g. ls, pwd, git status).
 
 Examples of good behavior:
-- After "git clone ..." → suggest "cd <repo>"
-- After "npm install" → suggest "npm start" or "npm run dev"
-- After "cd" into a dir → suggest "ls"
-- After "command not found: foo" → output empty string (no suggestion)
+- After "git clone ..." → "cd <repo>\nls\ngit log --oneline"
+- After "npm install" → "npm start\nnpm run dev\nnpm test"
+- After "cd" into a dir → "ls\ngit status\ncat README.md"
 
-Return only the command. Nothing else.`
+Return only the 3 commands. Nothing else.`
 
 // BuildSuggestMessages returns the message list for a next-command suggestion request.
 func BuildSuggestMessages(req SuggestRequest) []ChatMessage {
@@ -125,11 +123,11 @@ func BuildSuggestMessages(req SuggestRequest) []ChatMessage {
 		start = 0
 	}
 	for _, e := range req.Entries[start:] {
-		status := "ok"
 		if e.ExitCode != 0 {
-			status = fmt.Sprintf("exit %d", e.ExitCode)
+			fmt.Fprintf(&sb, "$ %s  [exit %d]\n%s\n", e.Command, e.ExitCode, truncate(e.Output, explainMaxOutputBytes))
+		} else {
+			fmt.Fprintf(&sb, "$ %s\n%s\n", e.Command, truncate(e.Output, explainMaxOutputBytes))
 		}
-		fmt.Fprintf(&sb, "$ %s  [%s]\n%s\n", e.Command, status, truncate(e.Output, explainMaxOutputBytes))
 	}
 	return []ChatMessage{
 		{Role: "system", Content: system},
@@ -137,11 +135,15 @@ func BuildSuggestMessages(req SuggestRequest) []ChatMessage {
 	}
 }
 
-// ParseSuggestResponse extracts a single command from the raw LLM response.
-func ParseSuggestResponse(raw string) string {
+// ParseSuggestResponse extracts up to 3 commands from the raw LLM response.
+func ParseSuggestResponse(raw string) []string {
 	raw = strings.TrimSpace(raw)
 	raw = strings.Trim(raw, "`")
+	var results []string
 	for _, line := range strings.Split(raw, "\n") {
+		if len(results) >= 3 {
+			break
+		}
 		t := strings.TrimSpace(line)
 		if t == "" {
 			continue
@@ -152,9 +154,15 @@ func ParseSuggestResponse(raw string) string {
 		for _, sh := range []string{"bash ", "sh ", "zsh ", "fish "} {
 			t = strings.TrimPrefix(t, sh)
 		}
-		return t
+		// Strip trailing status suffix the model may echo from the history format
+		if i := strings.LastIndex(t, "  ["); i >= 0 && strings.HasSuffix(t, "]") {
+			t = strings.TrimSpace(t[:i])
+		}
+		if t != "" {
+			results = append(results, t)
+		}
 	}
-	return ""
+	return results
 }
 
 var explainPromptTemplate = "You are an expert terminal assistant. A shell command failed. Explain the most likely cause and how to fix it.\n\n" +
@@ -251,11 +259,11 @@ func BuildSessionSummaryMessages(req SuggestRequest) []ChatMessage {
 		start = 0
 	}
 	for _, e := range req.Entries[start:] {
-		status := "ok"
 		if e.ExitCode != 0 {
-			status = fmt.Sprintf("exit %d", e.ExitCode)
+			fmt.Fprintf(&sb, "$ %s  [exit %d]\n%s\n\n", e.Command, e.ExitCode, truncate(e.Output, explainMaxFailingOutputBytes))
+		} else {
+			fmt.Fprintf(&sb, "$ %s\n%s\n\n", e.Command, truncate(e.Output, explainMaxFailingOutputBytes))
 		}
-		fmt.Fprintf(&sb, "$ %s  [%s]\n%s\n\n", e.Command, status, truncate(e.Output, explainMaxFailingOutputBytes))
 	}
 	if len(req.Entries) == 0 {
 		sb.WriteString("No completed commands are available yet.")
