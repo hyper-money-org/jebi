@@ -3,7 +3,6 @@ import { THEMES } from '../preferences/themes'
 import { DEFAULT_PREFS } from '../preferences/defaults'
 import { applyThemeToCSSVars } from '../preferences/cssVars'
 import { setPromptStyleId } from '../preferences/promptStyles'
-import { setAllSegmentPrefs, SEGMENT_MAP } from '../preferences/segments'
 import { showStatusMessage } from './useStatusMessage'
 
 const STORAGE_KEY = 'term-prefs'
@@ -110,16 +109,7 @@ export function PreferencesProvider({ children }) {
     setPrefs(prev => ({ ...prev, aiCommandSuggestions: value }))
   }
 
-  function setSegmentEnabled(id, enabled) {
-    const def = SEGMENT_MAP[id]
-    if (def?.required) return
-    setPrefs(prev => ({
-      ...prev,
-      promptSegments: { ...prev.promptSegments, [id]: enabled },
-    }))
-  }
-
-  const value = { prefs, activeColors, setTheme, setCustomColor, setFontFamily, setFontSize, setUiFontSize, setUiFontFamily, setPromptStyle, setAiExplainErrors, setAiDirectoryContext, setAiCommandSuggestions, setSegmentEnabled }
+  const value = { prefs, activeColors, setTheme, setCustomColor, setFontFamily, setFontSize, setUiFontSize, setUiFontFamily, setPromptStyle, setAiExplainErrors, setAiDirectoryContext, setAiCommandSuggestions }
 
   return (
     <PreferencesContext.Provider value={value}>
