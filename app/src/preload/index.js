@@ -3,6 +3,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 contextBridge.exposeInMainWorld('electron', {
   getCorePort: () => ipcRenderer.invoke('core:port'),
   openPath: (path) => ipcRenderer.invoke('open-path', path),
+  openExternal: (url) => ipcRenderer.invoke('open-external', url),
   listFiles: (dirPath) => ipcRenderer.invoke('list-files', dirPath),
   fs: {
     listDir: (dirPath) => ipcRenderer.invoke('fs:list-dir', dirPath),

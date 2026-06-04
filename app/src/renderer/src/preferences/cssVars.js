@@ -45,7 +45,7 @@ function hexToRgba(hex, alpha) {
 // Applies a full preferences state to CSS custom properties on :root.
 // Inline setProperty overrides the stylesheet-defined :root values with no
 // specificity hacks required.
-export function applyThemeToCSSVars(colors, fontSize, fontFamily) {
+export function applyThemeToCSSVars(colors, fontSize, fontFamily, uiFontSize, uiFontFamily) {
   const el = document.documentElement
   for (const [key, varName] of Object.entries(COLOR_TO_VAR)) {
     if (colors[key]) el.style.setProperty(varName, colors[key])
@@ -76,9 +76,14 @@ export function applyThemeToCSSVars(colors, fontSize, fontFamily) {
   }
   if (fontSize) {
     el.style.setProperty('--font-size-mono', `${fontSize}px`)
-    el.style.setProperty('--font-size-ui', `${fontSize}px`)
+  }
+  if (uiFontSize) {
+    el.style.setProperty('--font-size-ui', `${uiFontSize}px`)
   }
   if (fontFamily) {
     el.style.setProperty('--font-mono', fontFamily)
+  }
+  if (uiFontFamily) {
+    el.style.setProperty('--font-ui', uiFontFamily)
   }
 }

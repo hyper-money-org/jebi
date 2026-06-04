@@ -31,12 +31,14 @@ const QUIPS = [
 
 const ALL_TIPS = [
   { key: '⌘K',    label: 'Clear the screen' },
+  { key: '⌘F',    label: 'Search scrollback' },
   { key: 'Tab',   label: 'Complete file paths and history' },
   { key: '↑ ↓',  label: 'Browse command history' },
   { key: '/',     label: 'Open command palette' },
   { key: 'Esc',  label: 'Dismiss AI explanation' },
   { label: 'Type /ask to chat with AI about your session' },
   { label: 'Click a segment pill to run its command' },
+  { label: '/run shows Makefile and npm scripts — pick one to run' },
   { label: 'AI explains failed commands automatically' },
   { label: '3 next-command suggestions appear after each run' },
   { label: '/ls lists files — click any to preview or edit' },

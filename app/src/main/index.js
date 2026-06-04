@@ -259,6 +259,7 @@ function createWindow() {
 ipcMain.handle('core:port', () => corePort)
 
 ipcMain.handle('open-path', (_, path) => shell.openPath(path))
+ipcMain.handle('open-external', (_, url) => shell.openExternal(url))
 
 // Lists folders/files at dirPath. Used by the InputBar file-path autosuggest.
 // Resolves '~' against the user's home dir; relative paths must be resolved
@@ -429,10 +430,10 @@ ipcMain.handle('ai:save-config', async (_, llmConfig) => {
   const dir = join(homedir(), '.config', 'jebi')
   await fs.mkdir(dir, { recursive: true })
   await fs.writeFile(aiSettingsPath(), JSON.stringify({ ...existing, llm: llmConfig }, null, 2))
-  // 3. Restart core
+  // 3. Restart core on the same port
   await stopCoreAndWait()
-  startCore()
-  await waitForCore(7070)
+  startCore(corePort)
+  await waitForCore(corePort)
   return { ok: true }
 })
 

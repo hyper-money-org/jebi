@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { Unicode11Addon } from "@xterm/addon-unicode11";
+import { SearchAddon } from "@xterm/addon-search";
+import { WebLinksAddon } from "@xterm/addon-web-links";
 import "@xterm/xterm/css/xterm.css";
 import { WebglAddon } from "@xterm/addon-webgl";
 import { PromptAddon } from "../../addons/PromptAddon";
@@ -18,6 +20,20 @@ import { usePreferences } from "../../hooks/usePreferences";
 import EmptyState from "./EmptyState";
 
 const BUFFER_CAP = 512 * 1024; // 512 KB
+
+function searchOpts(accent) {
+  return {
+    caseSensitive: false,
+    decorations: {
+      matchBackground:              accent + '30',
+      matchBorder:                  accent + '90',
+      matchOverviewRuler:           accent + '90',
+      activeMatchBackground:        accent + '70',
+      activeMatchBorder:            accent,
+      activeMatchColorOverviewRuler: accent,
+    },
+  };
+}
 
 // Alternate screen enter/exit — emitted by TUI apps (vim, micro, htop, etc.)
 const TUI_ENTER = "\x1b[?1049h";
@@ -87,6 +103,12 @@ export default function OutputArea({
   const redrawTimerRef = useRef(null);
 
   const [stickyCommand, setStickyCommand] = useState(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchAddonRef = useRef(null);
+  const searchInputRef = useRef(null);
+  const searchOpenRef = useRef(false);
+  searchOpenRef.current = searchOpen;
 
   sendResizeRef.current = sendResize;
   onReplayRef.current = onReplay;
@@ -144,8 +166,15 @@ export default function OutputArea({
       term.unicode.activeVersion = '11';
 
       const fitAddon = new FitAddon();
+      const searchAddon = new SearchAddon();
+      const webLinksAddon = new WebLinksAddon((_, uri) => {
+        window.electron.openExternal(uri);
+      });
       const promptAddon = new PromptAddon();
       term.loadAddon(fitAddon);
+      term.loadAddon(searchAddon);
+      term.loadAddon(webLinksAddon);
+      searchAddonRef.current = searchAddon;
       // Ensure term is always disposed even if the rAF below never fires
       // (component unmounted before the next frame).
       cleanup = () => term.dispose();
@@ -204,12 +233,22 @@ export default function OutputArea({
         term.attachCustomKeyEventHandler((e) => {
           // File list panel captures all keyboard input while open.
           if (callbacksRef.current.fileListOpen) return false;
+          if (e.type === "keydown" && e.metaKey && e.key === "f" && !e.shiftKey && !e.altKey) {
+            callbacksRef.current.openSearch?.();
+            return false;
+          }
           if (e.type === "keydown" && e.metaKey && e.key === "c" && !e.shiftKey && !e.altKey) {
             const sel = term.getSelection();
             if (sel && !promptAddonRef.current?._tuiActive) {
               navigator.clipboard.writeText(sel);
               return false;
             }
+          }
+          // Shift+Enter: send CSI u sequence so TUI apps (e.g. Claude CLI) receive
+          // a distinct code from plain Enter and can insert a newline instead of submitting.
+          if (e.type === "keydown" && e.key === "Enter" && e.shiftKey && !e.metaKey && !e.ctrlKey) {
+            sendRaw("\x1b[13;2u");
+            return false;
           }
           if (e.type === "keydown" && !callbacksRef.current.isRunning?.()) {
             callbacksRef.current.focusInput?.();
@@ -256,6 +295,7 @@ export default function OutputArea({
       });
 
       callbacksRef.current.focusTerm = () => term.focus();
+      callbacksRef.current.openSearch = () => setSearchOpen(true);
 
       // Slash-command hooks — invoked from the InputBar's command executor
       // via the pane's commandContext.
@@ -355,6 +395,32 @@ export default function OutputArea({
     if (isActive) termRef.current?.focus();
   }, [isActive]);
 
+  // Focus search input whenever the bar opens.
+  useEffect(() => {
+    if (searchOpen) {
+      setTimeout(() => searchInputRef.current?.focus(), 30);
+    }
+  }, [searchOpen]);
+
+  // Global Cmd+F to open search; Escape to close it.
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.metaKey && e.key === 'f' && !e.shiftKey && !e.altKey) {
+        e.preventDefault();
+        setSearchOpen(true);
+        return;
+      }
+      if (e.key === 'Escape' && searchOpenRef.current) {
+        setSearchOpen(false);
+        setSearchQuery('');
+        searchAddonRef.current?.clearDecorations?.();
+        termRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handler, true);
+    return () => window.removeEventListener('keydown', handler, true);
+  }, []);
+
   // Theme colors: update synchronously so xterm's internal RAF cycle picks them up immediately.
   // Keeping this separate from the font effect avoids wrapping theme updates in the async
   // fonts.load() Promise, which could delay the canvas repaint by a microtask.
@@ -417,6 +483,78 @@ export default function OutputArea({
         className="flex-1 min-h-0 bg-[var(--bg-surface)]"
       />
       {!hasCommands && <EmptyState />}
+      {searchOpen && (
+        <div style={{
+          position: 'absolute',
+          top: 8,
+          right: 12,
+          zIndex: 50,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 4,
+          background: 'var(--bg-elevated)',
+          border: '1px solid var(--border)',
+          borderRadius: 6,
+          padding: '4px 6px',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+        }}>
+          <input
+            ref={searchInputRef}
+            value={searchQuery}
+            onChange={e => {
+              const q = e.target.value;
+              setSearchQuery(q);
+              const opts = searchOpts(tabAccentRef.current);
+              if (q) {
+                searchAddonRef.current?.findNext(q, { ...opts, incremental: true });
+              } else {
+                searchAddonRef.current?.clearDecorations?.();
+              }
+            }}
+            onKeyDown={e => {
+              const opts = searchOpts(tabAccentRef.current);
+              if (e.key === 'Enter') {
+                e.shiftKey
+                  ? searchAddonRef.current?.findPrevious(searchQuery, opts)
+                  : searchAddonRef.current?.findNext(searchQuery, opts);
+              }
+              if (e.key === 'Escape') {
+                setSearchOpen(false);
+                setSearchQuery('');
+                searchAddonRef.current?.clearDecorations?.();
+                termRef.current?.focus();
+              }
+            }}
+            placeholder="Search…"
+            style={{
+              background: 'transparent',
+              border: 'none',
+              outline: 'none',
+              fontFamily: 'var(--font-mono)',
+              fontSize: 'var(--font-size-ui)',
+              color: 'var(--text-primary)',
+              width: 180,
+            }}
+          />
+          <button
+            onClick={() => searchAddonRef.current?.findPrevious(searchQuery, searchOpts(tabAccentRef.current))}
+            disabled={!searchQuery}
+            title="Previous (Shift+Enter)"
+            style={{ background: 'none', border: 'none', cursor: searchQuery ? 'pointer' : 'default', color: 'var(--text-muted)', fontSize: 12, padding: '0 2px' }}
+          >↑</button>
+          <button
+            onClick={() => searchAddonRef.current?.findNext(searchQuery, searchOpts(tabAccentRef.current))}
+            disabled={!searchQuery}
+            title="Next (Enter)"
+            style={{ background: 'none', border: 'none', cursor: searchQuery ? 'pointer' : 'default', color: 'var(--text-muted)', fontSize: 12, padding: '0 2px' }}
+          >↓</button>
+          <button
+            onClick={() => { setSearchOpen(false); setSearchQuery(''); searchAddonRef.current?.clearDecorations?.(); termRef.current?.focus(); }}
+            title="Close (Esc)"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 14, padding: '0 2px', lineHeight: 1 }}
+          >✕</button>
+        </div>
+      )}
       {fileListOpen && (
         <FileListPanel
           cwd={fileListCwd}

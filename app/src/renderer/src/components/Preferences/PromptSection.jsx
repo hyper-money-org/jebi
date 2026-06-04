@@ -2,7 +2,7 @@ import { usePreferences } from '../../hooks/usePreferences'
 import { SEGMENT_DEFINITIONS } from '../../preferences/segments'
 
 const sectionLabel = {
-  fontSize: '11px',
+  fontSize: 'var(--font-size-ui)',
   fontWeight: 600,
   letterSpacing: '0.06em',
   textTransform: 'uppercase',
@@ -12,7 +12,7 @@ const sectionLabel = {
 }
 
 const sectionDescription = {
-  fontSize: '12px',
+  fontSize: 'var(--font-size-ui)',
   color: 'var(--text-muted)',
   fontFamily: 'var(--font-ui)',
   marginBottom: '10px',
@@ -79,11 +79,11 @@ function SegmentRow({ segment, enabled, onToggle }) {
       }}
     >
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: '13px', fontFamily: 'var(--font-ui)', color: segment.required ? 'var(--text-muted)' : 'var(--text-primary)', fontWeight: 500 }}>
+        <div style={{ fontSize: 'var(--font-size-ui)', fontFamily: 'var(--font-ui)', color: segment.required ? 'var(--text-muted)' : 'var(--text-primary)', fontWeight: 500 }}>
           {segment.name}
         </div>
         {segment.contextual && (
-          <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-ui)', marginTop: 2 }}>
+          <div style={{ fontSize: 'var(--font-size-ui)', color: 'var(--text-muted)', fontFamily: 'var(--font-ui)', marginTop: 2 }}>
             Shows automatically when detected
           </div>
         )}
@@ -91,7 +91,7 @@ function SegmentRow({ segment, enabled, onToggle }) {
       {segment.required ? (
         <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
           <LockIcon />
-          <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-ui)' }}>Always on</span>
+          <span style={{ fontSize: 'var(--font-size-ui)', color: 'var(--text-muted)', fontFamily: 'var(--font-ui)' }}>Always on</span>
         </div>
       ) : (
         <ToggleSwitch checked={enabled} onChange={onToggle} />
@@ -120,11 +120,11 @@ export default function PromptSection() {
         {/* Exit indicator is implicit — mention it */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: '13px', fontFamily: 'var(--font-ui)', color: 'var(--text-muted)', fontWeight: 500 }}>Exit indicator (❯)</div>
+            <div style={{ fontSize: 'var(--font-size-ui)', fontFamily: 'var(--font-ui)', color: 'var(--text-muted)', fontWeight: 500 }}>Exit indicator (❯)</div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
             <LockIcon />
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-ui)' }}>Always on</span>
+            <span style={{ fontSize: 'var(--font-size-ui)', color: 'var(--text-muted)', fontFamily: 'var(--font-ui)' }}>Always on</span>
           </div>
         </div>
       </div>

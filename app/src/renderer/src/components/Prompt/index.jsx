@@ -5,6 +5,7 @@ function SuggestionChip({ cmd, onPick }) {
   return (
     <button
       tabIndex={-1}
+      title={cmd}
       onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); onPick?.(cmd) }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -23,7 +24,11 @@ function SuggestionChip({ cmd, onPick }) {
         cursor: 'pointer',
         whiteSpace: 'nowrap',
         userSelect: 'none',
-        flexShrink: 0,
+        flexShrink: 1,
+        minWidth: 0,
+        maxWidth: 200,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
         margin: 4,
         transition: 'background 0.1s',
       }}

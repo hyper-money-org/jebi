@@ -28,7 +28,7 @@ export function PreferencesProvider({ children }) {
     const colors = loaded.themeId === 'custom'
       ? loaded.customColors
       : THEMES[loaded.themeId]?.colors ?? THEMES['default'].colors
-    applyThemeToCSSVars(colors, loaded.fontSize, loaded.fontFamily)
+    applyThemeToCSSVars(colors, loaded.fontSize, loaded.fontFamily, loaded.uiFontSize, loaded.uiFontFamily)
     // Seed module-level stores so xterm-decoration React roots
     // (outside this provider) pick up the user's choices on first paint.
     setPromptStyleId('pill')
@@ -41,7 +41,7 @@ export function PreferencesProvider({ children }) {
     const colors = prefs.themeId === 'custom'
       ? prefs.customColors
       : THEMES[prefs.themeId]?.colors ?? THEMES['default'].colors
-    applyThemeToCSSVars(colors, prefs.fontSize, prefs.fontFamily)
+    applyThemeToCSSVars(colors, prefs.fontSize, prefs.fontFamily, prefs.uiFontSize, prefs.uiFontFamily)
     setPromptStyleId('pill')
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs)) } catch {}
 
@@ -85,6 +85,15 @@ export function PreferencesProvider({ children }) {
     setPrefs(prev => ({ ...prev, fontSize: clamped }))
   }
 
+  function setUiFontSize(value) {
+    const clamped = Math.min(18, Math.max(11, Math.round(Number(value))))
+    setPrefs(prev => ({ ...prev, uiFontSize: clamped }))
+  }
+
+  function setUiFontFamily(value) {
+    setPrefs(prev => ({ ...prev, uiFontFamily: value }))
+  }
+
   function setPromptStyle(id) {
     setPrefs(prev => ({ ...prev, promptStyleId: id }))
   }
@@ -110,7 +119,7 @@ export function PreferencesProvider({ children }) {
     }))
   }
 
-  const value = { prefs, activeColors, setTheme, setCustomColor, setFontFamily, setFontSize, setPromptStyle, setAiExplainErrors, setAiDirectoryContext, setAiCommandSuggestions, setSegmentEnabled }
+  const value = { prefs, activeColors, setTheme, setCustomColor, setFontFamily, setFontSize, setUiFontSize, setUiFontFamily, setPromptStyle, setAiExplainErrors, setAiDirectoryContext, setAiCommandSuggestions, setSegmentEnabled }
 
   return (
     <PreferencesContext.Provider value={value}>

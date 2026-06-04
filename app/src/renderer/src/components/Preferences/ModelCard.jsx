@@ -21,7 +21,7 @@ export default function ModelCard({ model, isActive, onActivate, onDownload, onC
   }
 
   const nameStyle = {
-    fontSize: '13px',
+    fontSize: 'var(--font-size-ui)',
     fontWeight: 600,
     color: 'var(--text-primary)',
     fontFamily: 'var(--font-ui)',
@@ -29,7 +29,7 @@ export default function ModelCard({ model, isActive, onActivate, onDownload, onC
   }
 
   const descStyle = {
-    fontSize: '12px',
+    fontSize: 'var(--font-size-ui)',
     color: 'var(--text-muted)',
     fontFamily: 'var(--font-ui)',
     lineHeight: 1.4,
@@ -40,7 +40,7 @@ export default function ModelCard({ model, isActive, onActivate, onDownload, onC
     borderRadius: 4,
     border: 'none',
     cursor: 'pointer',
-    fontSize: '12px',
+    fontSize: 'var(--font-size-ui)',
     fontFamily: 'var(--font-mono)',
     flexShrink: 0,
   }
@@ -67,7 +67,7 @@ export default function ModelCard({ model, isActive, onActivate, onDownload, onC
                 transition: 'width 0.3s',
               }} />
             </div>
-            <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+            <div style={{ fontSize: 'var(--font-size-ui)', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
               {pct}% · {formatSpeed(speedBps)} · {eta} left
             </div>
           </div>
@@ -92,7 +92,7 @@ export default function ModelCard({ model, isActive, onActivate, onDownload, onC
             {model.description && <div style={descStyle}>{model.description}</div>}
           </div>
           <span style={{
-            fontSize: '11px', fontFamily: 'var(--font-mono)',
+            fontSize: 'var(--font-size-ui)', fontFamily: 'var(--font-mono)',
             color: 'var(--accent)', flexShrink: 0,
             paddingTop: 2,
           }}>
@@ -131,7 +131,7 @@ export default function ModelCard({ model, isActive, onActivate, onDownload, onC
           <div style={nameStyle}>{model.name}</div>
           {model.description && <div style={descStyle}>{model.description}</div>}
           {model.sizeBytes != null && (
-            <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: 3 }}>
+            <div style={{ fontSize: 'var(--font-size-ui)', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: 3 }}>
               {formatBytes(model.sizeBytes)}
             </div>
           )}

@@ -82,7 +82,7 @@ export default function AISection() {
   }, [ollamaEndpoint, ollamaModel])
 
   const sectionLabel = {
-    fontSize: '11px',
+    fontSize: 'var(--font-size-ui)',
     fontWeight: 600,
     letterSpacing: '0.06em',
     textTransform: 'uppercase',
@@ -102,7 +102,7 @@ export default function AISection() {
             border: `1px solid ${runtimeTab === id ? 'var(--accent)' : 'var(--border)'}`,
             background: runtimeTab === id ? 'var(--accent)' : 'transparent',
             color: runtimeTab === id ? 'var(--on-accent)' : 'var(--text-secondary)',
-            cursor: 'pointer', fontSize: '12px', fontFamily: 'var(--font-mono)',
+            cursor: 'pointer', fontSize: 'var(--font-size-ui)', fontFamily: 'var(--font-mono)',
           }}>
             {label}
           </button>
@@ -114,7 +114,7 @@ export default function AISection() {
         <div>
           <div style={{ ...sectionLabel }}>Models</div>
           {models.length === 0 && (
-            <div style={{ fontSize: '12px', color: 'var(--text-muted)', padding: '8px 0' }}>
+            <div style={{ fontSize: 'var(--font-size-ui)', color: 'var(--text-muted)', padding: '8px 0' }}>
               Loading…
             </div>
           )}
@@ -130,7 +130,7 @@ export default function AISection() {
             />
           ))}
           {saving && (
-            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: 8 }}>
+            <div style={{ fontSize: 'var(--font-size-ui)', color: 'var(--text-muted)', marginTop: 8 }}>
               Applying… reconnecting shortly
             </div>
           )}
@@ -140,14 +140,14 @@ export default function AISection() {
       {/* Ollama tab */}
       {runtimeTab === 'ollama' && (
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14, fontSize: '12px', color: 'var(--text-secondary)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14, fontSize: 'var(--font-size-ui)', color: 'var(--text-secondary)' }}>
             <span style={{
               width: 7, height: 7, borderRadius: '50%', display: 'inline-block',
               background: ollamaStatus === 'connected' ? '#22c55e' : ollamaStatus === 'disconnected' ? 'var(--error)' : 'var(--border)',
             }} />
             {ollamaStatus === 'connected' ? 'Connected' : ollamaStatus === 'disconnected' ? 'Not running' : 'Checking…'}
           </div>
-          <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: 4 }}>
+          <label style={{ display: 'block', fontSize: 'var(--font-size-ui)', color: 'var(--text-muted)', marginBottom: 4 }}>
             Endpoint
           </label>
           <input
@@ -157,10 +157,10 @@ export default function AISection() {
               width: '100%', padding: '6px 8px', borderRadius: 4,
               border: '1px solid var(--border)', background: 'var(--bg-surface)',
               color: 'var(--text-primary)', fontFamily: 'var(--font-mono)',
-              fontSize: '12px', marginBottom: 10, boxSizing: 'border-box',
+              fontSize: 'var(--font-size-ui)', marginBottom: 10, boxSizing: 'border-box',
             }}
           />
-          <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: 4 }}>
+          <label style={{ display: 'block', fontSize: 'var(--font-size-ui)', color: 'var(--text-muted)', marginBottom: 4 }}>
             Model
           </label>
           <input
@@ -171,7 +171,7 @@ export default function AISection() {
               width: '100%', padding: '6px 8px', borderRadius: 4,
               border: '1px solid var(--border)', background: 'var(--bg-surface)',
               color: 'var(--text-primary)', fontFamily: 'var(--font-mono)',
-              fontSize: '12px', marginBottom: 12, boxSizing: 'border-box',
+              fontSize: 'var(--font-size-ui)', marginBottom: 12, boxSizing: 'border-box',
             }}
           />
           <button
@@ -181,7 +181,7 @@ export default function AISection() {
               padding: '6px 16px', borderRadius: 5, border: 'none',
               background: 'var(--accent)', color: 'var(--on-accent)',
               cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.7 : 1,
-              fontFamily: 'var(--font-mono)', fontSize: '12px',
+              fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-ui)',
             }}
           >
             {saving ? 'Saving…' : 'Save & Apply'}

@@ -41,7 +41,6 @@ export default function PreferencesModal({ isOpen, onClose, initialTab }) {
           inset: 0,
           zIndex: 9999,
           background: 'rgba(0,0,0,0.55)',
-          backdropFilter: 'blur(2px)',
         }}
       />
 
@@ -53,7 +52,7 @@ export default function PreferencesModal({ isOpen, onClose, initialTab }) {
           left: '50%',
           transform: 'translate(-50%, -50%)',
           zIndex: 10000,
-          width: '560px',
+          width: '720px',
           height: '680px',
           maxWidth: 'calc(100vw - 40px)',
           maxHeight: 'calc(100vh - 80px)',
@@ -75,7 +74,7 @@ export default function PreferencesModal({ isOpen, onClose, initialTab }) {
           flexShrink: 0,
         }}>
           <span style={{
-            fontSize: '15px',
+            fontSize: 'var(--font-size-ui)',
             fontWeight: 600,
             color: 'var(--text-primary)',
             fontFamily: 'var(--font-ui)',
@@ -89,7 +88,7 @@ export default function PreferencesModal({ isOpen, onClose, initialTab }) {
               border: 'none',
               cursor: 'pointer',
               color: 'var(--text-muted)',
-              fontSize: '18px',
+              fontSize: 'var(--font-size-ui)',
               lineHeight: 1,
               padding: '2px 4px',
               borderRadius: '4px',
@@ -135,7 +134,7 @@ export default function PreferencesModal({ isOpen, onClose, initialTab }) {
               >
                 <tab.Icon size={20} weight={active ? 'fill' : 'regular'} />
                 <span style={{
-                  fontSize: 11,
+                  fontSize: 'var(--font-size-ui)',
                   fontFamily: 'var(--font-ui)',
                   fontWeight: active ? 600 : 400,
                   whiteSpace: 'nowrap',

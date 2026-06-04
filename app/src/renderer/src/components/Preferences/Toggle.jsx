@@ -41,10 +41,10 @@ export function ToggleRow({ label, description, checked, onChange }) {
       borderBottom: '1px solid var(--border)',
     }}>
       <div>
-        <div style={{ fontSize: '13px', color: 'var(--text-primary)', fontFamily: 'var(--font-ui)', marginBottom: 2 }}>
+        <div style={{ fontSize: 'var(--font-size-ui)', color: 'var(--text-primary)', fontFamily: 'var(--font-ui)', marginBottom: 2 }}>
           {label}
         </div>
-        <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-ui)', lineHeight: 1.4 }}>
+        <div style={{ fontSize: 'var(--font-size-ui)', color: 'var(--text-muted)', fontFamily: 'var(--font-ui)', lineHeight: 1.4 }}>
           {description}
         </div>
       </div>

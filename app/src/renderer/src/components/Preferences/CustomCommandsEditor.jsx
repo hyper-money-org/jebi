@@ -115,7 +115,7 @@ const editorTheme = EditorView.theme({
     background: 'var(--bg-surface)',
     color: 'var(--text-primary)',
     fontFamily: 'var(--font-mono)',
-    fontSize: '12px',
+    fontSize: 'var(--font-size-ui)',
     borderRadius: '5px',
     border: '1px solid var(--border)',
   },
@@ -196,7 +196,7 @@ export default function CustomCommandsEditor() {
   }
 
   const label = {
-    fontSize: '11px', fontWeight: 600, letterSpacing: '0.06em',
+    fontSize: 'var(--font-size-ui)', fontWeight: 600, letterSpacing: '0.06em',
     textTransform: 'uppercase', color: 'var(--text-muted)',
     fontFamily: 'var(--font-ui)', marginBottom: 8,
   }
@@ -207,7 +207,7 @@ export default function CustomCommandsEditor() {
 
       {/* Description */}
       <div style={{
-        fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.6,
+        fontSize: 'var(--font-size-ui)', color: 'var(--text-muted)', lineHeight: 1.6,
         fontFamily: 'var(--font-ui)', marginBottom: 14,
       }}>
         Define your own <code style={{ color: 'var(--text-primary)', background: 'var(--bg-elevated)', padding: '1px 5px', borderRadius: 3 }}>/commands</code> that appear in the command palette.
@@ -217,7 +217,7 @@ export default function CustomCommandsEditor() {
 
       {/* Schema quick-reference */}
       <div style={{
-        fontSize: '11px', color: 'var(--text-muted)', lineHeight: 1.5,
+        fontSize: 'var(--font-size-ui)', color: 'var(--text-muted)', lineHeight: 1.5,
         fontFamily: 'var(--font-mono)', background: 'var(--bg-elevated)',
         border: '1px solid var(--border)', borderRadius: 5,
         padding: '10px 14px', marginBottom: 12,
@@ -263,7 +263,7 @@ export default function CustomCommandsEditor() {
             background: 'var(--accent)', color: 'var(--on-accent)',
             cursor: (!loaded || status === 'saving') ? 'default' : 'pointer',
             opacity: (!loaded || status === 'saving') ? 0.7 : 1,
-            fontFamily: 'var(--font-mono)', fontSize: '12px',
+            fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-ui)',
           }}
         >
           {status === 'saving' ? 'Saving…' : 'Save'}

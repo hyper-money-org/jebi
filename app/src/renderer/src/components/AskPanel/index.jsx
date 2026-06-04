@@ -18,7 +18,7 @@ function ScopeTooltip({ visible }) {
       borderRadius: 6,
       boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
       fontFamily: 'var(--font-mono)',
-      fontSize: 11,
+      fontSize: 'var(--font-size-ui)',
       color: 'var(--text-muted)',
       lineHeight: 1.5,
       zIndex: 100,
@@ -41,8 +41,9 @@ function Message({ msg }) {
     }}>
       <span style={{
         fontFamily: 'var(--font-mono)',
-        fontSize: 10,
+        fontSize: 'var(--font-size-ui)',
         color: 'var(--text-muted)',
+        opacity: 0.7,
         marginBottom: 4,
         paddingLeft: isUser ? 0 : 2,
         paddingRight: isUser ? 2 : 0,
@@ -64,7 +65,7 @@ function Message({ msg }) {
             ? '1px solid color-mix(in srgb, #f87171 25%, transparent)'
             : '1px solid color-mix(in srgb, var(--text-muted) 15%, transparent)',
         fontFamily: 'var(--font-mono)',
-        fontSize: 12,
+        fontSize: 'var(--font-size-mono)',
         color: msg.error ? '#f87171' : 'var(--text-primary)',
         lineHeight: 1.6,
         whiteSpace: 'pre-wrap',
@@ -120,8 +121,6 @@ export default function AskPanel({ messages, onSend, onClose }) {
   const handleSend = () => {
     const q = input.trim()
     if (!q || isStreaming) return
-    // Send only the last CONTEXT_WINDOW completed messages to the backend.
-    // The visible conversation is unbounded; the AI context window slides.
     const completed = messages.filter((m) => !m.streaming && !m.error)
     const history = completed
       .slice(-CONTEXT_WINDOW)
@@ -167,7 +166,7 @@ export default function AskPanel({ messages, onSend, onClose }) {
           gap: 8,
           borderBottom: '1px solid color-mix(in srgb, var(--text-primary) 8%, transparent)',
         }}>
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', flex: 1 }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-mono)', fontWeight: 600, color: 'var(--text-primary)', flex: 1 }}>
             Ask AI
           </span>
           <div style={{ position: 'relative' }}>
@@ -183,7 +182,7 @@ export default function AskPanel({ messages, onSend, onClose }) {
                 borderRadius: '50%',
                 border: '1px solid var(--text-muted)',
                 fontFamily: 'var(--font-mono)',
-                fontSize: 9,
+                fontSize: 'var(--font-size-ui)',
                 color: 'var(--text-muted)',
                 cursor: 'default',
                 userSelect: 'none',
@@ -208,10 +207,10 @@ export default function AskPanel({ messages, onSend, onClose }) {
               textAlign: 'center',
             }}>
               <span style={{ fontSize: 22 }}>✦</span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-primary)', fontWeight: 600 }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-mono)', color: 'var(--text-primary)', fontWeight: 600 }}>
                 No AI model available
               </span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.6, maxWidth: 260 }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-ui)', color: 'var(--text-muted)', lineHeight: 1.6, maxWidth: 260 }}>
                 Download a model in{' '}
                 <span style={{ color: 'var(--accent)' }}>Preferences → AI</span>
                 {' '}to enable AI features.
@@ -222,7 +221,7 @@ export default function AskPanel({ messages, onSend, onClose }) {
               {messages.length === 0 && (
                 <div style={{
                   fontFamily: 'var(--font-mono)',
-                  fontSize: 12,
+                  fontSize: 'var(--font-size-mono)',
                   color: 'var(--text-muted)',
                   textAlign: 'center',
                   marginTop: 16,
@@ -265,7 +264,7 @@ export default function AskPanel({ messages, onSend, onClose }) {
               border: 'none',
               outline: 'none',
               fontFamily: 'var(--font-mono)',
-              fontSize: 12,
+              fontSize: 'var(--font-size-mono)',
               color: 'var(--text-primary)',
               lineHeight: 1.5,
               padding: 0,
@@ -286,7 +285,7 @@ export default function AskPanel({ messages, onSend, onClose }) {
               background: input.trim() && !isStreaming ? 'var(--accent)' : 'color-mix(in srgb, var(--text-muted) 20%, transparent)',
               color: input.trim() && !isStreaming ? '#fff' : 'var(--text-muted)',
               fontFamily: 'var(--font-mono)',
-              fontSize: 11,
+              fontSize: 'var(--font-size-ui)',
               cursor: input.trim() && !isStreaming ? 'pointer' : 'default',
               flexShrink: 0,
               transition: 'background 0.15s',
@@ -302,7 +301,8 @@ export default function AskPanel({ messages, onSend, onClose }) {
           padding: '4px 12px',
           flexShrink: 0,
           fontFamily: 'var(--font-mono)',
-          fontSize: 10,
+          fontSize: 'var(--font-size-ui)',
+          opacity: 0.6,
           color: 'var(--text-muted)',
           display: 'flex',
           justifyContent: 'space-between',
