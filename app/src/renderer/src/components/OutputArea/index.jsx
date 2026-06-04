@@ -6,6 +6,7 @@ import { SearchAddon } from "@xterm/addon-search";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import "@xterm/xterm/css/xterm.css";
 import { WebglAddon } from "@xterm/addon-webgl";
+import { CanvasAddon } from "@xterm/addon-canvas";
 import { PromptAddon } from "../../addons/PromptAddon";
 import Prompt from "../Prompt";
 import FileListPanel from "../FileListPanel";
@@ -39,10 +40,6 @@ function searchOpts(accent) {
 const TUI_ENTER = "\x1b[?1049h";
 const TUI_EXIT = "\x1b[?1049l";
 
-// 'webgl'   — GPU-accelerated, best performance, no ligatures
-// 'canvas'  — software renderer, supports font ligatures
-// Will be driven by user preferences once that system is implemented.
-const DEFAULT_RENDERER = "canvas";
 
 export default function OutputArea({
   callbacksRef,
@@ -52,7 +49,6 @@ export default function OutputArea({
   isActive,
   isVisible,
   tabAccent = '#3b82f6',
-  renderer = DEFAULT_RENDERER,
   fileListOpen = false,
   fileListCwd = '',
   onFileListSelect,
@@ -101,6 +97,7 @@ export default function OutputArea({
   const isVisibleRef = useRef(isVisible);
   const fitFrameRef = useRef(null);
   const redrawTimerRef = useRef(null);
+  const rendererAddonRef = useRef(null);
 
   const [stickyCommand, setStickyCommand] = useState(null);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -262,11 +259,28 @@ export default function OutputArea({
           return true;
         });
 
-        if (renderer === "webgl") {
-          const webglAddon = new WebglAddon();
-          webglAddon.onContextLoss(() => webglAddon.dispose());
-          term.loadAddon(webglAddon);
-        }
+        const loadRenderer = (useLigatures) => {
+          rendererAddonRef.current?.dispose();
+          rendererAddonRef.current = null;
+          if (useLigatures) {
+            const canvas = new CanvasAddon();
+            term.loadAddon(canvas);
+            rendererAddonRef.current = canvas;
+          } else {
+            const webgl = new WebglAddon();
+            webgl.onContextLoss(() => {
+              // Fall back to canvas on context loss
+              webgl.dispose();
+              const canvas = new CanvasAddon();
+              term.loadAddon(canvas);
+              rendererAddonRef.current = canvas;
+            });
+            term.loadAddon(webgl);
+            rendererAddonRef.current = webgl;
+          }
+        };
+        loadRenderer(prefs.fontLigatures ?? false);
+        callbacksRef.current.loadRenderer = loadRenderer;
 
         scheduleFit();
         if (term.rows <= 2) term.resize(term.cols, 24);
@@ -495,7 +509,9 @@ export default function OutputArea({
   useEffect(() => {
     const term = termRef.current;
     if (!term) return;
-    term.options.fontLigatures = prefs.fontLigatures ?? false;
+    const useLigatures = prefs.fontLigatures ?? false;
+    term.options.fontLigatures = useLigatures;
+    callbacksRef.current.loadRenderer?.(useLigatures);
     term.refresh(0, term.rows - 1);
   }, [prefs.fontLigatures]);
 
