@@ -39,6 +39,8 @@ export default function TerminalPane({
     resetNavigation,
   } = useSharedHistory();
   const [running, setRunning] = useState(false);
+  const [interactive, setInteractive] = useState(false);
+  const interactiveRef = useRef(false);
   const [fileListOpen, setFileListOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [runOpen, setRunOpen] = useState(false);
@@ -89,7 +91,16 @@ export default function TerminalPane({
   runningRef.current = running;
 
   callbacksRef.current.isRunning = () => runningRef.current;
+  callbacksRef.current.isInteractive = () => interactiveRef.current;
   callbacksRef.current.focusInput = () => inputBarRef.current?.focus();
+  callbacksRef.current.onInteractiveEnter = () => {
+    setInteractive(true);
+    interactiveRef.current = true;
+  };
+  callbacksRef.current.onInteractiveExit = () => {
+    setInteractive(false);
+    interactiveRef.current = false;
+  };
 
   callbacksRef.current.onCwd = (value) => {
     // The shell hook fires cwd before every prompt — not just after `cd`.
@@ -131,6 +142,8 @@ export default function TerminalPane({
     if (code === 0) setBanner(null);
     pendingCommandRef.current = null;
     setRunning(false);
+    setInteractive(false);
+    interactiveRef.current = false;
     setPaneInfo(paneId, { runningCommand: null });
     setTimeout(() => {
       inputBarRef.current?.focus();
@@ -226,22 +239,16 @@ export default function TerminalPane({
           : { runningCommand: trimmed, lastCommand: trimmed },
       );
 
-      // Hiding InputBar gives OutputArea more height. Full-screen TUIs like
-      // Claude read the PTY size immediately on startup, so wait for that
-      // layout change to commit, fit xterm, then send the command.
       requestAnimationFrame(() => {
-        callbacksRef.current.triggerFit?.();
-        requestAnimationFrame(() => {
-          sendInput(command);
-          callbacksRef.current.focusTerm?.();
-        });
+        sendInput(command);
+        callbacksRef.current.focusTerm?.();
       });
     },
     [sendInput, paneId, clearScreen],
   );
 
   function handleMouseDown() {
-    if (!runningRef.current) setTimeout(() => inputBarRef.current?.focus(), 0);
+    if (!interactiveRef.current) setTimeout(() => inputBarRef.current?.focus(), 0);
   }
 
   useEffect(() => {

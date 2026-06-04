@@ -250,7 +250,12 @@ export default function OutputArea({
             sendRaw("\x1b[13;2u");
             return false;
           }
-          if (e.type === "keydown" && !callbacksRef.current.isRunning?.()) {
+          if (e.type === "keydown" && !callbacksRef.current.isInteractive?.()) {
+            // Always let Ctrl+C/D/Z reach the PTY so the user can cancel/suspend a running command.
+            if (callbacksRef.current.isRunning?.() && e.ctrlKey &&
+                (e.key === 'c' || e.key === 'd' || e.key === 'z')) {
+              return true;
+            }
             callbacksRef.current.focusInput?.();
             return false;
           }
@@ -309,8 +314,23 @@ export default function OutputArea({
       callbacksRef.current.getLastEntry = () => promptAddon.getLastEntry();
 
       callbacksRef.current.onOutput = (data) => {
-        if (data.includes(TUI_ENTER)) promptAddon.enterTui();
-        else if (data.includes(TUI_EXIT)) promptAddon.exitTui();
+        if (data.includes(TUI_ENTER)) {
+          promptAddon.enterTui();
+          callbacksRef.current.onInteractiveEnter?.();
+        } else if (data.includes(TUI_EXIT)) {
+          promptAddon.exitTui();
+          callbacksRef.current.onInteractiveExit?.();
+        }
+        // Detect interactive REPLs (node, python, etc.) via readline escape sequences.
+        // \x1b[?2004h = bracketed paste; \x1b[?1h = application cursor keys (readline).
+        // Gate on isRunning() so the shell's own readline at the prompt doesn't
+        // trigger interactive mode between commands.
+        if (callbacksRef.current.isRunning?.()) {
+          if (data.includes('\x1b[?2004h') || data.includes('\x1b[?1h')) {
+            callbacksRef.current.onInteractiveEnter?.();
+          }
+        }
+        if (data.includes('\x1b[?2004l')) callbacksRef.current.onInteractiveExit?.();
 
         if (isVisibleRef.current) {
           term.write(data, () => term.scrollToBottom());
