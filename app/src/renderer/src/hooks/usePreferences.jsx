@@ -79,6 +79,10 @@ export function PreferencesProvider({ children }) {
     setPrefs(prev => ({ ...prev, fontFamily: value }))
   }
 
+  function setFontLigatures(value) {
+    setPrefs(prev => ({ ...prev, fontLigatures: value }))
+  }
+
   function setFontSize(value) {
     const clamped = Math.min(22, Math.max(11, Math.round(Number(value))))
     setPrefs(prev => ({ ...prev, fontSize: clamped }))
@@ -109,7 +113,7 @@ export function PreferencesProvider({ children }) {
     setPrefs(prev => ({ ...prev, aiCommandSuggestions: value }))
   }
 
-  const value = { prefs, activeColors, setTheme, setCustomColor, setFontFamily, setFontSize, setUiFontSize, setUiFontFamily, setPromptStyle, setAiExplainErrors, setAiDirectoryContext, setAiCommandSuggestions }
+  const value = { prefs, activeColors, setTheme, setCustomColor, setFontFamily, setFontSize, setFontLigatures, setUiFontSize, setUiFontFamily, setPromptStyle, setAiExplainErrors, setAiDirectoryContext, setAiCommandSuggestions }
 
   return (
     <PreferencesContext.Provider value={value}>

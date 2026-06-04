@@ -153,7 +153,7 @@ export default function OutputArea({
           selectionForeground: cssVar("--text-primary"),
           selectionInactiveBackground: tabAccentRef.current + "25",
         },
-        fontLigatures: false,
+        fontLigatures: prefs.fontLigatures ?? false,
         cursorBlink: false,
         cursorInactiveStyle: "none",
         allowProposedApi: true,
@@ -491,6 +491,13 @@ export default function OutputArea({
       })
       .catch(() => {});
   }, [prefs.fontSize, prefs.fontFamily]);
+
+  useEffect(() => {
+    const term = termRef.current;
+    if (!term) return;
+    term.options.fontLigatures = prefs.fontLigatures ?? false;
+    term.refresh(0, term.rows - 1);
+  }, [prefs.fontLigatures]);
 
   return (
     <div ref={rootRef} className="flex-1 min-h-0 flex flex-col relative">

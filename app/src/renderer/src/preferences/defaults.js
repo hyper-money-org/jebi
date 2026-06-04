@@ -9,6 +9,7 @@ export const DEFAULT_PREFS = {
   uiFontFamily:       'system-ui, sans-serif',
   uiFontSize:         13,
   promptStyleId:      'pill',
+  fontLigatures:      false,
   aiExplainErrors:    true,
   aiDirectoryContext: true,
   aiCommandSuggestions: true,
