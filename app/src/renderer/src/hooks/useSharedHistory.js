@@ -52,10 +52,12 @@ function getAll() {
 export function useSharedHistory() {
   const indexRef = useRef(-1)
   const draftRef = useRef('')
+  const prefixRef = useRef('')
 
   function resetNavigation() {
     indexRef.current = -1
     draftRef.current = ''
+    prefixRef.current = ''
   }
 
   function isNavigating() {
@@ -68,17 +70,43 @@ export function useSharedHistory() {
 
     if (direction === 'up') {
       if (history.length === 0) return null
-      if (index === -1) {
-        draftRef.current = currentValue
-        indexRef.current = history.length - 1
-      } else if (index > 0) {
-        indexRef.current = index - 1
+      // If in navigation mode but user manually edited the input, start fresh.
+      if (index !== -1 && currentValue !== (history[index]?.c ?? '')) {
+        indexRef.current = -1
       }
+      if (indexRef.current === -1) {
+        draftRef.current = currentValue
+        prefixRef.current = currentValue.trim()
+      }
+      const prefix = prefixRef.current
+      const start = indexRef.current === -1 ? history.length - 1 : indexRef.current - 1
+      if (prefix) {
+        for (let i = start; i >= 0; i--) {
+          if (history[i].c.startsWith(prefix)) {
+            indexRef.current = i
+            return history[i].c
+          }
+        }
+        return null
+      }
+      if (indexRef.current === -1) indexRef.current = history.length - 1
+      else if (indexRef.current > 0) indexRef.current = indexRef.current - 1
       return history[indexRef.current].c
     }
 
     if (direction === 'down') {
       if (index === -1) return null
+      const prefix = prefixRef.current
+      if (prefix) {
+        for (let i = index + 1; i < history.length; i++) {
+          if (history[i].c.startsWith(prefix)) {
+            indexRef.current = i
+            return history[i].c
+          }
+        }
+        indexRef.current = -1
+        return draftRef.current
+      }
       if (index < history.length - 1) {
         indexRef.current = index + 1
         return history[indexRef.current].c

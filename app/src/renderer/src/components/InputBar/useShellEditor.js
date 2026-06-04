@@ -189,8 +189,8 @@ function makeGhostPlugin(callbacksRef) {
       const seen = new Set()
       const result = []
       for (let i = history.length - 1; i >= 0; i--) {
-        const cmd = history[i]
-        if (cmd.startsWith(prefix) && cmd !== prefix && !seen.has(cmd)) {
+        const cmd = history[i]?.c
+        if (typeof cmd === 'string' && cmd.startsWith(prefix) && cmd !== prefix && !seen.has(cmd)) {
           seen.add(cmd)
           result.push(cmd)
         }
@@ -350,15 +350,6 @@ export function useShellEditor(callbacksRef) {
           const head = view.state.selection.main.head
           if (view.state.doc.lineAt(head).number !== 1) return false
 
-          // Keep walking history once navigation has started, even though the
-          // doc is now non-empty. Only fall back to ghost cycling when the
-          // user is NOT mid-history-navigation.
-          const inHistoryNav = callbacksRef.current.isNavigatingHistory?.() ?? false
-          if (!inHistoryNav && doc.trim()) {
-            view.dispatch({ effects: ghostCycleEffect.of('up') })
-            return true
-          }
-
           const next = callbacksRef.current.onNavigateHistory?.('up', doc)
           if (next == null) return true
           view.dispatch({
@@ -374,12 +365,6 @@ export function useShellEditor(callbacksRef) {
           const doc = view.state.doc.toString()
           const head = view.state.selection.main.head
           if (view.state.doc.lineAt(head).number !== view.state.doc.lines) return false
-
-          const inHistoryNav = callbacksRef.current.isNavigatingHistory?.() ?? false
-          if (!inHistoryNav && doc.trim()) {
-            view.dispatch({ effects: ghostCycleEffect.of('down') })
-            return true
-          }
 
           const next = callbacksRef.current.onNavigateHistory?.('down', doc)
           if (next == null) return true
