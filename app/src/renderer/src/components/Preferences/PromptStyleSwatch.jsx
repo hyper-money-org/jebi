@@ -5,7 +5,7 @@
 // so the swatch reflects whatever theme is active.
 
 const SWATCH_COLORS = [
-  "var(--tab-accent, var(--accent))",
+  "var(--tab-accent, var(--brand))",
   "var(--prompt-go-tint, #00acd7)",
   "var(--prompt-git-tint, #eb6200)",
 ];
@@ -70,7 +70,7 @@ export default function PromptStyleSwatch({ preset, isActive, onSelect }) {
       onClick={onSelect}
       style={{
         background: "none",
-        border: `2px solid ${isActive ? "var(--accent)" : "transparent"}`,
+        border: `2px solid ${isActive ? "var(--brand)" : "transparent"}`,
         borderRadius: "8px",
         padding: "3px",
         cursor: "pointer",
@@ -98,7 +98,7 @@ export default function PromptStyleSwatch({ preset, isActive, onSelect }) {
       <span
         style={{
           fontSize: "11px",
-          color: isActive ? "var(--accent)" : "var(--text-secondary)",
+          color: isActive ? "var(--brand)" : "var(--text-secondary)",
           textAlign: "center",
           fontWeight: isActive ? 600 : 400,
           fontFamily: "var(--font-ui)",

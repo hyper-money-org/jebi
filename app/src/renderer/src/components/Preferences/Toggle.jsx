@@ -8,7 +8,7 @@ function Toggle({ checked, onChange }) {
         width: 36,
         height: 20,
         borderRadius: 10,
-        background: checked ? 'var(--accent)' : 'var(--border)',
+        background: checked ? 'var(--brand)' : 'var(--border)',
         position: 'relative',
         cursor: 'pointer',
         flexShrink: 0,

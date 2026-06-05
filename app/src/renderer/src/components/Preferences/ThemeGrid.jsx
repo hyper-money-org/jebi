@@ -30,7 +30,7 @@ export default function ThemeGrid() {
         onClick={() => setTheme('custom')}
         style={{
           background: 'none',
-          border: `2px solid ${prefs.themeId === 'custom' ? activeColors.accent : 'transparent'}`,
+          border: `2px solid ${prefs.themeId === 'custom' ? 'var(--brand)' : 'transparent'}`,
           borderRadius: '8px',
           padding: '3px',
           cursor: 'pointer',
@@ -55,7 +55,7 @@ export default function ThemeGrid() {
         </div>
         <span style={{
           fontSize: '11px',
-          color: prefs.themeId === 'custom' ? activeColors.accent : 'var(--text-secondary)',
+          color: prefs.themeId === 'custom' ? 'var(--brand)' : 'var(--text-secondary)',
           textAlign: 'center',
           fontWeight: prefs.themeId === 'custom' ? 600 : 400,
           fontFamily: 'var(--font-ui)',

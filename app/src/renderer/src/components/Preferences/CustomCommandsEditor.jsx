@@ -119,15 +119,15 @@ const editorTheme = EditorView.theme({
     borderRadius: '5px',
     border: '1px solid var(--border)',
   },
-  '&.cm-focused': { outline: 'none', border: '1px solid var(--accent)' },
+  '&.cm-focused': { outline: 'none', border: '1px solid var(--brand)' },
   '.cm-scroller': { overflow: 'auto !important', lineHeight: '1.6', maxHeight: '260px' },
   '.cm-placeholder': { color: 'var(--text-muted)', opacity: 0.4, fontStyle: 'italic' },
-  '.cm-content': { padding: '10px 4px', caretColor: 'var(--accent)' },
-  '.cm-cursor': { borderLeftColor: 'var(--accent)', borderLeftWidth: '1px', maxHeight: '1.2em' },
+  '.cm-content': { padding: '10px 4px', caretColor: 'var(--brand)' },
+  '.cm-cursor': { borderLeftColor: 'var(--brand)', borderLeftWidth: '1px', maxHeight: '1.2em' },
   '&.cm-focused .cm-selectionBackground, .cm-selectionBackground': {
-    background: 'color-mix(in srgb, var(--accent) 20%, transparent)',
+    background: 'color-mix(in srgb, var(--brand) 20%, transparent)',
   },
-  '.cm-activeLine': { background: 'color-mix(in srgb, var(--accent) 5%, transparent)' },
+  '.cm-activeLine': { background: 'color-mix(in srgb, var(--brand) 5%, transparent)' },
 }, { dark: true })
 
 const highlight = syntaxHighlighting(HighlightStyle.define([
@@ -260,7 +260,7 @@ export default function CustomCommandsEditor() {
           disabled={!loaded || status === 'saving'}
           style={{
             padding: '6px 18px', borderRadius: 5, border: 'none',
-            background: 'var(--accent)', color: 'var(--on-accent)',
+            background: 'var(--brand)', color: 'var(--on-accent)',
             cursor: (!loaded || status === 'saving') ? 'default' : 'pointer',
             opacity: (!loaded || status === 'saving') ? 0.7 : 1,
             fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-ui)',

@@ -20,9 +20,9 @@ export default function ThemeSwatch({ theme, isActive, onSelect }) {
       <div style={{
         borderRadius: 8,
         overflow: 'hidden',
-        border: `1.5px solid ${isActive ? colors.accent : colors.border}`,
+        border: `1.5px solid ${isActive ? 'var(--brand)' : colors.border}`,
         boxShadow: isActive
-          ? `0 0 0 2px ${colors.accent}35, 0 4px 16px rgba(0,0,0,0.5)`
+          ? `0 0 0 2px var(--brand-glow), 0 4px 16px rgba(0,0,0,0.5)`
           : '0 2px 8px rgba(0,0,0,0.35)',
         transition: 'border-color 0.15s, box-shadow 0.15s',
       }}>
@@ -111,7 +111,7 @@ export default function ThemeSwatch({ theme, isActive, onSelect }) {
       {/* Label */}
       <span style={{
         fontSize: 11,
-        color: isActive ? colors.accent : 'var(--text-secondary)',
+        color: isActive ? 'var(--brand)' : 'var(--text-secondary)',
         textAlign: 'center',
         fontWeight: isActive ? 600 : 400,
         fontFamily: 'var(--font-ui)',

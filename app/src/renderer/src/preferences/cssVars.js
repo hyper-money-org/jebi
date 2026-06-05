@@ -86,4 +86,7 @@ export function applyThemeToCSSVars(colors, fontSize, fontFamily, uiFontSize, ui
   if (uiFontFamily) {
     el.style.setProperty('--font-ui', uiFontFamily)
   }
+  // Brand accent — fixed, never overridden by theme.
+  el.style.setProperty('--brand', '#3b82f6')
+  el.style.setProperty('--brand-glow', hexToRgba('#3b82f6', 0.15))
 }

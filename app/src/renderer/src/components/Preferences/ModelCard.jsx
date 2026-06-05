@@ -63,7 +63,7 @@ export default function ModelCard({ model, isActive, onActivate, onDownload, onC
             }}>
               <div style={{
                 height: '100%', width: `${pct}%`,
-                background: 'var(--accent)', borderRadius: 3,
+                background: 'var(--brand)', borderRadius: 3,
                 transition: 'width 0.3s',
               }} />
             </div>
@@ -85,7 +85,7 @@ export default function ModelCard({ model, isActive, onActivate, onDownload, onC
   // ── Active state ───────────────────────────────────────────────────────────
   if (isActive) {
     return (
-      <div style={{ ...cardStyle, borderColor: 'var(--accent)' }}>
+      <div style={{ ...cardStyle, borderColor: 'var(--brand)' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={nameStyle}>{model.name}</div>
@@ -93,7 +93,7 @@ export default function ModelCard({ model, isActive, onActivate, onDownload, onC
           </div>
           <span style={{
             fontSize: 'var(--font-size-ui)', fontFamily: 'var(--font-mono)',
-            color: 'var(--accent)', flexShrink: 0,
+            color: 'var(--brand)', flexShrink: 0,
             paddingTop: 2,
           }}>
             ● Active
@@ -114,7 +114,7 @@ export default function ModelCard({ model, isActive, onActivate, onDownload, onC
           </div>
           <button
             onClick={onActivate}
-            style={{ ...actionBtnBase, background: 'var(--accent)', color: 'var(--on-accent)', marginTop: 2 }}
+            style={{ ...actionBtnBase, background: 'var(--brand)', color: 'var(--on-accent)', marginTop: 2 }}
           >
             Set Active
           </button>
@@ -138,7 +138,7 @@ export default function ModelCard({ model, isActive, onActivate, onDownload, onC
         </div>
         <button
           onClick={onDownload}
-          style={{ ...actionBtnBase, background: 'var(--accent)', color: 'var(--on-accent)', marginTop: 2 }}
+          style={{ ...actionBtnBase, background: 'var(--brand)', color: 'var(--on-accent)', marginTop: 2 }}
         >
           Download
         </button>
