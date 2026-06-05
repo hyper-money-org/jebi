@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">jebi logo concept 02 - Prompt As Geometry</title>
+  <desc id="desc">The terminal prompt shape becomes the main structural edge of a minimal cube.</desc>
+  <rect width="512" height="512" rx="112" fill="#fff"/>
+  <path d="M126 132 258 256 126 380" fill="none" stroke="#000" stroke-width="58" stroke-linecap="square" stroke-linejoin="miter"/>
+  <path d="M258 256 390 132" fill="none" stroke="#000" stroke-width="34" stroke-linecap="square"/>
+  <path d="M258 256 390 380" fill="none" stroke="#000" stroke-width="34" stroke-linecap="square"/>
+  <path d="M390 132v248" fill="none" stroke="#000" stroke-width="34" stroke-linecap="square"/>
+  <path d="M198 132h192" fill="none" stroke="#000" stroke-width="34" stroke-linecap="square"/>
+  <path d="M198 380h192" fill="none" stroke="#000" stroke-width="34" stroke-linecap="square"/>
+</svg>

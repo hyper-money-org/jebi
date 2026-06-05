@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>jebi Dock Icon Concepts</title>
+  <style>
+    :root {
+      --bg: #f5f2ec;
+      --ink: #111;
+      --muted: #69645d;
+      --line: #d9d2c5;
+      --panel: #fffaf1;
+      --dark: #0d0f12;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Avenir Next, ui-sans-serif, system-ui, sans-serif;
+      line-height: 1.45;
+    }
+
+    header {
+      padding: 56px clamp(24px, 5vw, 72px) 32px;
+      max-width: 1180px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(36px, 7vw, 84px);
+      line-height: .88;
+      letter-spacing: -.07em;
+      max-width: 900px;
+    }
+
+    .intro {
+      margin: 24px 0 0;
+      max-width: 740px;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .section {
+      padding: 36px clamp(20px, 5vw, 72px) 52px;
+    }
+
+    .section-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    h2 {
+      margin: 0 0 22px;
+      font-size: clamp(24px, 3vw, 38px);
+      letter-spacing: -.04em;
+    }
+
+    .white-zone {
+      background: #fff;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .dark-zone {
+      background: var(--dark);
+      color: #fff;
+    }
+
+    .dark-zone .intro,
+    .dark-zone .eyebrow,
+    .dark-zone dd,
+    .dark-zone th { color: #b8b8b8; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      padding: 22px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .card-head { min-height: 62px; }
+
+    .eyebrow {
+      margin: 0 0 4px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    h3 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: -.035em;
+    }
+
+    .hero-icon {
+      display: grid;
+      place-items: center;
+      min-height: 190px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+    }
+
+    .hero-icon img { width: 168px; height: 168px; }
+
+    .size-strip {
+      display: flex;
+      align-items: end;
+      gap: 14px;
+      min-height: 138px;
+      padding: 12px;
+      border-radius: 18px;
+      background: #f2eee5;
+      overflow-x: auto;
+    }
+
+    .size-strip span {
+      display: grid;
+      gap: 7px;
+      justify-items: center;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    dl { margin: 0; display: grid; gap: 8px; }
+    dt { font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .11em; }
+    dd { margin: 0 0 8px; color: var(--muted); font-size: 14px; }
+
+    .matrix-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 900px;
+    }
+
+    th, td {
+      padding: 18px;
+      border-bottom: 1px solid var(--line);
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    tr:last-child th,
+    tr:last-child td { border-bottom: 0; }
+
+    th {
+      color: var(--muted);
+      font-size: 13px;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .dark-zone .matrix-wrap {
+      background: #111418;
+      border-color: #30343a;
+    }
+
+    .dark-zone th,
+    .dark-zone td { border-color: #30343a; }
+    .dark-zone img.jebi-on-dark { filter: invert(1); }
+
+    .github-row,
+    .dock-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .avatar-preview {
+      display: grid;
+      gap: 8px;
+      justify-items: center;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .avatar-preview img {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .dock-scene {
+      min-height: 360px;
+      display: grid;
+      align-items: end;
+      padding: 42px 16px 38px;
+      border-radius: 34px;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(255,255,255,.20), transparent 24%),
+        linear-gradient(155deg, #0a0d14 0%, #253045 55%, #0a0b0e 100%);
+      overflow-x: auto;
+    }
+
+    .dock {
+      margin: 0 auto;
+      display: flex;
+      align-items: end;
+      gap: 10px;
+      padding: 16px 18px 20px;
+      border: 1px solid rgba(255,255,255,.24);
+      border-radius: 30px;
+      background: rgba(28, 31, 36, .58);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 22px 80px rgba(0,0,0,.42);
+      width: max-content;
+    }
+
+    .dock-app {
+      width: 62px;
+      height: 62px;
+      border-radius: 16px;
+      flex: 0 0 auto;
+      background: #fff;
+    }
+
+    .dock-app.jebi {
+      outline: 1px solid rgba(255,255,255,.18);
+    }
+
+    .fake-icon {
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 900;
+      font-size: 24px;
+      letter-spacing: -.08em;
+    }
+
+    .finder { background: linear-gradient(90deg, #82c7ff 0 50%, #f2f7ff 50%); color: #0b4b83; }
+    .chrome { background: conic-gradient(#e94545 0 33%, #f5ce42 0 66%, #31a66a 0); color: #fff; position: relative; }
+    .chrome::after { content: ''; width: 25px; height: 25px; border-radius: 50%; background: #2f7cf6; border: 5px solid #fff; }
+    .vscode { background: #1877d2; font-family: ui-monospace, monospace; }
+    .terminal { background: #111; font-family: ui-monospace, monospace; font-size: 20px; letter-spacing: 0; }
+    .chatgpt { background: #f4f0e8; color: #111; font-size: 28px; border: 1px solid rgba(0,0,0,.08); }
+    .separator { width: 1px; height: 56px; background: rgba(255,255,255,.28); margin: 0 4px; }
+
+    .recommendation {
+      max-width: 860px;
+      padding: 28px;
+      border-radius: 28px;
+      background: #111;
+      color: #fff;
+    }
+
+    .recommendation h2 { margin-bottom: 12px; }
+    .recommendation p { margin: 0 0 12px; color: #ddd; font-size: 17px; }
+    .recommendation strong { color: #fff; }
+  </style>
+</head>
+<body>
+  <header>
+    <p class="eyebrow">jebi icon redesign</p>
+    <h1>A terminal prompt that happens to form a cube.</h1>
+    <p class="intro">The current mark reads cube-first in the Dock. These six monochrome concepts invert the hierarchy so the first read is terminal, the second is developer tool, and the cube becomes the supporting idea.</p>
+  </header>
+
+  <section class="section white-zone">
+    <div class="section-inner">
+      <h2>White Background</h2>
+      <div class="grid">
+      <article class="card" id="concept-1">
+        <div class="card-head">
+          <p class="eyebrow">Large Prompt Face</p>
+          <h3>01 Large Prompt Face</h3>
+        </div>
+        <div class="hero-icon"><img src="jebi-logo-concepts/01-large-prompt-face.svg" alt="01 Large Prompt Face"></div>
+        <div class="size-strip" aria-label="Size previews for 01 Large Prompt Face">
+          <span><img style="width:16px;height:16px" src="jebi-logo-concepts/01-large-prompt-face.svg" alt="">16</span>
+          <span><img style="width:32px;height:32px" src="jebi-logo-concepts/01-large-prompt-face.svg" alt="">32</span>
+          <span><img style="width:64px;height:64px" src="jebi-logo-concepts/01-large-prompt-face.svg" alt="">64</span>
+          <span><img style="width:128px;height:128px" src="jebi-logo-concepts/01-large-prompt-face.svg" alt="">128</span>
+        </div>
+        <dl>
+          <dt>Strength</dt>
+          <dd>Reads as terminal first because the front face is mostly prompt; cube is still obvious through the top and right planes.</dd>
+          <dt>Weakness</dt>
+          <dd>The filled front panel can feel more conventional terminal-app than AI-native unless the surrounding app identity carries the personality.</dd>
+        </dl>
+      </article>
+
+      <article class="card" id="concept-2">
+        <div class="card-head">
+          <p class="eyebrow">Prompt-As-Geometry</p>
+          <h3>02 Prompt-As-Geometry</h3>
+        </div>
+        <div class="hero-icon"><img src="jebi-logo-concepts/02-prompt-as-geometry.svg" alt="02 Prompt-As-Geometry"></div>
+        <div class="size-strip" aria-label="Size previews for 02 Prompt-As-Geometry">
+          <span><img style="width:16px;height:16px" src="jebi-logo-concepts/02-prompt-as-geometry.svg" alt="">16</span>
+          <span><img style="width:32px;height:32px" src="jebi-logo-concepts/02-prompt-as-geometry.svg" alt="">32</span>
+          <span><img style="width:64px;height:64px" src="jebi-logo-concepts/02-prompt-as-geometry.svg" alt="">64</span>
+          <span><img style="width:128px;height:128px" src="jebi-logo-concepts/02-prompt-as-geometry.svg" alt="">128</span>
+        </div>
+        <dl>
+          <dt>Strength</dt>
+          <dd>Most conceptually pure: the greater-than sign is literally the cube spine, so the cube appears to emerge from the command prompt.</dd>
+          <dt>Weakness</dt>
+          <dd>At 16px the extra rear cube edges begin to merge into an abstract wire glyph.</dd>
+        </dl>
+      </article>
+
+      <article class="card" id="concept-3">
+        <div class="card-head">
+          <p class="eyebrow">Cursor Cube</p>
+          <h3>03 Cursor Cube</h3>
+        </div>
+        <div class="hero-icon"><img src="jebi-logo-concepts/03-cursor-cube.svg" alt="03 Cursor Cube"></div>
+        <div class="size-strip" aria-label="Size previews for 03 Cursor Cube">
+          <span><img style="width:16px;height:16px" src="jebi-logo-concepts/03-cursor-cube.svg" alt="">16</span>
+          <span><img style="width:32px;height:32px" src="jebi-logo-concepts/03-cursor-cube.svg" alt="">32</span>
+          <span><img style="width:64px;height:64px" src="jebi-logo-concepts/03-cursor-cube.svg" alt="">64</span>
+          <span><img style="width:128px;height:128px" src="jebi-logo-concepts/03-cursor-cube.svg" alt="">128</span>
+        </div>
+        <dl>
+          <dt>Strength</dt>
+          <dd>Very legible as `> cursor`; the cube-cursor idea is memorable and maps neatly to terminal interaction.</dd>
+          <dt>Weakness</dt>
+          <dd>The cube reads as a separate object rather than one integrated mark, so it can feel like two symbols side by side.</dd>
+        </dl>
+      </article>
+
+      <article class="card" id="concept-4">
+        <div class="card-head">
+          <p class="eyebrow">Wireframe Cube</p>
+          <h3>04 Wireframe Prompt Cube</h3>
+        </div>
+        <div class="hero-icon"><img src="jebi-logo-concepts/04-wireframe-prompt-cube.svg" alt="04 Wireframe Prompt Cube"></div>
+        <div class="size-strip" aria-label="Size previews for 04 Wireframe Prompt Cube">
+          <span><img style="width:16px;height:16px" src="jebi-logo-concepts/04-wireframe-prompt-cube.svg" alt="">16</span>
+          <span><img style="width:32px;height:32px" src="jebi-logo-concepts/04-wireframe-prompt-cube.svg" alt="">32</span>
+          <span><img style="width:64px;height:64px" src="jebi-logo-concepts/04-wireframe-prompt-cube.svg" alt="">64</span>
+          <span><img style="width:128px;height:128px" src="jebi-logo-concepts/04-wireframe-prompt-cube.svg" alt="">128</span>
+        </div>
+        <dl>
+          <dt>Strength</dt>
+          <dd>Clean, technical, and airy; it preserves the cube with very little visual weight.</dd>
+          <dt>Weakness</dt>
+          <dd>Thin internal lines are the first to disappear in favicon and crowded Dock contexts.</dd>
+        </dl>
+      </article>
+
+      <article class="card" id="concept-5">
+        <div class="card-head">
+          <p class="eyebrow">Large Prompt Face</p>
+          <h3>05 Negative-Space Prompt</h3>
+        </div>
+        <div class="hero-icon"><img src="jebi-logo-concepts/05-negative-space-prompt.svg" alt="05 Negative-Space Prompt"></div>
+        <div class="size-strip" aria-label="Size previews for 05 Negative-Space Prompt">
+          <span><img style="width:16px;height:16px" src="jebi-logo-concepts/05-negative-space-prompt.svg" alt="">16</span>
+          <span><img style="width:32px;height:32px" src="jebi-logo-concepts/05-negative-space-prompt.svg" alt="">32</span>
+          <span><img style="width:64px;height:64px" src="jebi-logo-concepts/05-negative-space-prompt.svg" alt="">64</span>
+          <span><img style="width:128px;height:128px" src="jebi-logo-concepts/05-negative-space-prompt.svg" alt="">128</span>
+        </div>
+        <dl>
+          <dt>Strength</dt>
+          <dd>Strongest black/white contrast; the terminal glyph punches through the cube, making the prompt unmistakable.</dd>
+          <dt>Weakness</dt>
+          <dd>The dense black cube still competes for attention, so it risks drifting back toward cube-first at some sizes.</dd>
+        </dl>
+      </article>
+
+      <article class="card" id="concept-6">
+        <div class="card-head">
+          <p class="eyebrow">Cursor Cube</p>
+          <h3>06 Dock Bold Hybrid</h3>
+        </div>
+        <div class="hero-icon"><img src="jebi-logo-concepts/06-dock-bold-hybrid.svg" alt="06 Dock Bold Hybrid"></div>
+        <div class="size-strip" aria-label="Size previews for 06 Dock Bold Hybrid">
+          <span><img style="width:16px;height:16px" src="jebi-logo-concepts/06-dock-bold-hybrid.svg" alt="">16</span>
+          <span><img style="width:32px;height:32px" src="jebi-logo-concepts/06-dock-bold-hybrid.svg" alt="">32</span>
+          <span><img style="width:64px;height:64px" src="jebi-logo-concepts/06-dock-bold-hybrid.svg" alt="">64</span>
+          <span><img style="width:128px;height:128px" src="jebi-logo-concepts/06-dock-bold-hybrid.svg" alt="">128</span>
+        </div>
+        <dl>
+          <dt>Strength</dt>
+          <dd>Best distance read: an oversized prompt plus a compact cube-cursor keeps terminal first while preserving the cube idea.</dd>
+          <dt>Weakness</dt>
+          <dd>Less literal as a full cube than the isometric options; it chooses Dock recognizability over architectural completeness.</dd>
+        </dl>
+      </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section dark-zone">
+    <div class="section-inner">
+      <h2>Dark Mode Section</h2>
+      <p class="intro">These are the same SVG files on a dark surface. They remain black/white only; the white app tile keeps the icon stable across Dock, desktop, and browser contexts.</p>
+      <div class="github-row" style="margin-top:24px">
+        <div class="avatar-preview"><img src="jebi-logo-concepts/01-large-prompt-face.svg" alt="01 Large Prompt Face"><span>01</span></div>
+        <div class="avatar-preview"><img src="jebi-logo-concepts/02-prompt-as-geometry.svg" alt="02 Prompt-As-Geometry"><span>02</span></div>
+        <div class="avatar-preview"><img src="jebi-logo-concepts/03-cursor-cube.svg" alt="03 Cursor Cube"><span>03</span></div>
+        <div class="avatar-preview"><img src="jebi-logo-concepts/04-wireframe-prompt-cube.svg" alt="04 Wireframe Prompt Cube"><span>04</span></div>
+        <div class="avatar-preview"><img src="jebi-logo-concepts/05-negative-space-prompt.svg" alt="05 Negative-Space Prompt"><span>05</span></div>
+        <div class="avatar-preview"><img src="jebi-logo-concepts/06-dock-bold-hybrid.svg" alt="06 Dock Bold Hybrid"><span>06</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section white-zone">
+    <div class="section-inner">
+      <h2>Favicon, Dock, And Asset Sizes</h2>
+      <div class="matrix-wrap">
+        <table>
+          <thead>
+            <tr><th>Concept</th><th>16px favicon</th><th>32px Dock</th><th>64px Dock</th><th>128px app</th><th>256px source</th></tr>
+          </thead>
+          <tbody>
+          <tr>
+            <th>1 Large Prompt Face</th>
+            <td><img style="width:16px;height:16px" src="jebi-logo-concepts/01-large-prompt-face.svg" alt=""></td>
+            <td><img style="width:32px;height:32px" src="jebi-logo-concepts/01-large-prompt-face.svg" alt=""></td>
+            <td><img style="width:64px;height:64px" src="jebi-logo-concepts/01-large-prompt-face.svg" alt=""></td>
+            <td><img style="width:128px;height:128px" src="jebi-logo-concepts/01-large-prompt-face.svg" alt=""></td>
+            <td><img style="width:256px;height:256px" src="jebi-logo-concepts/01-large-prompt-face.svg" alt=""></td>
+          </tr>
+
+          <tr>
+            <th>2 Prompt-As-Geometry</th>
+            <td><img style="width:16px;height:16px" src="jebi-logo-concepts/02-prompt-as-geometry.svg" alt=""></td>
+            <td><img style="width:32px;height:32px" src="jebi-logo-concepts/02-prompt-as-geometry.svg" alt=""></td>
+            <td><img style="width:64px;height:64px" src="jebi-logo-concepts/02-prompt-as-geometry.svg" alt=""></td>
+            <td><img style="width:128px;height:128px" src="jebi-logo-concepts/02-prompt-as-geometry.svg" alt=""></td>
+            <td><img style="width:256px;height:256px" src="jebi-logo-concepts/02-prompt-as-geometry.svg" alt=""></td>
+          </tr>
+
+          <tr>
+            <th>3 Cursor Cube</th>
+            <td><img style="width:16px;height:16px" src="jebi-logo-concepts/03-cursor-cube.svg" alt=""></td>
+            <td><img style="width:32px;height:32px" src="jebi-logo-concepts/03-cursor-cube.svg" alt=""></td>
+            <td><img style="width:64px;height:64px" src="jebi-logo-concepts/03-cursor-cube.svg" alt=""></td>
+            <td><img style="width:128px;height:128px" src="jebi-logo-concepts/03-cursor-cube.svg" alt=""></td>
+            <td><img style="width:256px;height:256px" src="jebi-logo-concepts/03-cursor-cube.svg" alt=""></td>
+          </tr>
+
+          <tr>
+            <th>4 Wireframe Prompt Cube</th>
+            <td><img style="width:16px;height:16px" src="jebi-logo-concepts/04-wireframe-prompt-cube.svg" alt=""></td>
+            <td><img style="width:32px;height:32px" src="jebi-logo-concepts/04-wireframe-prompt-cube.svg" alt=""></td>
+            <td><img style="width:64px;height:64px" src="jebi-logo-concepts/04-wireframe-prompt-cube.svg" alt=""></td>
+            <td><img style="width:128px;height:128px" src="jebi-logo-concepts/04-wireframe-prompt-cube.svg" alt=""></td>
+            <td><img style="width:256px;height:256px" src="jebi-logo-concepts/04-wireframe-prompt-cube.svg" alt=""></td>
+          </tr>
+
+          <tr>
+            <th>5 Negative-Space Prompt</th>
+            <td><img style="width:16px;height:16px" src="jebi-logo-concepts/05-negative-space-prompt.svg" alt=""></td>
+            <td><img style="width:32px;height:32px" src="jebi-logo-concepts/05-negative-space-prompt.svg" alt=""></td>
+            <td><img style="width:64px;height:64px" src="jebi-logo-concepts/05-negative-space-prompt.svg" alt=""></td>
+            <td><img style="width:128px;height:128px" src="jebi-logo-concepts/05-negative-space-prompt.svg" alt=""></td>
+            <td><img style="width:256px;height:256px" src="jebi-logo-concepts/05-negative-space-prompt.svg" alt=""></td>
+          </tr>
+
+          <tr>
+            <th>6 Dock Bold Hybrid</th>
+            <td><img style="width:16px;height:16px" src="jebi-logo-concepts/06-dock-bold-hybrid.svg" alt=""></td>
+            <td><img style="width:32px;height:32px" src="jebi-logo-concepts/06-dock-bold-hybrid.svg" alt=""></td>
+            <td><img style="width:64px;height:64px" src="jebi-logo-concepts/06-dock-bold-hybrid.svg" alt=""></td>
+            <td><img style="width:128px;height:128px" src="jebi-logo-concepts/06-dock-bold-hybrid.svg" alt=""></td>
+            <td><img style="width:256px;height:256px" src="jebi-logo-concepts/06-dock-bold-hybrid.svg" alt=""></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-inner">
+      <h2>GitHub Avatar Preview</h2>
+      <div class="github-row">
+        <div class="avatar-preview"><img src="jebi-logo-concepts/01-large-prompt-face.svg" alt="01 Large Prompt Face"><span>01 Large Prompt Face</span></div>
+        <div class="avatar-preview"><img src="jebi-logo-concepts/02-prompt-as-geometry.svg" alt="02 Prompt-As-Geometry"><span>02 Prompt-As-Geometry</span></div>
+        <div class="avatar-preview"><img src="jebi-logo-concepts/03-cursor-cube.svg" alt="03 Cursor Cube"><span>03 Cursor Cube</span></div>
+        <div class="avatar-preview"><img src="jebi-logo-concepts/04-wireframe-prompt-cube.svg" alt="04 Wireframe Prompt Cube"><span>04 Wireframe Prompt Cube</span></div>
+        <div class="avatar-preview"><img src="jebi-logo-concepts/05-negative-space-prompt.svg" alt="05 Negative-Space Prompt"><span>05 Negative-Space Prompt</span></div>
+        <div class="avatar-preview"><img src="jebi-logo-concepts/06-dock-bold-hybrid.svg" alt="06 Dock Bold Hybrid"><span>06 Dock Bold Hybrid</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-inner">
+      <h2>macOS Dock Simulation</h2>
+      <div class="dock-scene" aria-label="Simulated macOS Dock containing common app icons and jebi logo concepts">
+        <div class="dock">
+          <div class="dock-app fake-icon finder" title="Finder">⌁</div>
+          <div class="dock-app fake-icon chrome" title="Chrome"></div>
+          <div class="dock-app fake-icon vscode" title="VS Code">&lt;/&gt;</div>
+          <div class="dock-app fake-icon terminal" title="Terminal">&gt;_</div>
+          <div class="dock-app fake-icon chatgpt" title="ChatGPT">◎</div>
+          <div class="separator"></div>
+          <img class="dock-app jebi" src="jebi-logo-concepts/01-large-prompt-face.svg" alt="01 Large Prompt Face" title="01 Large Prompt Face">
+        <img class="dock-app jebi" src="jebi-logo-concepts/02-prompt-as-geometry.svg" alt="02 Prompt-As-Geometry" title="02 Prompt-As-Geometry">
+        <img class="dock-app jebi" src="jebi-logo-concepts/03-cursor-cube.svg" alt="03 Cursor Cube" title="03 Cursor Cube">
+        <img class="dock-app jebi" src="jebi-logo-concepts/04-wireframe-prompt-cube.svg" alt="04 Wireframe Prompt Cube" title="04 Wireframe Prompt Cube">
+        <img class="dock-app jebi" src="jebi-logo-concepts/05-negative-space-prompt.svg" alt="05 Negative-Space Prompt" title="05 Negative-Space Prompt">
+        <img class="dock-app jebi" src="jebi-logo-concepts/06-dock-bold-hybrid.svg" alt="06 Dock Bold Hybrid" title="06 Dock Bold Hybrid">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-inner recommendation">
+      <h2>Recommendation: 06 Dock Bold Hybrid</h2>
+      <p><strong>Concept 06</strong> is the strongest fit for a modern AI-native terminal application because it solves the current hierarchy problem most aggressively: from distance, it reads as a large terminal prompt first, then as a block cursor, then as a cube.</p>
+      <p>Compared with the current icon, it avoids making the isometric cube the dominant silhouette. The cube is compressed into the cursor area, so the Dock read becomes terminal-first without abandoning the geometric cube idea that makes jebi feel distinct from a generic terminal emulator.</p>
+    </div>
+  </section>
+</body>
+</html>

@@ -156,8 +156,13 @@ function AppInner() {
   }, [deleteSession])
 
   const closeActivePane = useCallback(() => {
-    closePane(activeTab.id, activeTab.activePaneId)
-  }, [activeTab, closePane])
+    const paneIds = collectPaneIds(activeTab.layout)
+    if (paneIds.length > 1) {
+      closePane(activeTab.id, activeTab.activePaneId)
+    } else {
+      closeTab(activeTab.id)
+    }
+  }, [activeTab, closePane, closeTab])
 
   // Spatial pane navigation: finds nearest pane in the given direction using
   // rect geometry. Falls back to cycling when no spatial neighbor exists.

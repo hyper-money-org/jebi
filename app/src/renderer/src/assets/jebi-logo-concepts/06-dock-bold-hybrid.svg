@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">jebi logo concept 06 - Dock Bold Hybrid</title>
+  <desc id="desc">A Dock-first black terminal prompt with a compact cube emerging from the cursor block.</desc>
+  <rect width="512" height="512" rx="112" fill="#fff"/>
+  <path d="M88 142 232 256 88 370" fill="none" stroke="#000" stroke-width="66" stroke-linecap="square" stroke-linejoin="miter"/>
+  <path d="M282 218h82v116h-82Z" fill="#000"/>
+  <path d="M364 218 424 182v116l-60 36Z" fill="#fff" stroke="#000" stroke-width="24" stroke-linejoin="round"/>
+  <path d="M282 218 342 182h82l-60 36Z" fill="#fff" stroke="#000" stroke-width="24" stroke-linejoin="round"/>
+  <path d="M282 334h82l60-36" fill="none" stroke="#000" stroke-width="24" stroke-linejoin="round"/>
+</svg>

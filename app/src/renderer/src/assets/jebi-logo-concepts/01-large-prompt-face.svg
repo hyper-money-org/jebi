@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">jebi logo concept 01 - Large Prompt Face</title>
+  <desc id="desc">A monochrome cube icon whose front terminal face is dominated by a large prompt glyph.</desc>
+  <rect width="512" height="512" rx="112" fill="#fff"/>
+  <path d="M94 156 178 104h286L380 156Z" fill="#fff" stroke="#000" stroke-width="24" stroke-linejoin="round"/>
+  <path d="M380 156 464 104v278l-84 52Z" fill="#fff" stroke="#000" stroke-width="24" stroke-linejoin="round"/>
+  <path d="M94 156h286v278H94Z" fill="#000"/>
+  <path d="M154 225 230 286 154 347" fill="none" stroke="#fff" stroke-width="48" stroke-linecap="square" stroke-linejoin="miter"/>
+  <path d="M260 332h88v34h-88Z" fill="#fff"/>
+</svg>

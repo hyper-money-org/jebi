@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">jebi logo concept 04 - Wireframe Prompt Cube</title>
+  <desc id="desc">A minimal wireframe cube with a thick prompt-like front edge.</desc>
+  <rect width="512" height="512" rx="112" fill="#fff"/>
+  <path d="M120 160 238 256 120 352" fill="none" stroke="#000" stroke-width="52" stroke-linecap="square" stroke-linejoin="miter"/>
+  <path d="M238 256 348 160h88v192h-88Z" fill="none" stroke="#000" stroke-width="28" stroke-linejoin="round"/>
+  <path d="M120 160h228M120 352h228M348 160v192M238 256h198" fill="none" stroke="#000" stroke-width="28" stroke-linecap="square" stroke-linejoin="round"/>
+</svg>

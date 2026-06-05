@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">jebi logo concept 05 - Negative Space Prompt</title>
+  <desc id="desc">A black cube mark cut by a large white terminal prompt and cursor.</desc>
+  <rect width="512" height="512" rx="112" fill="#fff"/>
+  <path d="M82 154 174 98h286L368 154Z" fill="#000"/>
+  <path d="M368 154 460 98v276l-92 58Z" fill="#000"/>
+  <path d="M82 154h286v278H82Z" fill="#000"/>
+  <path d="M142 218 232 286 142 354" fill="none" stroke="#fff" stroke-width="54" stroke-linecap="square" stroke-linejoin="miter"/>
+  <path d="M266 335h74v36h-74Z" fill="#fff"/>
+  <path d="M368 154v278M82 154h286" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="square" opacity="1"/>
+</svg>

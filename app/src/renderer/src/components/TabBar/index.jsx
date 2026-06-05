@@ -108,7 +108,7 @@ function OverflowTabItem({ tab, isActive, onSelect, onClose }) {
           fontFamily: "var(--font-mono)",
           fontSize: "var(--font-size-ui)",
           color: isActive ? "var(--text-primary)" : "var(--text-muted)",
-          direction: isCmd ? "ltr" : "rtl",
+          direction: "ltr",
         }}
       >
         {title}
@@ -620,7 +620,7 @@ function TabPill({ tab, isActive, onSelect, onClose, onContextMenu, tabNum }) {
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
-          direction: isCmd ? "ltr" : "rtl",
+          direction: "ltr",
           fontFamily: "var(--font-mono)",
           fontSize: "var(--font-size-ui)",
           letterSpacing: "0.01em",
@@ -681,7 +681,7 @@ function LeftTabPill({ tab, isActive, onSelect, onClose, onContextMenu, tabNum }
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
-          direction: isCmd ? "ltr" : "rtl",
+          direction: "ltr",
           fontFamily: "var(--font-mono)",
           fontSize: "var(--font-size-ui)",
           letterSpacing: "0.01em",

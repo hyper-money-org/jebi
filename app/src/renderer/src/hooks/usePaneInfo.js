@@ -50,7 +50,11 @@ export function computeTabTitle(info, fallback) {
   const cmd = (info?.runningCommand ?? info?.lastCommand)?.trim()
   if (cmd) return cmd
   if (info?.cwd) {
-    return info.cwd || '/'
+    const p = info.cwd
+    const home = p.match(/^\/Users\/[^/]+/)
+    const rel = home ? '~' + p.slice(home[0].length) : p
+    const parts = rel.split('/').filter(Boolean)
+    return parts[parts.length - 1] || '~'
   }
   return fallback
 }

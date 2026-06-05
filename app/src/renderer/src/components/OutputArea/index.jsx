@@ -179,7 +179,10 @@ export default function OutputArea({
       promptAddon.setOnReplay((command) => onReplayRef.current?.(command));
 
       term.onData((data) => {
-        sendRaw(data);
+        // Strip focus-in/out events (\x1b[I / \x1b[O) — these leak to the shell
+        // when an interactive app enables focus reporting and exits without disabling it.
+        const clean = data.replace(/\x1b\[I|\x1b\[O/g, '');
+        if (clean) sendRaw(clean);
         term.scrollToBottom();
       });
       term.onResize(({ cols, rows }) => sendResizeRef.current?.(cols, rows));

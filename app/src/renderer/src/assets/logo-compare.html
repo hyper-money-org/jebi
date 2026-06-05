@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>jebi logo color exploration</title>
+  <style>
+    body {
+      background: #0f172a;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 48px;
+      padding: 48px;
+      font-family: system-ui, sans-serif;
+      justify-content: center;
+      align-items: flex-start;
+    }
+    .variant {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+    .variant svg {
+      width: 160px;
+      height: 160px;
+    }
+    .label {
+      color: #94a3b8;
+      font-size: 13px;
+      letter-spacing: 0.04em;
+      text-align: center;
+    }
+    .swatch {
+      display: flex;
+      gap: 4px;
+      margin-top: 2px;
+    }
+    .swatch span {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+    }
+
+    /* light bg version */
+    .on-light svg {
+      background: #f8fafc;
+      border-radius: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- 1. Ocean Blue (current) -->
+<div class="variant">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+    <polygon points="101,172 191,117 411,117 321,172" fill="#3b82f6"/>
+    <polygon points="321,172 411,117 411,341 321,396" fill="#1d4ed8"/>
+    <polygon points="101,172 321,172 321,396 101,396" fill="#0f172a"/>
+    <polyline points="143,248 183,284 143,320" fill="none" stroke="#93c5fd" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="195" y="303" width="72" height="14" rx="4" fill="white" opacity="0.85"/>
+  </svg>
+  <div class="label">Ocean Blue<br><small style="color:#475569">#3b82f6</small></div>
+  <div class="swatch"><span style="background:#3b82f6"></span><span style="background:#1d4ed8"></span><span style="background:#0f172a"></span></div>
+</div>
+
+<!-- 2. Cyan Glow -->
+<div class="variant">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+    <polygon points="101,172 191,117 411,117 321,172" fill="#06b6d4"/>
+    <polygon points="321,172 411,117 411,341 321,396" fill="#0e7490"/>
+    <polygon points="101,172 321,172 321,396 101,396" fill="#0c1a20"/>
+    <polyline points="143,248 183,284 143,320" fill="none" stroke="#67e8f9" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="195" y="303" width="72" height="14" rx="4" fill="white" opacity="0.85"/>
+  </svg>
+  <div class="label">Cyan Glow<br><small style="color:#475569">#06b6d4</small></div>
+  <div class="swatch"><span style="background:#06b6d4"></span><span style="background:#0e7490"></span><span style="background:#0c1a20"></span></div>
+</div>
+
+<!-- 3. Golden Twilight -->
+<div class="variant">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+    <polygon points="101,172 191,117 411,117 321,172" fill="#f59e0b"/>
+    <polygon points="321,172 411,117 411,341 321,396" fill="#b45309"/>
+    <polygon points="101,172 321,172 321,396 101,396" fill="#0f172a"/>
+    <polyline points="143,248 183,284 143,320" fill="none" stroke="#fcd34d" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="195" y="303" width="72" height="14" rx="4" fill="white" opacity="0.85"/>
+  </svg>
+  <div class="label">Golden Twilight<br><small style="color:#475569">#f59e0b</small></div>
+  <div class="swatch"><span style="background:#f59e0b"></span><span style="background:#b45309"></span><span style="background:#0f172a"></span></div>
+</div>
+
+<!-- 4. Teal Mint -->
+<div class="variant">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+    <polygon points="101,172 191,117 411,117 321,172" fill="#14b8a6"/>
+    <polygon points="321,172 411,117 411,341 321,396" fill="#0f766e"/>
+    <polygon points="101,172 321,172 321,396 101,396" fill="#0d1f1e"/>
+    <polyline points="143,248 183,284 143,320" fill="none" stroke="#5eead4" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="195" y="303" width="72" height="14" rx="4" fill="white" opacity="0.85"/>
+  </svg>
+  <div class="label">Teal Mint<br><small style="color:#475569">#14b8a6</small></div>
+  <div class="swatch"><span style="background:#14b8a6"></span><span style="background:#0f766e"></span><span style="background:#0d1f1e"></span></div>
+</div>
+
+<!-- 5. Electric Violet -->
+<div class="variant">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+    <polygon points="101,172 191,117 411,117 321,172" fill="#8b5cf6"/>
+    <polygon points="321,172 411,117 411,341 321,396" fill="#5b21b6"/>
+    <polygon points="101,172 321,172 321,396 101,396" fill="#0f0f1a"/>
+    <polyline points="143,248 183,284 143,320" fill="none" stroke="#c4b5fd" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="195" y="303" width="72" height="14" rx="4" fill="white" opacity="0.85"/>
+  </svg>
+  <div class="label">Electric Violet<br><small style="color:#475569">#8b5cf6</small></div>
+  <div class="swatch"><span style="background:#8b5cf6"></span><span style="background:#5b21b6"></span><span style="background:#0f0f1a"></span></div>
+</div>
+
+<!-- 6. Coral Sunset -->
+<div class="variant">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+    <polygon points="101,172 191,117 411,117 321,172" fill="#f43f5e"/>
+    <polygon points="321,172 411,117 411,341 321,396" fill="#9f1239"/>
+    <polygon points="101,172 321,172 321,396 101,396" fill="#1a0a0d"/>
+    <polyline points="143,248 183,284 143,320" fill="none" stroke="#fda4af" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="195" y="303" width="72" height="14" rx="4" fill="white" opacity="0.85"/>
+  </svg>
+  <div class="label">Coral Sunset<br><small style="color:#475569">#f43f5e</small></div>
+  <div class="swatch"><span style="background:#f43f5e"></span><span style="background:#9f1239"></span><span style="background:#1a0a0d"></span></div>
+</div>
+
+</body>
+</html>

@@ -207,8 +207,9 @@ func (s *Session) Start() {
 			if len(s.contextEntries) > maxContextEntries {
 				s.contextEntries = s.contextEntries[len(s.contextEntries)-maxContextEntries:]
 			}
-			// Skip AI for trivial commands and exit 127 (command not found — self-explanatory).
-			if entry.ExitCode == 127 {
+			// Skip AI for trivial commands, exit 127 (command not found), and
+			// exit 130 (Ctrl+C / SIGINT — user intentionally cancelled).
+			if entry.ExitCode == 127 || entry.ExitCode == 130 {
 				break
 			}
 			if entry.ExitCode == 0 && isTrivialCommand(entry.Command) {
