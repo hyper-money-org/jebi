@@ -5,8 +5,8 @@ import { useEffect, useRef } from 'react'
 
 // Curated palette for per-tab accent colors — chosen to read well on dark themes.
 export const TAB_ACCENT_PALETTE = [
-  '#ec4899', '#f97316', '#eab308', '#22c55e',
-  '#06b6d4', '#3b82f6', '#a855f7', '#94a3b8',
+  '#3b82f6', '#f43f5e', '#ec4899', '#f97316',
+  '#eab308', '#22c55e', '#06b6d4', '#a855f7',
 ]
 
 export function TabContextMenu({

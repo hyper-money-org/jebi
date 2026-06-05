@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Top face — brand blue, lit from above -->
+  <polygon points="101,172 191,117 411,117 321,172" fill="#3b82f6"/>
+
+  <!-- Right face — deeper blue, shadowed -->
+  <polygon points="321,172 411,117 411,341 321,396" fill="#1d4ed8"/>
+
+  <!-- Front face — dark terminal screen -->
+  <polygon points="101,172 321,172 321,396 101,396" fill="#0f172a"/>
+
+  <!-- Terminal prompt: > -->
+  <polyline
+    points="143,248 183,284 143,320"
+    fill="none"
+    stroke="#93c5fd"
+    stroke-width="20"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Cursor: _ -->
+  <rect x="195" y="303" width="72" height="14" rx="4" fill="white" opacity="0.85"/>
+</svg>

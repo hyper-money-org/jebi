@@ -24,9 +24,7 @@ export function PreferencesProvider({ children }) {
   const [prefs, setPrefs] = useState(() => {
     const loaded = loadPrefs()
     // Apply immediately so there's no flash of default colors on first paint.
-    const colors = loaded.themeId === 'custom'
-      ? loaded.customColors
-      : THEMES[loaded.themeId]?.colors ?? THEMES['default'].colors
+    const colors = THEMES[loaded.themeId]?.colors ?? THEMES['default'].colors
     applyThemeToCSSVars(colors, loaded.fontSize, loaded.fontFamily, loaded.uiFontSize, loaded.uiFontFamily)
     // Seed module-level stores so xterm-decoration React roots
     // (outside this provider) pick up the user's choices on first paint.
@@ -37,9 +35,7 @@ export function PreferencesProvider({ children }) {
   // Whenever prefs change: apply CSS vars + persist + mirror prompt style
   // to the module store for out-of-tree consumers.
   useEffect(() => {
-    const colors = prefs.themeId === 'custom'
-      ? prefs.customColors
-      : THEMES[prefs.themeId]?.colors ?? THEMES['default'].colors
+    const colors = THEMES[prefs.themeId]?.colors ?? THEMES['default'].colors
     applyThemeToCSSVars(colors, prefs.fontSize, prefs.fontFamily, prefs.uiFontSize, prefs.uiFontFamily)
     setPromptStyleId('pill')
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs)) } catch {}
@@ -50,29 +46,12 @@ export function PreferencesProvider({ children }) {
   }, [prefs])
 
   const activeColors = useMemo(() =>
-    prefs.themeId === 'custom'
-      ? prefs.customColors
-      : THEMES[prefs.themeId]?.colors ?? THEMES['default'].colors,
-    [prefs.themeId, prefs.customColors]
+    THEMES[prefs.themeId]?.colors ?? THEMES['default'].colors,
+    [prefs.themeId]
   )
 
   function setTheme(id) {
-    setPrefs(prev => {
-      if (id === 'custom') {
-        // Seed custom slot from current named theme so user can fork it.
-        const base = THEMES[prev.themeId]?.colors ?? prev.customColors
-        return { ...prev, themeId: 'custom', customColors: { ...base } }
-      }
-      return { ...prev, themeId: id }
-    })
-  }
-
-  function setCustomColor(key, value) {
-    setPrefs(prev => ({
-      ...prev,
-      themeId: 'custom',
-      customColors: { ...prev.customColors, [key]: value },
-    }))
+    setPrefs(prev => ({ ...prev, themeId: id }))
   }
 
   function setFontFamily(value) {
@@ -109,7 +88,7 @@ export function PreferencesProvider({ children }) {
     setPrefs(prev => ({ ...prev, aiCommandSuggestions: value }))
   }
 
-  const value = { prefs, activeColors, setTheme, setCustomColor, setFontFamily, setFontSize, setUiFontSize, setUiFontFamily, setPromptStyle, setAiExplainErrors, setAiDirectoryContext, setAiCommandSuggestions }
+  const value = { prefs, activeColors, setTheme, setFontFamily, setFontSize, setUiFontSize, setUiFontFamily, setPromptStyle, setAiExplainErrors, setAiDirectoryContext, setAiCommandSuggestions }
 
   return (
     <PreferencesContext.Provider value={value}>

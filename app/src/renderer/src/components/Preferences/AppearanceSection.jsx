@@ -1,7 +1,6 @@
 import { usePreferences } from '../../hooks/usePreferences'
 import { FONT_OPTIONS, UI_FONT_OPTIONS } from '../../preferences/fonts'
 import ThemeGrid from './ThemeGrid'
-import CustomColorPickers from './CustomColorPickers'
 import FontSizeControl from './FontSizeControl'
 
 const UI_SIZES = [11, 12, 13, 14, 15, 16, 17, 18]
@@ -39,13 +38,6 @@ export default function AppearanceSection() {
         <div style={sectionLabel}>Theme</div>
         <ThemeGrid />
       </div>
-
-      {prefs.themeId === 'custom' && (
-        <div>
-          <div style={sectionLabel}>Custom Colors</div>
-          <CustomColorPickers />
-        </div>
-      )}
 
       <div>
         <div style={sectionLabel}>Terminal Font</div>

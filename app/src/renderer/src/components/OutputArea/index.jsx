@@ -48,7 +48,7 @@ export default function OutputArea({
   onReplay,
   isActive,
   isVisible,
-  tabAccent = '#3b82f6',
+  tabAccent = '#f43f5e',
   fileListOpen = false,
   fileListCwd = '',
   onFileListSelect,

@@ -1,6 +1,3 @@
-// ModelCard — displays a single downloadable/activatable model.
-
-function formatBytes(b) { return (b / 1e9).toFixed(1) + ' GB' }
 function formatSpeed(bps) { return (bps / 1e6).toFixed(1) + ' MB/s' }
 function formatETA(bytesLeft, speedBps) {
   if (!speedBps) return '–'
@@ -9,140 +6,95 @@ function formatETA(bytesLeft, speedBps) {
   return `${Math.floor(secs / 60)}m ${Math.round(secs % 60)}s`
 }
 
+const cardStyle = {
+  border: '1px solid var(--border)',
+  borderRadius: 6,
+  padding: '10px 12px',
+  marginBottom: 6,
+  background: 'var(--bg-surface)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: 10,
+  minHeight: 52,
+}
+
+const btnBase = {
+  padding: '5px 12px',
+  borderRadius: 4,
+  border: 'none',
+  cursor: 'pointer',
+  fontSize: 'var(--font-size-ui)',
+  fontFamily: 'var(--font-ui)',
+  flexShrink: 0,
+  whiteSpace: 'nowrap',
+}
+
 export default function ModelCard({ model, isActive, onActivate, onDownload, onCancel, downloadProgress }) {
   const isDownloading = !!downloadProgress
 
-  const cardStyle = {
-    border: '1px solid var(--border)',
-    borderRadius: 6,
-    padding: '10px 12px',
-    marginBottom: 6,
-    background: 'var(--bg-surface)',
-  }
+  const nameAndDesc = (
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ fontSize: 'var(--font-size-ui)', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'var(--font-ui)' }}>
+        {model.name}
+      </div>
+      {model.description && (
+        <div style={{ fontSize: 'var(--font-size-ui)', color: 'var(--text-muted)', fontFamily: 'var(--font-ui)', marginTop: 2 }}>
+          {model.description}
+        </div>
+      )}
+    </div>
+  )
 
-  const nameStyle = {
-    fontSize: 'var(--font-size-ui)',
-    fontWeight: 600,
-    color: 'var(--text-primary)',
-    fontFamily: 'var(--font-ui)',
-    marginBottom: 2,
-  }
-
-  const descStyle = {
-    fontSize: 'var(--font-size-ui)',
-    color: 'var(--text-muted)',
-    fontFamily: 'var(--font-ui)',
-    lineHeight: 1.4,
-  }
-
-  const actionBtnBase = {
-    padding: '4px 10px',
-    borderRadius: 4,
-    border: 'none',
-    cursor: 'pointer',
-    fontSize: 'var(--font-size-ui)',
-    fontFamily: 'var(--font-mono)',
-    flexShrink: 0,
-  }
-
-  // ── Downloading state ──────────────────────────────────────────────────────
   if (isDownloading) {
     const { bytesReceived, totalBytes, speedBps } = downloadProgress
     const pct = totalBytes > 0 ? Math.round((bytesReceived / totalBytes) * 100) : 0
-    const eta = formatETA(totalBytes - bytesReceived, speedBps)
-
     return (
-      <div style={cardStyle}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={nameStyle}>{model.name}</div>
-            {/* Progress bar */}
-            <div style={{
-              height: 6, borderRadius: 3, background: 'var(--border)',
-              overflow: 'hidden', marginTop: 6, marginBottom: 4,
-            }}>
-              <div style={{
-                height: '100%', width: `${pct}%`,
-                background: 'var(--brand)', borderRadius: 3,
-                transition: 'width 0.3s',
-              }} />
-            </div>
-            <div style={{ fontSize: 'var(--font-size-ui)', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-              {pct}% · {formatSpeed(speedBps)} · {eta} left
-            </div>
-          </div>
-          <button
-            onClick={onCancel}
-            style={{ ...actionBtnBase, background: 'var(--bg-surface)', border: '1px solid var(--border)', color: 'var(--text-secondary)', marginTop: 2 }}
-          >
-            ✕ Cancel
+      <div style={{ ...cardStyle, flexDirection: 'column', alignItems: 'stretch', minHeight: 'auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+          {nameAndDesc}
+          <button onClick={onCancel} style={{ ...btnBase, background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
+            Cancel
           </button>
+        </div>
+        <div style={{ height: 4, borderRadius: 2, background: 'var(--border)', overflow: 'hidden', marginTop: 8 }}>
+          <div style={{ height: '100%', width: `${pct}%`, background: 'var(--brand)', borderRadius: 2, transition: 'width 0.3s' }} />
+        </div>
+        <div style={{ fontSize: 'var(--font-size-ui)', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: 4 }}>
+          {pct}% · {formatSpeed(speedBps)} · {formatETA(totalBytes - bytesReceived, speedBps)} left
         </div>
       </div>
     )
   }
 
-  // ── Active state ───────────────────────────────────────────────────────────
   if (isActive) {
     return (
       <div style={{ ...cardStyle, borderColor: 'var(--brand)' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={nameStyle}>{model.name}</div>
-            {model.description && <div style={descStyle}>{model.description}</div>}
-          </div>
-          <span style={{
-            fontSize: 'var(--font-size-ui)', fontFamily: 'var(--font-mono)',
-            color: 'var(--brand)', flexShrink: 0,
-            paddingTop: 2,
-          }}>
-            ● Active
-          </span>
+        {nameAndDesc}
+        <div style={{ ...btnBase, background: 'color-mix(in srgb, var(--brand) 15%, transparent)', color: 'var(--brand)', cursor: 'default', border: '1px solid color-mix(in srgb, var(--brand) 40%, transparent)' }}>
+          ● Active
         </div>
       </div>
     )
   }
 
-  // ── Downloaded (not active) ────────────────────────────────────────────────
   if (model.downloaded) {
     return (
       <div style={cardStyle}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={nameStyle}>{model.name}</div>
-            {model.description && <div style={descStyle}>{model.description}</div>}
-          </div>
-          <button
-            onClick={onActivate}
-            style={{ ...actionBtnBase, background: 'var(--brand)', color: 'var(--on-accent)', marginTop: 2 }}
-          >
-            Set Active
-          </button>
-        </div>
+        {nameAndDesc}
+        <button onClick={onActivate} style={{ ...btnBase, background: 'var(--brand)', color: '#fff' }}>
+          Set Active
+        </button>
       </div>
     )
   }
 
-  // ── Not downloaded ─────────────────────────────────────────────────────────
   return (
     <div style={cardStyle}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={nameStyle}>{model.name}</div>
-          {model.description && <div style={descStyle}>{model.description}</div>}
-          {model.sizeBytes != null && (
-            <div style={{ fontSize: 'var(--font-size-ui)', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: 3 }}>
-              {formatBytes(model.sizeBytes)}
-            </div>
-          )}
-        </div>
-        <button
-          onClick={onDownload}
-          style={{ ...actionBtnBase, background: 'var(--brand)', color: 'var(--on-accent)', marginTop: 2 }}
-        >
-          Download
-        </button>
-      </div>
+      {nameAndDesc}
+      <button onClick={onDownload} style={{ ...btnBase, background: 'var(--brand)', color: '#fff' }}>
+        Download
+      </button>
     </div>
   )
 }

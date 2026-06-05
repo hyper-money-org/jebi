@@ -93,6 +93,7 @@
         "to": "libmtmd.0.dylib"
       }
     ],
+    "icon": "build/icon.icns",
     "mac": {
       "target": [
         {
@@ -100,7 +101,8 @@
           "arch": "arm64"
         }
       ],
-      "category": "public.app-category.developer-tools"
+      "category": "public.app-category.developer-tools",
+      "icon": "build/icon.icns"
     }
   },
   "devDependencies": {
