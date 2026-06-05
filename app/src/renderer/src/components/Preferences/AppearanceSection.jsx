@@ -30,7 +30,7 @@ const selectStyle = {
 }
 
 export default function AppearanceSection() {
-  const { prefs, setFontFamily, setFontLigatures, setUiFontSize, setUiFontFamily } = usePreferences()
+  const { prefs, setFontFamily, setUiFontSize, setUiFontFamily } = usePreferences()
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
@@ -72,22 +72,6 @@ export default function AppearanceSection() {
             <div style={{ flex: 1 }}>
               <FontSizeControl />
             </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{ width: '60px', fontSize: 'var(--font-size-ui)', color: 'var(--text-secondary)', fontFamily: 'var(--font-ui)', flexShrink: 0 }}>
-              Ligatures
-            </span>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-              <input
-                type="checkbox"
-                checked={prefs.fontLigatures ?? false}
-                onChange={e => setFontLigatures(e.target.checked)}
-                style={{ accentColor: 'var(--accent)', width: 14, height: 14, cursor: 'pointer' }}
-              />
-              <span style={{ fontSize: 'var(--font-size-ui)', color: 'var(--text-secondary)', fontFamily: 'var(--font-ui)' }}>
-                Enable font ligatures
-              </span>
-            </label>
           </div>
         </div>
       </div>

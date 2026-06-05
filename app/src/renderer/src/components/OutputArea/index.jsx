@@ -132,7 +132,7 @@ export default function OutputArea({
 
     // Wait for the font to be fully loaded before xterm measures cell dimensions.
     // Without this, xterm may initialise with a fallback font and get wrong cell sizes,
-    // which breaks ligatures and prompt row alignment.
+    // causing wrong cell metrics and prompt row misalignment.
     document.fonts.load(`${fontSize}px ${fontFamily}`).then(() => {
       if (disposed) return;
 
@@ -150,7 +150,6 @@ export default function OutputArea({
           selectionForeground: cssVar("--text-primary"),
           selectionInactiveBackground: tabAccentRef.current + "25",
         },
-        fontLigatures: prefs.fontLigatures ?? false,
         cursorBlink: false,
         cursorInactiveStyle: "none",
         allowProposedApi: true,
@@ -259,28 +258,30 @@ export default function OutputArea({
           return true;
         });
 
-        const loadRenderer = (useLigatures) => {
-          rendererAddonRef.current?.dispose();
+        const webgl = new WebglAddon();
+        webgl.onContextLoss(() => {
+          webgl.dispose();
           rendererAddonRef.current = null;
-          if (useLigatures) {
+          try {
             const canvas = new CanvasAddon();
             term.loadAddon(canvas);
             rendererAddonRef.current = canvas;
-          } else {
-            const webgl = new WebglAddon();
-            webgl.onContextLoss(() => {
-              // Fall back to canvas on context loss
-              webgl.dispose();
-              const canvas = new CanvasAddon();
-              term.loadAddon(canvas);
-              rendererAddonRef.current = canvas;
-            });
-            term.loadAddon(webgl);
-            rendererAddonRef.current = webgl;
+          } catch {
+            // DOM renderer fallback
           }
-        };
-        loadRenderer(prefs.fontLigatures ?? false);
-        callbacksRef.current.loadRenderer = loadRenderer;
+        });
+        try {
+          term.loadAddon(webgl);
+          rendererAddonRef.current = webgl;
+        } catch {
+          try {
+            const canvas = new CanvasAddon();
+            term.loadAddon(canvas);
+            rendererAddonRef.current = canvas;
+          } catch {
+            // DOM renderer fallback
+          }
+        }
 
         scheduleFit();
         if (term.rows <= 2) term.resize(term.cols, 24);
@@ -506,14 +507,6 @@ export default function OutputArea({
       .catch(() => {});
   }, [prefs.fontSize, prefs.fontFamily]);
 
-  useEffect(() => {
-    const term = termRef.current;
-    if (!term) return;
-    const useLigatures = prefs.fontLigatures ?? false;
-    term.options.fontLigatures = useLigatures;
-    callbacksRef.current.loadRenderer?.(useLigatures);
-    term.refresh(0, term.rows - 1);
-  }, [prefs.fontLigatures]);
 
   return (
     <div ref={rootRef} className="flex-1 min-h-0 flex flex-col relative">

@@ -25,6 +25,7 @@ export function TabContextMenu({
   onPickAccent,
   onResetAccent,
   onTogglePosition,
+  isVertical = false,
 }) {
   const ref = useRef(null)
 
@@ -74,7 +75,7 @@ export function TabContextMenu({
       }}
     >
       <MenuItem onClick={fire(onCloseTab)}    disabled={!canClose}>Close</MenuItem>
-      <MenuItem onClick={fire(onCloseToRight)} disabled={!canCloseToRight}>Close to Right</MenuItem>
+      <MenuItem onClick={fire(onCloseToRight)} disabled={!canCloseToRight}>{isVertical ? 'Close to Bottom' : 'Close to Right'}</MenuItem>
       <MenuItem onClick={fire(onCloseOthers)} disabled={!canCloseOthers}>Close Others</MenuItem>
       <MenuItem onClick={fire(onCloseAll)}>Close All</MenuItem>
 

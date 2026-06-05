@@ -408,7 +408,7 @@ function AppInner() {
       {/* Title bar — always at top; holds TabBar in top mode, just a drag handle in left mode */}
       <div
         className="shrink-0 flex items-center bg-[var(--bg-base)] border-b border-[var(--border)] [-webkit-app-region:drag]"
-        style={{ height: '36px' }}
+        style={{ height: '40px' }}
       >
         {tabBarPosition === 'top' ? (
           <>

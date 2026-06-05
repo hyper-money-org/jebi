@@ -30,7 +30,7 @@ function renderTabIcon(info, size) {
 }
 
 const TAB_WIDTH = 220;
-const TAB_HEIGHT = 32;
+const TAB_HEIGHT = 40;
 const LEFT_TAB_H = 34;
 
 function ChevronDownIcon({ size = 10 }) {
@@ -216,6 +216,7 @@ export default function TabBar({
           onPickAccent={(color) => onSetTabAccent?.(menu.tabId, color)}
           onResetAccent={() => onSetTabAccent?.(menu.tabId, null)}
           onTogglePosition={onTogglePosition}
+          isVertical={!isTop}
         />
       )}
     </>
@@ -597,17 +598,18 @@ function TabPill({ tab, isActive, onSelect, onClose, onContextMenu, tabNum }) {
       style={{
         width: `${TAB_WIDTH}px`,
         height: `${TAB_HEIGHT}px`,
-        backgroundColor: isActive ? "var(--bg-elevated)" : "transparent",
+        backgroundColor: isActive ? "var(--tab-accent-bg-active)" : "var(--tab-accent-bg-inactive)",
         borderTopLeftRadius: 6,
         borderTopRightRadius: 6,
-        boxShadow: isActive ? "inset 0 -2px 0 var(--tab-accent)" : undefined,
         "--tab-accent": tab.accent ?? "#3b82f6",
+        "--tab-accent-bg-active": (tab.accent ?? "#3b82f6") + "55",
+        "--tab-accent-bg-inactive": (tab.accent ?? "#3b82f6") + "18",
       }}
       onMouseEnter={(e) => {
-        if (!isActive) e.currentTarget.style.backgroundColor = "var(--bg-elevated)";
+        if (!isActive) e.currentTarget.style.backgroundColor = (tab.accent ?? "#3b82f6") + "28";
       }}
       onMouseLeave={(e) => {
-        if (!isActive) e.currentTarget.style.backgroundColor = "transparent";
+        if (!isActive) e.currentTarget.style.backgroundColor = (tab.accent ?? "#3b82f6") + "18";
       }}
     >
       <RunningRing running={running}>{renderTabIcon(info, 18)}</RunningRing>
@@ -659,15 +661,16 @@ function LeftTabPill({ tab, isActive, onSelect, onClose, onContextMenu, tabNum }
       className="group relative flex items-center gap-2 px-2.5 cursor-pointer select-none transition-colors"
       style={{
         height: "34px",
-        backgroundColor: isActive ? "var(--bg-elevated)" : "transparent",
-        boxShadow: isActive ? "inset 2px 0 0 var(--tab-accent)" : undefined,
+        backgroundColor: isActive ? "var(--tab-accent-bg-active)" : "var(--tab-accent-bg-inactive)",
         "--tab-accent": tab.accent ?? "#3b82f6",
+        "--tab-accent-bg-active": (tab.accent ?? "#3b82f6") + "55",
+        "--tab-accent-bg-inactive": (tab.accent ?? "#3b82f6") + "18",
       }}
       onMouseEnter={(e) => {
-        if (!isActive) e.currentTarget.style.backgroundColor = "var(--bg-elevated)";
+        if (!isActive) e.currentTarget.style.backgroundColor = (tab.accent ?? "#3b82f6") + "28";
       }}
       onMouseLeave={(e) => {
-        if (!isActive) e.currentTarget.style.backgroundColor = "transparent";
+        if (!isActive) e.currentTarget.style.backgroundColor = (tab.accent ?? "#3b82f6") + "18";
       }}
     >
       <RunningRing running={running}>{renderTabIcon(info, 15)}</RunningRing>
@@ -718,15 +721,16 @@ function LeftTabIcon({ tab, isActive, onSelect, onContextMenu, tabNum }) {
       style={{
         width: "100%",
         height: 34,
-        backgroundColor: isActive ? "var(--bg-elevated)" : "transparent",
-        boxShadow: isActive ? "inset 2px 0 0 var(--tab-accent)" : undefined,
+        backgroundColor: isActive ? "var(--tab-accent-bg-active)" : "var(--tab-accent-bg-inactive)",
         "--tab-accent": tab.accent ?? "#3b82f6",
+        "--tab-accent-bg-active": (tab.accent ?? "#3b82f6") + "55",
+        "--tab-accent-bg-inactive": (tab.accent ?? "#3b82f6") + "18",
       }}
       onMouseEnter={(e) => {
-        if (!isActive) e.currentTarget.style.backgroundColor = "var(--bg-elevated)";
+        if (!isActive) e.currentTarget.style.backgroundColor = (tab.accent ?? "#3b82f6") + "28";
       }}
       onMouseLeave={(e) => {
-        if (!isActive) e.currentTarget.style.backgroundColor = "transparent";
+        if (!isActive) e.currentTarget.style.backgroundColor = (tab.accent ?? "#3b82f6") + "18";
       }}
     >
       <RunningRing running={running}>{renderTabIcon(info, 16)}</RunningRing>
