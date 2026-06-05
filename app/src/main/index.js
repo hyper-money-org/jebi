@@ -229,15 +229,16 @@ function waitForCore(port, timeout = 10000) {
 // ─── Window management ────────────────────────────────────────────────────────
 
 function createWindow() {
+  const iconBase = app.isPackaged ? process.resourcesPath : join(__dirname, '../../build')
   if (process.platform === 'darwin' && app.dock) {
-    app.dock.setIcon(join(__dirname, '../../build/icon.png'))
+    app.dock.setIcon(join(iconBase, 'icon.png'))
   }
 
   const win = new BrowserWindow({
     width: 1200,
     height: 800,
     backgroundColor: '#0d0d0d',
-    icon: join(__dirname, '../../build/icon.icns'),
+    icon: join(iconBase, 'icon.icns'),
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'hidden',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),

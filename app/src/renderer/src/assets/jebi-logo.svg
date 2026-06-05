@@ -1,23 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Squircle background -->
+  <rect x="0" y="0" width="512" height="512" rx="118" ry="118" fill="#1e1e2e" opacity="0.75"/>
+
   <!-- Top face — brand blue, lit from above -->
-  <polygon points="101,172 191,117 411,117 321,172" fill="#3b82f6"/>
+  <polygon points="78,159 181,96 434,96 331,159" fill="#3b82f6"/>
 
   <!-- Right face — deeper blue, shadowed -->
-  <polygon points="321,172 411,117 411,341 321,396" fill="#1d4ed8"/>
+  <polygon points="331,159 434,96 434,354 331,417" fill="#1d4ed8"/>
 
   <!-- Front face — dark terminal screen -->
-  <polygon points="101,172 321,172 321,396 101,396" fill="#0f172a"/>
+  <polygon points="78,159 331,159 331,417 78,417" fill="#060a12"/>
 
   <!-- Terminal prompt: > -->
   <polyline
-    points="143,248 183,284 143,320"
+    points="126,247 172,288 126,330"
     fill="none"
     stroke="#93c5fd"
-    stroke-width="20"
+    stroke-width="23"
     stroke-linecap="round"
     stroke-linejoin="round"
   />
 
   <!-- Cursor: _ -->
-  <rect x="195" y="303" width="72" height="14" rx="4" fill="white" opacity="0.85"/>
+  <rect x="186" y="310" width="83" height="16" rx="4" fill="white" opacity="0.85"/>
 </svg>

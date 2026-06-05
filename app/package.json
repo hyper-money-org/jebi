@@ -20,6 +20,8 @@
       "out/**/*"
     ],
     "extraResources": [
+      { "from": "build/icon.png",  "to": "icon.png" },
+      { "from": "build/icon.icns", "to": "icon.icns" },
       {
         "from": "../core/term-core",
         "to": "term-core"
