@@ -33,6 +33,8 @@ export const TypeAIBannerStart  = 'ai_banner_start'
 export const TypeAIBannerToken  = 'ai_banner_token'
 export const TypeAIBannerCancel = 'ai_banner_cancel'
 
+export const TypeSessionID = 'session_id'
+
 export const TypeAsk      = 'ask'
 export const TypeAskChunk = 'ask_chunk'
 export const TypeAskDone  = 'ask_done'

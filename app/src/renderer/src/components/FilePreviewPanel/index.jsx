@@ -40,20 +40,25 @@ const EXT_LANG = {
 function getLanguage(filename) {
   const lower = filename.toLowerCase()
   if (lower === 'dockerfile') return StreamLanguage.define(dockerFile)
+  if (lower === 'go.mod' || lower === 'go.sum') return StreamLanguage.define(go)
   const ext = lower.split('.').pop()
   const mode = EXT_LANG[ext]
   return mode ? StreamLanguage.define(mode) : null
 }
 
+const style = getComputedStyle(document.documentElement)
+const resolvedFontMono = style.getPropertyValue('--font-mono').trim() || "'JetBrains Mono', monospace"
+const resolvedFontSizeMono = style.getPropertyValue('--font-size-mono').trim() || '15px'
+
 const theme = EditorView.theme({
   '&': {
     background: 'transparent',
     color: 'var(--text-primary)',
-    fontFamily: 'var(--font-mono)',
-    fontSize: 'var(--font-size-mono)',
+    fontFamily: resolvedFontMono,
+    fontSize: resolvedFontSizeMono,
   },
   '&.cm-focused': { outline: 'none' },
-  '.cm-scroller': { overflow: 'visible', lineHeight: '1.6' },
+  '.cm-scroller': { overflow: 'visible', lineHeight: '1.3' },
   '.cm-content': { padding: '8px 4px', caretColor: 'var(--accent)' },
   '.cm-cursor': { borderLeftColor: 'var(--accent)', borderLeftWidth: '2px' },
   '&.cm-focused .cm-selectionBackground, .cm-selectionBackground': {

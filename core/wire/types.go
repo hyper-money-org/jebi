@@ -41,6 +41,10 @@ const (
 	TypeAIBannerCancel = "ai_banner_cancel"
 
 	// TypeAsk is sent frontend → backend: JSON {"history":[…ChatMessage],"query":"…"}
+	// TypeSessionID is sent backend → frontend immediately on connect (new or resumed).
+	// Payload: JSON string — the session ID the frontend must pass on reconnect.
+	TypeSessionID = "session_id"
+
 	TypeAsk = "ask"
 	// TypeAskChunk is streamed backend → frontend: one token string.
 	TypeAskChunk = "ask_chunk"

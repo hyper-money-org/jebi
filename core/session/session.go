@@ -37,8 +37,9 @@ type connection interface {
 
 const maxContextEntries = 10
 
-// Session represents one terminal tab — one WebSocket connection, one PTY.
+// Session represents one terminal tab — one PTY that survives WebSocket reconnects.
 type Session struct {
+	id   string
 	conn connection
 	w    *wire.Wire
 	cfg  Config
@@ -48,6 +49,12 @@ type Session struct {
 	// size
 	rows uint16
 	cols uint16
+
+	// connMu guards conn and w so pipe() and Reattach() don't race.
+	connMu sync.Mutex
+
+	// replay buffers PTY output while no client is connected.
+	replay *outputRingBuffer
 
 	// cancelDetect cancels any in-flight git/node detection goroutine.
 	cancelDetect context.CancelFunc
@@ -81,10 +88,12 @@ func resolveShell(cfg Config) string {
 // The caller must call Close when the session ends.
 func New(conn connection, provider llm.Provider, initialCwd string) (*Session, error) {
 	s := &Session{
+		id:       newSessionID(),
 		conn:     conn,
 		w:        wire.New(conn),
 		cfg:      DefaultConfig,
 		provider: provider,
+		replay:   newOutputRingBuffer(256 * 1024), // 256 KB replay buffer
 	}
 	shell := resolveShell(s.cfg)
 
@@ -145,8 +154,37 @@ func New(conn connection, provider llm.Provider, initialCwd string) (*Session, e
 	return s, nil
 }
 
-// Close kills the shell process, releases the PTY, and closes the connection.
+// Detach drops the WebSocket without killing the PTY. The shell keeps running;
+// PTY output is buffered in the replay ring for the next reconnect.
+func (s *Session) Detach() {
+	s.connMu.Lock()
+	defer s.connMu.Unlock()
+	s.conn.Close()
+	s.conn = nil
+	s.w = nil
+}
+
+// Reattach wires a new WebSocket into this session, flushes buffered output,
+// and resumes normal operation. Called when the renderer reconnects.
+func (s *Session) Reattach(conn connection) {
+	s.connMu.Lock()
+	s.conn = conn
+	s.w = wire.New(conn)
+	w := s.w
+	s.connMu.Unlock()
+
+	// Send session ID so the renderer can persist it for future reconnects.
+	w.Send(wire.StringMessage(wire.TypeSessionID, s.id))
+
+	// Replay buffered output so the terminal catches up.
+	if buffered := s.replay.drain(); len(buffered) > 0 {
+		w.Send(wire.StringMessage(wire.TypeOutput, string(buffered)))
+	}
+}
+
+// Close kills the shell process, releases the PTY, and removes from registry.
 func (s *Session) Close() {
+	registry.remove(s.id)
 	if s.cancelDetect != nil {
 		s.cancelDetect()
 	}
@@ -156,13 +194,24 @@ func (s *Session) Close() {
 	if s.ptm != nil {
 		s.ptm.Close()
 	}
-	s.conn.Close()
+	s.connMu.Lock()
+	if s.conn != nil {
+		s.conn.Close()
+	}
+	s.connMu.Unlock()
 }
 
 // Start launches the pipe goroutine and blocks reading input from the frontend.
-// Returns when the connection closes or a "kill" message is received.
+// Returns only when a "kill" message is received or the shell process exits.
+// A plain WebSocket disconnect detaches the connection but keeps the PTY alive.
 func (s *Session) Start() {
-	// Notify the frontend immediately whether AI assistance is available.
+	// Register so reconnects can find this session.
+	registry.add(s)
+
+	// Send session ID first so the renderer can persist it.
+	s.w.Send(wire.StringMessage(wire.TypeSessionID, s.id))
+
+	// Notify the frontend whether AI assistance is available.
 	if s.provider != nil && s.provider.IsAvailable() {
 		payload, _ := json.Marshal(map[string]string{"status": "available", "provider": s.provider.Name()})
 		s.w.Send(wire.Message{Type: wire.TypeAIStatus, Data: payload})
@@ -173,9 +222,19 @@ func (s *Session) Start() {
 
 	go s.pipe()
 	for {
-		msg, err := s.w.Receive()
+		s.connMu.Lock()
+		w := s.w
+		s.connMu.Unlock()
+		if w == nil {
+			// Detached — wait for Reattach to provide a new reader.
+			time.Sleep(100 * time.Millisecond)
+			continue
+		}
+		msg, err := w.Receive()
 		if err != nil {
-			return
+			// WebSocket dropped — detach and keep PTY alive.
+			s.Detach()
+			continue
 		}
 
 		switch msg.Type {
@@ -483,8 +542,17 @@ func (s *Session) pipe() {
 		}
 		complete, leftover := splitCompleteUTF8(data)
 		utf8Leftover = leftover
-		if len(complete) > 0 {
-			s.w.Send(wire.StringMessage(wire.TypeOutput, string(complete)))
+		if len(complete) == 0 {
+			return
+		}
+		s.connMu.Lock()
+		w := s.w
+		s.connMu.Unlock()
+		if w == nil {
+			// No client connected — buffer output for replay on reconnect.
+			s.replay.write(complete)
+		} else {
+			w.Send(wire.StringMessage(wire.TypeOutput, string(complete)))
 		}
 	}
 

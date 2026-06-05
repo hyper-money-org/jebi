@@ -1,4 +1,5 @@
 import { useRef, useState, useCallback, useMemo, useEffect } from "react";
+import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
 import { useTerminal } from "../../hooks/useTerminal";
 import { useSharedHistory } from "../../hooks/useSharedHistory";
 import { setPaneInfo } from "../../hooks/usePaneInfo";
@@ -334,6 +335,19 @@ export default function TerminalPane({
     const target = entry.fullPath ?? entry.name
     handleSubmit(`cd ${q(target)}`)
   }, [handleSubmit])
+
+  const pickSuggestion = useCallback((i) => {
+    if (!isActive || aiSuggestions.length <= i) return
+    const cmd = aiSuggestions[i]
+    setAiSuggestions([])
+    handleSubmit(cmd)
+  }, [isActive, aiSuggestions, handleSubmit])
+
+  useKeyboardShortcuts({
+    'Meta+1': () => pickSuggestion(0),
+    'Meta+2': () => pickSuggestion(1),
+    'Meta+3': () => pickSuggestion(2),
+  })
 
   const handleFilePreview = useCallback((entry) => {
     setFileListOpen(false)

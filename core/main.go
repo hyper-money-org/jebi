@@ -61,11 +61,21 @@ func main() {
 	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		log.Println("new connection from", r.RemoteAddr)
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
 			log.Println("upgrade:", err)
 			return
+		}
+
+		// If the renderer is reconnecting to an existing session, reattach to it.
+		if sid := r.URL.Query().Get("sessionId"); sid != "" {
+			if s, ok := session.Reattach(sid, conn); ok {
+				log.Printf("reconnected session %s", sid)
+				// Start() is already running in a goroutine — just return.
+				// Reattach() flushed the replay buffer and the loop continues.
+				_ = s
+				return
+			}
 		}
 
 		initialCwd := r.URL.Query().Get("cwd")

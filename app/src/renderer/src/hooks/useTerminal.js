@@ -5,6 +5,7 @@ import { notifyAIStatus } from './useAIStatus'
 export function useTerminal(paneId, callbacksRef, initialCwd) {
   const ws = useRef(null)
   const terminalSizeRef = useRef(null)
+  const sessionIdRef = useRef(null) // persists session ID across reconnects
 
   useEffect(() => {
     let destroyed = false
@@ -12,26 +13,25 @@ export function useTerminal(paneId, callbacksRef, initialCwd) {
 
     async function connect() {
       const port = await window.electron.getCorePort()
-      const url = initialCwd
-        ? `ws://localhost:${port}/?cwd=${encodeURIComponent(initialCwd)}`
-        : `ws://localhost:${port}`
+      const params = new URLSearchParams()
+      if (initialCwd) params.set('cwd', initialCwd)
+      if (sessionIdRef.current) params.set('sessionId', sessionIdRef.current)
+      const url = `ws://localhost:${port}/?${params}`
       const socket = new WebSocket(url)
       ws.current = socket
       socket.onopen = () => {
-        console.log(`[terminal:${paneId}] connected`)
-        // Re-fit once the connection is live. By this point the rAF inside
-        // OutputArea has run and the layout is settled, so this sends the
-        // correct column count to the PTY before the user types anything.
         callbacksRef.current.triggerFit?.()
       }
       socket.onerror = (e) => console.error(`[terminal:${paneId}] error`, e)
       socket.onclose = () => {
-        console.log(`[terminal:${paneId}] disconnected`)
-        if (!destroyed) retryTimer = setTimeout(connect, 500)
+        if (!destroyed) retryTimer = setTimeout(connect, 1000)
       }
       socket.onmessage = (e) => {
         const msg = JSON.parse(e.data)
         switch (msg.type) {
+          case wire.TypeSessionID:
+            sessionIdRef.current = msg.data
+            break
           case wire.TypeOutput:
             callbacksRef.current.onOutput?.(msg.data)
             break

@@ -1,6 +1,6 @@
 import { useState, useSyncExternalStore } from "react";
 
-function SuggestionChip({ cmd, onPick }) {
+function SuggestionChip({ cmd, onPick, index }) {
   const [hovered, setHovered] = useState(false)
   return (
     <button
@@ -12,6 +12,7 @@ function SuggestionChip({ cmd, onPick }) {
       style={{
         display: 'inline-flex',
         alignItems: 'center',
+        gap: 6,
         padding: '1px 8px',
         borderRadius: 3,
         border: '1px solid color-mix(in srgb, var(--text-muted) 22%, transparent)',
@@ -20,20 +21,29 @@ function SuggestionChip({ cmd, onPick }) {
           : 'var(--bg-elevated)',
         fontFamily: 'var(--font-mono)',
         fontSize: 'var(--font-size-mono)',
+        fontWeight: 600,
         color: 'var(--text-primary)',
         cursor: 'pointer',
-        whiteSpace: 'nowrap',
         userSelect: 'none',
         flexShrink: 1,
         minWidth: 0,
         maxWidth: 200,
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
         margin: 4,
         transition: 'background 0.1s',
       }}
     >
-      {cmd}
+      {index != null && (
+        <span style={{
+          fontSize: 'var(--font-size-mono)',
+          color: 'var(--text-muted)',
+          opacity: 0.7,
+          flexShrink: 0,
+          fontWeight: 400,
+        }}>⌘{index + 1}</span>
+      )}
+      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
+        {cmd}
+      </span>
     </button>
   )
 }
@@ -369,7 +379,7 @@ export default function Prompt({
                     color: "#f85149",
                     fontFamily: "var(--font-mono)",
                     fontSize: "var(--font-size-mono)",
-                    fontWeight: 500,
+                    fontWeight: 600,
                     flexShrink: 0,
                     whiteSpace: "nowrap",
                     userSelect: "none",
@@ -387,7 +397,7 @@ export default function Prompt({
                     whiteSpace: "nowrap",
                     fontFamily: "var(--font-mono)",
                     fontSize: "var(--font-size-mono)",
-                    fontWeight: 500,
+                    fontWeight: 600,
                     cursor: "default",
                     transition: "background 0.15s ease, box-shadow 0.15s ease",
                     userSelect: "none",
@@ -403,7 +413,7 @@ export default function Prompt({
 
         {/* AI suggestion chips — right-aligned in the prompt row */}
         {aiSuggestions.length > 0 && aiSuggestions.map((cmd, i) => (
-          <SuggestionChip key={i} cmd={cmd} onPick={onSuggestionPick} />
+          <SuggestionChip key={i} cmd={cmd} index={i} onPick={onSuggestionPick} />
         ))}
 
         {/* Timing — always visible but minimal; hover reveals full timestamp */}
