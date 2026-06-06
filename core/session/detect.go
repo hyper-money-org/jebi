@@ -123,23 +123,35 @@ func (s *Session) sendProjectContext(ctx context.Context, info llm.ProjectInfo) 
 		return
 	}
 
-	started := false
+	// Buffer the full response then parse the scored JSON.
+	var full string
 	for chunk := range ch {
-		if chunk.Token == "" {
-			continue
-		}
-		if !started {
-			startData, _ := json.Marshal(map[string]string{"type": "info"})
-			s.w.Send(wire.Message{Type: wire.TypeAIBannerStart, Data: startData})
-			started = true
-		}
-		data, _ := json.Marshal(chunk.Token)
-		s.w.Send(wire.Message{Type: wire.TypeAIBannerToken, Data: data})
+		full += chunk.Token
 	}
-	// If context was cancelled mid-stream, clear any partial banner.
-	if started && ctx.Err() != nil {
-		s.w.Send(wire.Message{Type: wire.TypeAIBannerCancel})
+	if ctx.Err() != nil {
+		return
 	}
+	full = strings.TrimSpace(full)
+	// Extract first JSON object in case model adds surrounding text.
+	if start := strings.Index(full, "{"); start >= 0 {
+		if end := strings.LastIndex(full, "}"); end > start {
+			full = full[start : end+1]
+		}
+	}
+	var result struct {
+		Message string `json:"message"`
+		Score   int    `json:"score"`
+	}
+	if err := json.Unmarshal([]byte(full), &result); err != nil {
+		return
+	}
+	if result.Message == "" || result.Score < 7 {
+		return
+	}
+	startData, _ := json.Marshal(map[string]string{"type": "info"})
+	s.w.Send(wire.Message{Type: wire.TypeAIBannerStart, Data: startData})
+	data, _ := json.Marshal(result.Message)
+	s.w.Send(wire.Message{Type: wire.TypeAIBannerToken, Data: data})
 }
 
 // newDetectContext returns a context capped at detectTimeout.

@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 
 contextBridge.exposeInMainWorld('electron', {
   getCorePort: () => ipcRenderer.invoke('core:port'),
+  getLogoScriptPath: () => ipcRenderer.invoke('logo-script-path'),
   openPath: (path) => ipcRenderer.invoke('open-path', path),
   openExternal: (url) => ipcRenderer.invoke('open-external', url),
   listFiles: (dirPath) => ipcRenderer.invoke('list-files', dirPath),

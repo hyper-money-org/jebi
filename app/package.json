@@ -20,8 +20,9 @@
       "out/**/*"
     ],
     "extraResources": [
-      { "from": "build/icon.png",  "to": "icon.png" },
-      { "from": "build/icon.icns", "to": "icon.icns" },
+      { "from": "build/icon.png",     "to": "icon.png" },
+      { "from": "build/icon.icns",    "to": "icon.icns" },
+      { "from": "resources/logo-cube.py", "to": "logo-cube.py" },
       {
         "from": "../core/term-core",
         "to": "term-core"

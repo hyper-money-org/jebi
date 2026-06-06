@@ -324,31 +324,21 @@ func BuildProjectContextMessages(info ProjectInfo) []ChatMessage {
 	detected := "- " + strings.Join(parts, "\n- ")
 
 	system := "You are a terminal assistant. A user just cd'd into a directory.\n" +
-		"You will receive structured facts about the project. Write ONE short sentence surfacing something genuinely useful the user should know.\n\n" +
-		"STRICT RULES — violating any of these means output empty string:\n" +
-		"- Only use concepts that belong to the technologies listed in the facts.\n" +
-		"- virtualenv / venv: ONLY mention when Python appears in the facts.\n" +
-		"- npm / yarn / node_modules: ONLY when Node.js appears in the facts.\n" +
-		"- go mod / go build: ONLY when Go appears in the facts.\n" +
-		"- Never apply a concept from one ecosystem to another language.\n\n" +
-		"Focus on actionable status (only when the relevant technology is in the facts):\n" +
-		"- Uncommitted git changes on a non-main branch\n" +
-		"- Python venv not activated (Python facts only)\n" +
-		"- Notable cross-technology combinations (e.g. Go + Kubernetes context pointing to prod)\n\n" +
-		"Output rules:\n" +
-		"- One sentence only. No labels. No markdown except backticks.\n" +
-		"- Do NOT suggest what command to run next.\n" +
-		"- Generic observations ('this is a Go project') → output empty string.\n" +
-		"- If nothing genuinely useful → output empty string.\n\n" +
-		"Good examples:\n" +
-		"- \"On branch `feature/auth` with 3 uncommitted files.\"\n" +
-		"- \"Python 3.11 detected but no virtualenv is active — dependencies may not resolve.\"\n" +
-		"- \"Go service with Kubernetes context pointing to `prod-cluster`.\"\n\n" +
-		"Bad examples (output empty string for these):\n" +
-		"- \"This is a Go project.\"\n" +
-		"- \"Go 1.26 is installed but no virtualenv is active.\"  ← WRONG: virtualenv is Python-only\n" +
-		"- \"You can run go build to compile.\"\n\n" +
-		"Return only the sentence, or empty string."
+		"You will receive structured facts about the project.\n\n" +
+		"Respond with JSON only: {\"message\": \"...\", \"score\": N}\n" +
+		"- message: one short sentence of genuinely useful info, or empty string\n" +
+		"- score: 1-10 rating of how useful this info is to a developer right now\n\n" +
+		"Score guide:\n" +
+		"8-10: Immediately actionable (uncommitted changes on a feature branch, prod k8s context active)\n" +
+		"5-7:  Mildly useful context\n" +
+		"1-4:  Generic or obvious (\"this is a Go project\", \"node is installed\")\n\n" +
+		"STRICT rules for message:\n" +
+		"- Only mention concepts that belong to technologies present in the facts.\n" +
+		"- Never mention Python/venv/pip unless Python is in the facts.\n" +
+		"- Never mention npm/yarn unless Node is in the facts.\n" +
+		"- Never mention go.mod/go build unless Go is in the facts.\n" +
+		"- If nothing useful: {\"message\": \"\", \"score\": 0}\n\n" +
+		"Return raw JSON only. No explanation, no markdown."
 
 	user := fmt.Sprintf("Directory: %s\nDetected: %s", info.Dir, detected)
 

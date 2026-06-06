@@ -82,6 +82,11 @@ export default function TerminalPane({
     registerFocus(paneId, () => inputBarRef.current?.focus())
     return () => unregisterFocus(paneId)
   }, [paneId])
+
+  useEffect(() => {
+    if (!isActive) return
+    setTimeout(() => inputBarRef.current?.focus(), 0)
+  }, [isActive])
   // pendingCommandRef holds the command that was just submitted but whose exit
   // code hasn't arrived yet. The OSC 9001 exit-code signal fires asynchronously
   // after the prompt re-appears, so we can't rely on React state to correlate

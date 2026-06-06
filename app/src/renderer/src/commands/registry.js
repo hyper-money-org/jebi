@@ -46,6 +46,16 @@ export const ALL_COMMANDS = [
     run: (ctx) => ctx.openPorts(),
   },
   {
+    id: 'logo',
+    title: 'Logo',
+    description: 'Show the spinning jebi cube',
+    section: 'Terminal',
+    run: async (ctx) => {
+      const path = await window.electron.getLogoScriptPath()
+      ctx.runCommand(`python3 "${path}"`)
+    },
+  },
+  {
     id: 'clear',
     title: 'Clear',
     description: 'Clear the terminal scrollback buffer',

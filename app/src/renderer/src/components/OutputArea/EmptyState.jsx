@@ -106,9 +106,11 @@ export default function EmptyState() {
     <div style={{
       position: 'absolute',
       inset: 0,
+      bottom: 120,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
+      overflow: 'hidden',
       pointerEvents: 'none',
       zIndex: 1,
     }}>
@@ -117,12 +119,14 @@ export default function EmptyState() {
         flexDirection: 'column',
         alignItems: 'center',
         width: 360,
+        maxHeight: '100%',
+        overflow: 'hidden',
       }}>
         {src && (
           <img
             src={src}
             alt=""
-            style={{ width: 180, opacity: 0.2, marginBottom: 16, userSelect: 'none' }}
+            style={{ width: 140, opacity: 0.2, marginBottom: 12, userSelect: 'none', flexShrink: 0 }}
           />
         )}
         <span style={{
@@ -131,12 +135,13 @@ export default function EmptyState() {
           color: 'var(--text-muted)',
           opacity: 0.5,
           fontStyle: 'italic',
-          marginBottom: 20,
+          marginBottom: 16,
           textAlign: 'center',
+          flexShrink: 0,
         }}>
           {quip}
         </span>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignSelf: 'stretch' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignSelf: 'stretch', overflow: 'hidden' }}>
           {tips.map((tip, i) => <TipRow key={i} tip={tip} />)}
         </div>
       </div>

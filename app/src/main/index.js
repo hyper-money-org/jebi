@@ -263,6 +263,11 @@ function createWindow() {
 }
 
 ipcMain.handle('core:port', () => corePort)
+ipcMain.handle('logo-script-path', () =>
+  app.isPackaged
+    ? join(process.resourcesPath, 'logo-cube.py')
+    : join(__dirname, '../../resources/logo-cube.py')
+)
 
 ipcMain.handle('open-path', (_, path) => shell.openPath(path))
 ipcMain.handle('open-external', (_, url) => shell.openExternal(url))
