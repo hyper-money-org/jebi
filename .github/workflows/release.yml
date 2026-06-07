@@ -45,24 +45,23 @@ jobs:
           git push origin main
           git push origin "v${{ github.event.inputs.version }}"
 
-      - name: Download llama deps
-        run: bash scripts/download-deps.sh
-
-      - name: Build Go core
-        run: |
-          cd core
-          go build -o term-core .
-
       - name: Install app dependencies
-        run: |
-          cd app
-          npm ci
+        run: cd app && npm ci
 
-      - name: Build Electron app
+      - name: Build arm64
         run: |
-          cd app
-          npm run build
-          npx electron-builder --publish never
+          curl -fL https://github.com/jebi-sh/llama-deps/releases/latest/download/llama-deps-arm64.tar.gz -o /tmp/deps.tar.gz
+          tar -xzf /tmp/deps.tar.gz -C core/bin
+          cd core && GOARCH=arm64 go build -o term-core .
+          cd ../app && npm run build && npx electron-builder --mac dmg:arm64 zip:arm64 --publish never
+
+      - name: Build x64
+        run: |
+          rm -f core/bin/*.dylib core/bin/llama-server
+          curl -fL https://github.com/jebi-sh/llama-deps/releases/latest/download/llama-deps-x86_64.tar.gz -o /tmp/deps.tar.gz
+          tar -xzf /tmp/deps.tar.gz -C core/bin
+          cd core && GOARCH=amd64 go build -o term-core .
+          cd ../app && npx electron-builder --mac dmg:x64 zip:x64 --publish never
 
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
@@ -74,6 +73,8 @@ jobs:
           files: |
             app/dist/jebi-*-arm64.dmg
             app/dist/jebi-*-arm64-mac.zip
+            app/dist/jebi-*-x64.dmg
+            app/dist/jebi-*-x64-mac.zip
           body: |
             ## jebi v${{ github.event.inputs.version }}
 
@@ -84,15 +85,18 @@ jobs:
             ```
 
             ### Manual install
-            Download the `.dmg` below and drag jebi to Applications.
+            - **Apple Silicon:** download `jebi-*-arm64.dmg`
+            - **Intel:** download `jebi-*-x64.dmg`
 
       - name: Update Homebrew tap
         env:
           TAP_TOKEN: ${{ secrets.TAP_TOKEN }}
           VERSION: ${{ github.event.inputs.version }}
         run: |
-          DMG=$(ls app/dist/jebi-*-arm64.dmg)
-          SHA256=$(shasum -a 256 "$DMG" | awk '{print $1}')
+          ARM_DMG=$(ls app/dist/jebi-*-arm64.dmg)
+          X64_DMG=$(ls app/dist/jebi-*-x64.dmg)
+          ARM_SHA=$(shasum -a 256 "$ARM_DMG" | awk '{print $1}')
+          X64_SHA=$(shasum -a 256 "$X64_DMG" | awk '{print $1}')
 
           git clone https://x-access-token:${TAP_TOKEN}@github.com/jebi-sh/homebrew-tap.git /tmp/tap
           cd /tmp/tap
@@ -101,9 +105,17 @@ jobs:
           cat > Casks/jebi.rb << EOF
           cask "jebi" do
             version "${VERSION}"
-            sha256 "${SHA256}"
 
-            url "https://github.com/jebi-sh/jebi/releases/download/v${VERSION}/jebi-${VERSION}-arm64.dmg"
+            on_arm do
+              url "https://github.com/jebi-sh/jebi/releases/download/v${VERSION}/jebi-${VERSION}-arm64.dmg"
+              sha256 "${ARM_SHA}"
+            end
+
+            on_intel do
+              url "https://github.com/jebi-sh/jebi/releases/download/v${VERSION}/jebi-${VERSION}-x64.dmg"
+              sha256 "${X64_SHA}"
+            end
+
             name "jebi"
             desc "The AI-native terminal for Mac"
             homepage "https://jebi.sh"
