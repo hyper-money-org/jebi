@@ -45,6 +45,11 @@ jobs:
           git push origin main
           git push origin "v${{ github.event.inputs.version }}"
 
+      - name: Download llama deps
+        run: bash scripts/download-deps.sh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build Go core
         run: |
           cd core

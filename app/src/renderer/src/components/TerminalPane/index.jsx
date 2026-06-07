@@ -99,6 +99,7 @@ export default function TerminalPane({
   callbacksRef.current.isRunning = () => runningRef.current;
   callbacksRef.current.isInteractive = () => interactiveRef.current;
   callbacksRef.current.focusInput = () => inputBarRef.current?.focus();
+  callbacksRef.current.onFirstOutput = () => setHasCommands(true);
   callbacksRef.current.onInteractiveEnter = () => {
     setInteractive(true);
     interactiveRef.current = true;

@@ -332,6 +332,7 @@ export default function OutputArea({
       callbacksRef.current.getLastEntry = () => promptAddon.getLastEntry();
 
       callbacksRef.current.onOutput = (data) => {
+        callbacksRef.current.onFirstOutput?.()
         if (data.includes(TUI_ENTER)) {
           promptAddon.enterTui();
           callbacksRef.current.onInteractiveEnter?.();

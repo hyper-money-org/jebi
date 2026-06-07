@@ -5,12 +5,16 @@ APP_NAME    := jebi
 APP_BUNDLE  := $(APP_DIR)/dist/mac-arm64/$(APP_NAME).app
 INSTALL_DIR := /Applications
 
-.PHONY: all build build-core build-app install clean dev
+.PHONY: all build build-core build-app deps install clean dev
 
 all: build
 
+## deps: download pre-built llama.cpp binaries for the current architecture
+deps:
+	bash scripts/download-deps.sh
+
 ## build: compile Go core + package Electron app into term.app
-build: build-core build-app
+build: deps build-core build-app
 
 build-core:
 	cd $(CORE_DIR) && go build -o $(BINARY) .
@@ -28,7 +32,7 @@ install:
 	@echo "Installed → $(INSTALL_DIR)/$(APP_NAME).app"
 
 ## dev: build Go core then start Electron dev server
-dev:
+dev: deps
 	cd $(CORE_DIR) && go build -o $(BINARY) . && cd ../$(APP_DIR) && npm run dev
 
 ## clean: remove build artifacts

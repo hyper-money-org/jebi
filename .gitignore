@@ -1,6 +1,8 @@
 KNOWN_BUGS.md
 **/node_modules
 **/bin
+!core/bin/.gitkeep
+*.gguf
 **/out
 **/dist
 core/term-core
