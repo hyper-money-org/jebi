@@ -47,8 +47,6 @@ jobs:
 
       - name: Download llama deps
         run: bash scripts/download-deps.sh
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Go core
         run: |
