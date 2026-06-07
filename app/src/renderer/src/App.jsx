@@ -103,9 +103,13 @@ function AppInner() {
   const addTab = useCallback(() => {
     tabCounterRef.current += 1
     const tab = createTab(tabCounterRef.current)
+    // Inherit cwd from the active pane so the new tab opens in the same directory
+    const activePaneId = activeTab?.activePaneId
+    const cwd = activePaneId ? getPaneInfo(activePaneId)?.cwd : undefined
+    if (cwd) paneInitialCwdRef.current[tab.layout.id] = cwd
     setTabs(prev => [...prev, tab])
     setActiveTabId(tab.id)
-  }, [])
+  }, [activeTab])
 
   const closeTab = useCallback((tabId) => {
     setTabs(prev => {
