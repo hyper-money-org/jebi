@@ -23,10 +23,13 @@ export default function PreferencesModal({ isOpen, onClose, initialTab }) {
   useEffect(() => {
     if (!isOpen) return
     function handleKey(e) {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') {
+        e.stopPropagation()
+        onClose()
+      }
     }
-    window.addEventListener('keydown', handleKey)
-    return () => window.removeEventListener('keydown', handleKey)
+    window.addEventListener('keydown', handleKey, true)
+    return () => window.removeEventListener('keydown', handleKey, true)
   }, [isOpen, onClose])
 
   if (!isOpen) return null
