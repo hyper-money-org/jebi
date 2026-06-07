@@ -33,7 +33,7 @@ install:
 
 ## dev: build Go core then start Electron dev server
 dev: deps
-	cd $(CORE_DIR) && go build -o $(BINARY) . && cd ../$(APP_DIR) && npm run dev
+	cd $(CORE_DIR) && go build -o $(BINARY) . && cd ../$(APP_DIR) && npm install && npm run dev
 
 ## clean: remove build artifacts
 clean:
