@@ -59,9 +59,7 @@ jobs:
         run: |
           cd app
           npm run build
-          npm run pack
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          npx electron-builder --publish never
 
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
