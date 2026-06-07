@@ -20,9 +20,18 @@
       "out/**/*"
     ],
     "extraResources": [
-      { "from": "build/icon.png",     "to": "icon.png" },
-      { "from": "build/icon.icns",    "to": "icon.icns" },
-      { "from": "resources/logo-cube.py", "to": "logo-cube.py" },
+      {
+        "from": "build/icon.png",
+        "to": "icon.png"
+      },
+      {
+        "from": "build/icon.icns",
+        "to": "icon.icns"
+      },
+      {
+        "from": "resources/logo-cube.py",
+        "to": "logo-cube.py"
+      },
       {
         "from": "../core/term-core",
         "to": "term-core"
@@ -99,9 +108,18 @@
     "icon": "build/icon.icns",
     "mac": {
       "target": [
-        { "target": "dir", "arch": "arm64" },
-        { "target": "dmg", "arch": "arm64" },
-        { "target": "zip", "arch": "arm64" }
+        {
+          "target": "dir",
+          "arch": "arm64"
+        },
+        {
+          "target": "dmg",
+          "arch": "arm64"
+        },
+        {
+          "target": "zip",
+          "arch": "arm64"
+        }
       ],
       "category": "public.app-category.developer-tools",
       "icon": "build/icon.icns"
