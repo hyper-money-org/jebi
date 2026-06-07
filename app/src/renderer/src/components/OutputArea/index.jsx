@@ -512,6 +512,8 @@ export default function OutputArea({
   }, [prefs.fontSize, prefs.fontFamily]);
 
 
+  const anyOverlayOpen = fileListOpen || !!previewFile || historyOpen || runOpen || slashOpen || portsOpen || !!customList || askOpen
+
   return (
     <div ref={rootRef} className="flex-1 min-h-0 flex flex-col relative">
       {/* No padding here — padding is applied directly to the xterm element after
@@ -521,6 +523,17 @@ export default function OutputArea({
       <div
         ref={xtermContainerRef}
         className="flex-1 min-h-0 bg-[var(--bg-surface)]"
+        onClick={() => {
+          if (!anyOverlayOpen) return
+          onFileListClose?.()
+          onPreviewClose?.()
+          onHistoryClose?.()
+          onRunClose?.()
+          onSlashClose?.()
+          onPortsClose?.()
+          onCustomListClose?.()
+          onAskClose?.()
+        }}
       />
       {!hasCommands && <EmptyState />}
       {searchOpen && (
