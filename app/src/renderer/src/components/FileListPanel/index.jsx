@@ -231,7 +231,8 @@ export default function FileListPanel({ cwd, onSelect, onPreview, onClose }) {
         ) : (
           <span style={{ color: 'var(--text-muted)', fontSize: 11, whiteSpace: 'nowrap', flexShrink: 0 }}>
             type to filter · ↑↓ · ← back · → expand · esc close
-        </span>
+          </span>
+        )}
       </div>
 
       {/* Column headers */}
