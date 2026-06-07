@@ -16,7 +16,8 @@ const MODEL_REGISTRY = [
   {
     id: 'qwen2.5-1.5b',
     name: 'Qwen2.5 1.5B Instruct',
-    description: 'Recommended · Fast · 1.1 GB',
+    description: 'Fast · 1.1 GB',
+    quality: 'Recommended',
     sizeBytes: 1_147_359_232,
     url: 'https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q4_k_m.gguf',
     filename: 'qwen2.5-1.5b-instruct-q4_k_m.gguf',
@@ -25,6 +26,7 @@ const MODEL_REGISTRY = [
     id: 'phi3-mini',
     name: 'Phi-3 Mini 3.8B',
     description: 'Higher quality · 2.2 GB',
+    quality: 'Best quality',
     sizeBytes: 2_365_587_456,
     url: 'https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-gguf/resolve/main/Phi-3-mini-4k-instruct-q4.gguf',
     filename: 'phi3-mini-4k-instruct-q4.gguf',
@@ -32,7 +34,8 @@ const MODEL_REGISTRY = [
   {
     id: 'gemma2-2b',
     name: 'Gemma 2 2B',
-    description: 'Balanced · Sharp answers · 1.6 GB',
+    description: 'Balanced · 1.6 GB',
+    quality: 'Sharp answers',
     sizeBytes: 1_734_045_696,
     url: 'https://huggingface.co/bartowski/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-Q4_K_M.gguf',
     filename: 'gemma-2-2b-it-q4_k_m.gguf',

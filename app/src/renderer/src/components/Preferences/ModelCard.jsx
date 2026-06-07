@@ -33,10 +33,29 @@ const btnBase = {
 export default function ModelCard({ model, isActive, onActivate, onDownload, onCancel, downloadProgress }) {
   const isDownloading = !!downloadProgress
 
+  const isRecommended = model.quality === 'Recommended'
+
   const nameAndDesc = (
     <div style={{ flex: 1, minWidth: 0 }}>
-      <div style={{ fontSize: 'var(--font-size-ui)', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'var(--font-ui)' }}>
-        {model.name}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ fontSize: 'var(--font-size-ui)', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'var(--font-ui)' }}>
+          {model.name}
+        </div>
+        {model.quality && (
+          <span style={{
+            fontSize: 10,
+            fontFamily: 'var(--font-ui)',
+            fontWeight: 600,
+            padding: '1px 7px',
+            borderRadius: 100,
+            background: isRecommended ? 'color-mix(in srgb, var(--brand) 15%, transparent)' : 'color-mix(in srgb, var(--text-muted) 12%, transparent)',
+            color: isRecommended ? 'var(--brand)' : 'var(--text-muted)',
+            border: isRecommended ? '1px solid color-mix(in srgb, var(--brand) 35%, transparent)' : '1px solid color-mix(in srgb, var(--text-muted) 25%, transparent)',
+            flexShrink: 0,
+          }}>
+            {model.quality}
+          </span>
+        )}
       </div>
       {model.description && (
         <div style={{ fontSize: 'var(--font-size-ui)', color: 'var(--text-muted)', fontFamily: 'var(--font-ui)', marginTop: 2 }}>
@@ -90,7 +109,13 @@ export default function ModelCard({ model, isActive, onActivate, onDownload, onC
   }
 
   return (
-    <div style={cardStyle}>
+    <div style={{
+      ...cardStyle,
+      ...(isRecommended ? {
+        borderColor: 'color-mix(in srgb, var(--brand) 35%, transparent)',
+        background: 'color-mix(in srgb, var(--brand) 5%, var(--bg-surface))',
+      } : {}),
+    }}>
       {nameAndDesc}
       <button onClick={onDownload} style={{ ...btnBase, background: 'var(--brand)', color: '#fff' }}>
         Download
