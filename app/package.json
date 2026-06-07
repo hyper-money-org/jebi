@@ -1,6 +1,6 @@
 {
   "name": "jebi",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "A modern developer terminal",
   "main": "out/main/index.js",
   "scripts": {
@@ -108,10 +108,22 @@
     "icon": "build/icon.icns",
     "mac": {
       "target": [
-        { "target": "dmg", "arch": "arm64" },
-        { "target": "zip", "arch": "arm64" },
-        { "target": "dmg", "arch": "x64" },
-        { "target": "zip", "arch": "x64" }
+        {
+          "target": "dmg",
+          "arch": "arm64"
+        },
+        {
+          "target": "zip",
+          "arch": "arm64"
+        },
+        {
+          "target": "dmg",
+          "arch": "x64"
+        },
+        {
+          "target": "zip",
+          "arch": "x64"
+        }
       ],
       "category": "public.app-category.developer-tools",
       "icon": "build/icon.icns"
