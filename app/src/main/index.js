@@ -30,12 +30,12 @@ const MODEL_REGISTRY = [
     filename: 'phi3-mini-4k-instruct-q4.gguf',
   },
   {
-    id: 'llama3.2-1b',
-    name: 'Llama 3.2 1B',
-    description: 'Smallest · Fastest · 770 MB',
-    sizeBytes: 804_782_080,
-    url: 'https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-Q4_K_M.gguf',
-    filename: 'llama3.2-1b-instruct-q4_k_m.gguf',
+    id: 'gemma2-2b',
+    name: 'Gemma 2 2B',
+    description: 'Balanced · Sharp answers · 1.6 GB',
+    sizeBytes: 1_734_045_696,
+    url: 'https://huggingface.co/bartowski/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-Q4_K_M.gguf',
+    filename: 'gemma-2-2b-it-q4_k_m.gguf',
   },
 ]
 
