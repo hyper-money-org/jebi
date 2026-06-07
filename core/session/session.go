@@ -567,6 +567,9 @@ func (s *Session) pipe() {
 					oscLeftover = nil
 				}
 
+				// Strip kitty push/pop sequences — safe to remove, xterm ignores them.
+				data = kittyStripPushPop(data)
+
 				cleaned, payloads, leftover := parseOSC(data)
 				oscLeftover = leftover
 

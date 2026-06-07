@@ -1,0 +1,111 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Get version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Build Go core
+        run: |
+          cd core
+          go build -o term-core .
+
+      - name: Install app dependencies
+        run: |
+          cd app
+          npm ci
+
+      - name: Build Electron app
+        run: |
+          cd app
+          npm run build
+          npm run pack
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload artifacts to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: jebi v${{ steps.version.outputs.VERSION }}
+          draft: false
+          prerelease: false
+          files: |
+            app/dist/jebi-*-arm64.dmg
+            app/dist/jebi-*-arm64-mac.zip
+          body: |
+            ## jebi v${{ steps.version.outputs.VERSION }}
+
+            ### Install via Homebrew
+            ```bash
+            brew install --cask jawahars16/tap/jebi
+            ```
+
+            ### Manual install
+            Download the `.dmg` below and drag jebi to Applications.
+
+      - name: Update Homebrew tap
+        env:
+          TAP_TOKEN: ${{ secrets.TAP_TOKEN }}
+          VERSION: ${{ steps.version.outputs.VERSION }}
+        run: |
+          # Calculate SHA256 of the DMG
+          DMG=$(ls app/dist/jebi-*-arm64.dmg)
+          SHA256=$(shasum -a 256 "$DMG" | awk '{print $1}')
+
+          # Clone the tap repo
+          git clone https://x-access-token:${TAP_TOKEN}@github.com/jawahars16/homebrew-tap.git /tmp/tap
+          cd /tmp/tap
+
+          mkdir -p Casks
+
+          cat > Casks/jebi.rb << EOF
+          cask "jebi" do
+            version "${VERSION}"
+            sha256 "${SHA256}"
+
+            url "https://github.com/jawahars16/jebi/releases/download/v${VERSION}/jebi-${VERSION}-arm64.dmg"
+            name "jebi"
+            desc "The AI-native terminal for Mac"
+            homepage "https://jebi.sh"
+
+            depends_on macos: ">= :ventura"
+
+            app "jebi.app"
+
+            zap trash: [
+              "~/Library/Application Support/jebi",
+              "~/Library/Preferences/com.jawahar.jebi.plist",
+            ]
+          end
+          EOF
+
+          git config user.email "github-actions@github.com"
+          git config user.name "github-actions"
+          git add Casks/jebi.rb
+          git commit -m "jebi: update to ${VERSION}"
+          git push

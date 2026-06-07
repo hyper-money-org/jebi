@@ -99,14 +99,18 @@
     "icon": "build/icon.icns",
     "mac": {
       "target": [
-        {
-          "target": "dir",
-          "arch": "arm64"
-        }
+        { "target": "dir", "arch": "arm64" },
+        { "target": "dmg", "arch": "arm64" },
+        { "target": "zip", "arch": "arm64" }
       ],
       "category": "public.app-category.developer-tools",
       "icon": "build/icon.icns"
-    }
+    },
+    "dmg": {
+      "artifactName": "${productName}-${version}-arm64.${ext}",
+      "title": "${productName} ${version}"
+    },
+    "artifactName": "${productName}-${version}-arm64.${ext}"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",

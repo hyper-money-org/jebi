@@ -50,10 +50,22 @@ function joinPath(dir, name) {
 
 const BACK_ENTRY = { name: '..', isDir: true, size: 0, mtime: 0, mode: 0, isMeta: true }
 
+function fuzzyMatch(name, query) {
+  if (!query) return true
+  const n = name.toLowerCase()
+  const q = query.toLowerCase()
+  let qi = 0
+  for (let ni = 0; ni < n.length && qi < q.length; ni++) {
+    if (n[ni] === q[qi]) qi++
+  }
+  return qi === q.length
+}
+
 export default function FileListPanel({ cwd, onSelect, onPreview, onClose }) {
   const [currentDir, setCurrentDir] = useState(cwd)
   const [entries, setEntries] = useState([])
   const [selected, setSelected] = useState(0)
+  const [query, setQuery] = useState('')
   const [panelWidth, setPanelWidth] = useState(800)
   const panelRef = useRef(null)
   const listRef = useRef(null)
@@ -66,6 +78,7 @@ export default function FileListPanel({ cwd, onSelect, onPreview, onClose }) {
     window.electron.fs.listDir(currentDir).then((data) => {
       setEntries(data)
       setSelected(0)
+      setQuery('')
     })
   }, [currentDir])
 
@@ -79,14 +92,28 @@ export default function FileListPanel({ cwd, onSelect, onPreview, onClose }) {
   const navigate = (dir) => {
     setCurrentDir(dir)
     setSelected(0)
+    setQuery('')
   }
 
-  const allEntries = currentDir !== '/' ? [BACK_ENTRY, ...entries] : entries
+  const backEntry = currentDir !== '/' ? [BACK_ENTRY] : []
+  const filtered = query ? entries.filter(e => fuzzyMatch(e.name, query)) : entries
+  const allEntries = [...backEntry, ...filtered]
+
+  // Reset selection when filter changes
+  useEffect(() => { setSelected(0) }, [query])
 
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key === 'Escape') { e.preventDefault(); onClose(); return }
-
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        if (query) { setQuery(''); return }
+        onClose(); return
+      }
+      if (e.key === 'Backspace') {
+        e.preventDefault()
+        setQuery(q => q.slice(0, -1))
+        return
+      }
       if (e.key === 'ArrowUp' || e.key === 'k') {
         e.preventDefault()
         setSelected((s) => Math.max(0, s - 1))
@@ -101,6 +128,11 @@ export default function FileListPanel({ cwd, onSelect, onPreview, onClose }) {
       const entry = allEntries[selected]
       if (!entry) return
 
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault()
+        if (currentDir !== '/') navigate(parentDir(currentDir))
+        return
+      }
       if (e.key === 'ArrowRight') {
         e.preventDefault()
         if (entry.isMeta) return
@@ -113,11 +145,17 @@ export default function FileListPanel({ cwd, onSelect, onPreview, onClose }) {
         const full = { ...entry, fullPath: joinPath(currentDir, entry.name) }
         if (entry.isDir) onSelect(full)
         else onPreview?.(full)
+        return
+      }
+      // Printable character — append to fuzzy query
+      if (e.key.length === 1 && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault()
+        setQuery(q => q + e.key)
       }
     }
     window.addEventListener('keydown', onKey, true)
     return () => window.removeEventListener('keydown', onKey, true)
-  }, [allEntries, selected, currentDir, onClose, onSelect])
+  }, [allEntries, selected, currentDir, query, onClose, onSelect])
 
   // Scroll selected row into view
   useEffect(() => {
@@ -172,11 +210,27 @@ export default function FileListPanel({ cwd, onSelect, onPreview, onClose }) {
           overflow: 'hidden',
           textOverflow: 'ellipsis',
           whiteSpace: 'nowrap',
+          flexShrink: 1,
+          minWidth: 0,
         }}>
           {currentDir}
         </span>
-        <span style={{ color: 'var(--text-muted)', fontSize: 11, whiteSpace: 'nowrap', flexShrink: 0 }}>
-          ↑↓ navigate · → expand dir · enter select · esc close
+        {query ? (
+          <span style={{
+            fontSize: 12,
+            fontFamily: 'var(--font-mono)',
+            background: 'color-mix(in srgb, var(--accent) 15%, transparent)',
+            padding: '1px 8px',
+            borderRadius: 4,
+            flexShrink: 0,
+            whiteSpace: 'nowrap',
+            color: 'var(--text-primary)',
+          }}>
+            {query}▎
+          </span>
+        ) : (
+          <span style={{ color: 'var(--text-muted)', fontSize: 11, whiteSpace: 'nowrap', flexShrink: 0 }}>
+            type to filter · ↑↓ · ← back · → expand · esc close
         </span>
       </div>
 
@@ -261,7 +315,7 @@ export default function FileListPanel({ cwd, onSelect, onPreview, onClose }) {
         flexShrink: 0,
         fontFamily: 'var(--font-mono)',
       }}>
-        {entries.length} items
+        {query ? `${filtered.length} of ${entries.length} items` : `${entries.length} items`}
       </div>
     </div>
   )

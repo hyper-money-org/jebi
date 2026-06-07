@@ -1,6 +1,17 @@
 package session
 
-import "bytes"
+import (
+	"bytes"
+	"regexp"
+)
+
+var kittyPushPop = regexp.MustCompile(`\x1b\[[><][0-9;]*u`)
+
+// kittyStripPushPop removes kitty keyboard push (ESC[>Nu) and pop (ESC[<u)
+// sequences from PTY output so xterm doesn't render them as garbage.
+func kittyStripPushPop(data []byte) []byte {
+	return kittyPushPop.ReplaceAll(data, nil)
+}
 
 var tuiEnter = []byte("\x1b[?1049h")
 var tuiExit = []byte("\x1b[?1049l")
