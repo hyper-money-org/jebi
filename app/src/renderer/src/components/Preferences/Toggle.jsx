@@ -1,6 +1,6 @@
 // Reusable toggle switch + labeled row, used by preference sections.
 
-function Toggle({ checked, onChange }) {
+export function Toggle({ checked, onChange }) {
   return (
     <div
       onClick={() => onChange(!checked)}

@@ -6,21 +6,8 @@ function formatETA(bytesLeft, speedBps) {
   return `${Math.floor(secs / 60)}m ${Math.round(secs % 60)}s`
 }
 
-const cardStyle = {
-  border: '1px solid var(--border)',
-  borderRadius: 6,
-  padding: '10px 12px',
-  marginBottom: 6,
-  background: 'var(--bg-surface)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: 10,
-  minHeight: 52,
-}
-
 const btnBase = {
-  padding: '5px 12px',
+  padding: '4px 12px',
   borderRadius: 4,
   border: 'none',
   cursor: 'pointer',
@@ -30,17 +17,26 @@ const btnBase = {
   whiteSpace: 'nowrap',
 }
 
-export default function ModelCard({ model, isActive, onActivate, onDownload, onCancel, downloadProgress }) {
+export default function ModelCard({ model, isActive, onActivate, onDownload, onCancel, downloadProgress, isLast }) {
   const isDownloading = !!downloadProgress
-
   const isRecommended = model.quality === 'Recommended'
 
-  const nameAndDesc = (
+  const rowStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    padding: '11px 14px',
+    borderBottom: isLast ? 'none' : '1px solid var(--border)',
+    background: isActive ? 'color-mix(in srgb, var(--brand) 5%, transparent)' : 'transparent',
+  }
+
+  const info = (
     <div style={{ flex: 1, minWidth: 0 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <div style={{ fontSize: 'var(--font-size-ui)', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'var(--font-ui)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+        <span style={{ fontSize: 'var(--font-size-ui)', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'var(--font-ui)' }}>
           {model.name}
-        </div>
+        </span>
         {model.quality && (
           <span style={{
             fontSize: 10,
@@ -48,9 +44,13 @@ export default function ModelCard({ model, isActive, onActivate, onDownload, onC
             fontWeight: 600,
             padding: '1px 7px',
             borderRadius: 100,
-            background: isRecommended ? 'color-mix(in srgb, var(--brand) 15%, transparent)' : 'color-mix(in srgb, var(--text-muted) 12%, transparent)',
+            background: isRecommended
+              ? 'color-mix(in srgb, var(--brand) 15%, transparent)'
+              : 'color-mix(in srgb, var(--text-muted) 12%, transparent)',
             color: isRecommended ? 'var(--brand)' : 'var(--text-muted)',
-            border: isRecommended ? '1px solid color-mix(in srgb, var(--brand) 35%, transparent)' : '1px solid color-mix(in srgb, var(--text-muted) 25%, transparent)',
+            border: isRecommended
+              ? '1px solid color-mix(in srgb, var(--brand) 35%, transparent)'
+              : '1px solid color-mix(in srgb, var(--text-muted) 25%, transparent)',
             flexShrink: 0,
           }}>
             {model.quality}
@@ -58,7 +58,7 @@ export default function ModelCard({ model, isActive, onActivate, onDownload, onC
         )}
       </div>
       {model.description && (
-        <div style={{ fontSize: 'var(--font-size-ui)', color: 'var(--text-muted)', fontFamily: 'var(--font-ui)', marginTop: 2 }}>
+        <div style={{ fontSize: 'var(--font-size-ui)', color: 'var(--text-muted)', fontFamily: 'var(--font-ui)', marginTop: 1 }}>
           {model.description}
         </div>
       )}
@@ -69,14 +69,14 @@ export default function ModelCard({ model, isActive, onActivate, onDownload, onC
     const { bytesReceived, totalBytes, speedBps } = downloadProgress
     const pct = totalBytes > 0 ? Math.round((bytesReceived / totalBytes) * 100) : 0
     return (
-      <div style={{ ...cardStyle, flexDirection: 'column', alignItems: 'stretch', minHeight: 'auto' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-          {nameAndDesc}
-          <button onClick={onCancel} style={{ ...btnBase, background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
+      <div style={{ ...rowStyle, flexDirection: 'column', alignItems: 'stretch' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+          {info}
+          <button onClick={onCancel} style={{ ...btnBase, background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
             Cancel
           </button>
         </div>
-        <div style={{ height: 4, borderRadius: 2, background: 'var(--border)', overflow: 'hidden', marginTop: 8 }}>
+        <div style={{ height: 3, borderRadius: 2, background: 'var(--border)', overflow: 'hidden', marginTop: 8 }}>
           <div style={{ height: '100%', width: `${pct}%`, background: 'var(--brand)', borderRadius: 2, transition: 'width 0.3s' }} />
         </div>
         <div style={{ fontSize: 'var(--font-size-ui)', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: 4 }}>
@@ -86,40 +86,22 @@ export default function ModelCard({ model, isActive, onActivate, onDownload, onC
     )
   }
 
-  if (isActive) {
-    return (
-      <div style={{ ...cardStyle, borderColor: 'var(--brand)' }}>
-        {nameAndDesc}
-        <div style={{ ...btnBase, background: 'color-mix(in srgb, var(--brand) 15%, transparent)', color: 'var(--brand)', cursor: 'default', border: '1px solid color-mix(in srgb, var(--brand) 40%, transparent)' }}>
+  return (
+    <div style={rowStyle}>
+      {info}
+      {isActive ? (
+        <span style={{ ...btnBase, background: 'color-mix(in srgb, var(--brand) 15%, transparent)', color: 'var(--brand)', border: '1px solid color-mix(in srgb, var(--brand) 30%, transparent)', cursor: 'default' }}>
           ● Active
-        </div>
-      </div>
-    )
-  }
-
-  if (model.downloaded) {
-    return (
-      <div style={cardStyle}>
-        {nameAndDesc}
+        </span>
+      ) : model.downloaded ? (
         <button onClick={onActivate} style={{ ...btnBase, background: 'var(--brand)', color: '#fff' }}>
           Set Active
         </button>
-      </div>
-    )
-  }
-
-  return (
-    <div style={{
-      ...cardStyle,
-      ...(isRecommended ? {
-        borderColor: 'color-mix(in srgb, var(--brand) 35%, transparent)',
-        background: 'color-mix(in srgb, var(--brand) 5%, var(--bg-surface))',
-      } : {}),
-    }}>
-      {nameAndDesc}
-      <button onClick={onDownload} style={{ ...btnBase, background: 'var(--brand)', color: '#fff' }}>
-        Download
-      </button>
+      ) : (
+        <button onClick={onDownload} style={{ ...btnBase, background: 'var(--brand)', color: '#fff' }}>
+          Download
+        </button>
+      )}
     </div>
   )
 }
