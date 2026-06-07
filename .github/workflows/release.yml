@@ -1,20 +1,24 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g. 0.1.0 — no v prefix)'
+        required: true
 
 permissions:
   contents: write
 
 jobs:
-  build-and-release:
+  release:
     runs-on: macos-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -26,9 +30,20 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Get version from tag
-        id: version
-        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+      - name: Bump version in package.json
+        run: |
+          cd app
+          npm version ${{ github.event.inputs.version }} --no-git-tag-version
+
+      - name: Commit version bump and tag
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add app/package.json
+          git commit -m "chore: release v${{ github.event.inputs.version }}"
+          git tag "v${{ github.event.inputs.version }}"
+          git push origin main
+          git push origin "v${{ github.event.inputs.version }}"
 
       - name: Build Go core
         run: |
@@ -48,21 +63,23 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload artifacts to GitHub Release
+      - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: jebi v${{ steps.version.outputs.VERSION }}
+          tag_name: v${{ github.event.inputs.version }}
+          name: jebi v${{ github.event.inputs.version }}
           draft: false
           prerelease: false
           files: |
             app/dist/jebi-*-arm64.dmg
             app/dist/jebi-*-arm64-mac.zip
           body: |
-            ## jebi v${{ steps.version.outputs.VERSION }}
+            ## jebi v${{ github.event.inputs.version }}
 
             ### Install via Homebrew
             ```bash
-            brew install --cask jawahars16/tap/jebi
+            brew tap jebi-sh/tap
+            brew install --cask jebi
             ```
 
             ### Manual install
@@ -71,16 +88,13 @@ jobs:
       - name: Update Homebrew tap
         env:
           TAP_TOKEN: ${{ secrets.TAP_TOKEN }}
-          VERSION: ${{ steps.version.outputs.VERSION }}
+          VERSION: ${{ github.event.inputs.version }}
         run: |
-          # Calculate SHA256 of the DMG
           DMG=$(ls app/dist/jebi-*-arm64.dmg)
           SHA256=$(shasum -a 256 "$DMG" | awk '{print $1}')
 
-          # Clone the tap repo
-          git clone https://x-access-token:${TAP_TOKEN}@github.com/jawahars16/homebrew-tap.git /tmp/tap
+          git clone https://x-access-token:${TAP_TOKEN}@github.com/jebi-sh/homebrew-tap.git /tmp/tap
           cd /tmp/tap
-
           mkdir -p Casks
 
           cat > Casks/jebi.rb << EOF
@@ -88,7 +102,7 @@ jobs:
             version "${VERSION}"
             sha256 "${SHA256}"
 
-            url "https://github.com/jawahars16/jebi/releases/download/v${VERSION}/jebi-${VERSION}-arm64.dmg"
+            url "https://github.com/jebi-sh/jebi/releases/download/v${VERSION}/jebi-${VERSION}-arm64.dmg"
             name "jebi"
             desc "The AI-native terminal for Mac"
             homepage "https://jebi.sh"
@@ -96,6 +110,7 @@ jobs:
             depends_on macos: ">= :ventura"
 
             app "jebi.app"
+            binary "#{appdir}/jebi.app/Contents/MacOS/jebi"
 
             zap trash: [
               "~/Library/Application Support/jebi",
@@ -104,8 +119,8 @@ jobs:
           end
           EOF
 
-          git config user.email "github-actions@github.com"
           git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
           git add Casks/jebi.rb
           git commit -m "jebi: update to ${VERSION}"
           git push
