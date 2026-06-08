@@ -332,8 +332,12 @@ export default function OutputArea({
       callbacksRef.current.getLastEntry = () => promptAddon.getLastEntry();
 
       callbacksRef.current.onOutput = (data) => {
-        callbacksRef.current.onFirstOutput?.()
+        // Only hide empty state once a real command is running, not on shell startup output
+        if (callbacksRef.current.isRunning?.()) {
+          callbacksRef.current.onFirstOutput?.()
+        }
         if (data.includes(TUI_ENTER)) {
+          callbacksRef.current.onFirstOutput?.()
           promptAddon.enterTui();
           callbacksRef.current.onInteractiveEnter?.();
         } else if (data.includes(TUI_EXIT)) {

@@ -271,6 +271,9 @@ func (s *Session) Start() {
 			if entry.ExitCode == 127 || entry.ExitCode == 130 {
 				break
 			}
+			if strings.Contains(entry.Output, "signal: interrupt") {
+				break
+			}
 			if entry.ExitCode == 0 && isTrivialCommand(entry.Command) {
 				break
 			}

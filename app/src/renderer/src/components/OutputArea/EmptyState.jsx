@@ -106,7 +106,6 @@ export default function EmptyState() {
     <div style={{
       position: 'absolute',
       inset: 0,
-      bottom: 120,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -121,6 +120,7 @@ export default function EmptyState() {
         width: 360,
         maxHeight: '100%',
         overflow: 'hidden',
+        marginBottom: 40,
       }}>
         {src && (
           <img

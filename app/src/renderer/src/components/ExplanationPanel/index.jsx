@@ -1,5 +1,3 @@
-import bulbIconUrl from "../../assets/light-bulb.png";
-
 function renderWithCode(text) {
   const re = /`+([^`]+)`+/g;
   if (!re.test(text)) return text;
@@ -15,12 +13,13 @@ function renderWithCode(text) {
       <code
         key={key++}
         style={{
-          background: "color-mix(in srgb, var(--tab-accent) 30%, transparent)",
-          color: "#ffffff",
+          background: 'color-mix(in srgb, var(--tab-accent) 25%, transparent)',
+          color: '#ffffff',
           fontWeight: 600,
           borderRadius: 3,
-          padding: "1px 5px",
-          fontFamily: "var(--font-mono)",
+          padding: '1px 6px',
+          fontFamily: 'var(--font-mono)',
+          fontSize: '0.95em',
         }}
       >
         {m[1]}
@@ -34,48 +33,77 @@ function renderWithCode(text) {
 
 export default function ExplanationPanel({ text, onDismiss }) {
   return (
-    <div className="relative z-20 flex flex-col">
-      {/* Header: bulb icon centered on the AI gradient divider line */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          padding: "3px",
-        }}
-      >
-        <div
-          style={{
-            flex: 1,
-            height: 1,
-            background: "var(--border)",
-          }}
-        />
-        <span
-          className="bg-[var(--bg-surface)] px-3 "
-          style={{
-            fontFamily: "var(--font-ui, system-ui)",
-            fontSize: "10px",
-            color: "var(--text-muted)",
-            right: 20,
-            position: "absolute",
-            whiteSpace: "nowrap",
-          }}
-        >
-          AI · may be inaccurate
+    <div
+      style={{
+        position: 'relative',
+        margin: '0',
+        borderTop: '1px solid color-mix(in srgb, var(--tab-accent) 30%, transparent)',
+        borderLeft: '3px solid var(--tab-accent)',
+        background: 'color-mix(in srgb, var(--tab-accent) 7%, var(--bg-surface))',
+        animation: 'bannerSlideIn 0.2s ease-out',
+      }}
+    >
+      <style>{`
+        @keyframes bannerSlideIn {
+          from { opacity: 0; transform: translateY(6px); }
+          to   { opacity: 1; transform: none; }
+        }
+      `}</style>
+
+      {/* Header row */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '6px 12px 0',
+      }}>
+        <span style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          fontFamily: 'var(--font-mono)',
+          fontSize: 11,
+          fontWeight: 600,
+          color: 'var(--tab-accent)',
+          letterSpacing: '0.04em',
+          textTransform: 'uppercase',
+        }}>
+          {/* Spark icon */}
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/>
+          </svg>
+          AI Explanation
         </span>
+        {onDismiss && (
+          <button
+            onClick={onDismiss}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--text-muted)',
+              fontSize: 16,
+              lineHeight: 1,
+              padding: '0 2px',
+              opacity: 0.6,
+              transition: 'opacity 0.15s',
+            }}
+            onMouseEnter={e => e.target.style.opacity = 1}
+            onMouseLeave={e => e.target.style.opacity = 0.6}
+          >
+            ×
+          </button>
+        )}
       </div>
+
       {/* Explanation text */}
-      <div
-        style={{
-          padding: "10px",
-          fontFamily: "var(--font-mono)",
-          fontSize: "calc(var(--font-size-mono) * 0.88)",
-          color: "var(--text-primary)",
-          lineHeight: 1.5,
-        }}
-        className="mt-1 mb-2 bg-[var(--bg-surface)]"
-      >
+      <div style={{
+        padding: '8px 12px 10px',
+        fontFamily: 'var(--font-mono)',
+        fontSize: 'var(--font-size-mono)',
+        color: 'var(--text-primary)',
+        lineHeight: 1.65,
+      }}>
         {renderWithCode(text)}
       </div>
     </div>
