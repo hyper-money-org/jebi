@@ -38,7 +38,7 @@ export default function ExplanationPanel({ text, onDismiss }) {
         position: 'relative',
         margin: '0',
         borderTop: '1px solid color-mix(in srgb, var(--tab-accent) 30%, transparent)',
-        borderLeft: '3px solid var(--tab-accent)',
+        borderLeft: '5px solid var(--tab-accent)',
         background: 'color-mix(in srgb, var(--tab-accent) 7%, var(--bg-surface))',
         animation: 'bannerSlideIn 0.2s ease-out',
       }}
@@ -68,11 +68,14 @@ export default function ExplanationPanel({ text, onDismiss }) {
           letterSpacing: '0.04em',
           textTransform: 'uppercase',
         }}>
-          {/* Spark icon */}
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="13" height="13">
+            <polygon points="78,159 181,96 434,96 331,159" fill="currentColor"/>
+            <polygon points="331,159 434,96 434,354 331,417" fill="currentColor" opacity="0.6"/>
+            <polygon points="78,159 331,159 331,417 78,417" fill="#060a12"/>
+            <polyline points="126,247 172,288 126,330" fill="none" stroke="currentColor" strokeWidth="23" strokeLinecap="round" strokeLinejoin="round" opacity="0.7"/>
+            <rect x="186" y="310" width="83" height="16" rx="4" fill="white" opacity=".85"/>
           </svg>
-          AI Explanation
+          What went wrong?
         </span>
         {onDismiss && (
           <button

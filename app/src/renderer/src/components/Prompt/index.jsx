@@ -330,7 +330,7 @@ export default function Prompt({
         display: "flex",
         flexDirection: "column",
         width: "100%",
-        marginTop: 6,
+        marginTop: 1,
         fontFamily: "var(--font-mono)",
         fontSize: "var(--font-size-mono)",
         userSelect: "none",
@@ -411,10 +411,6 @@ export default function Prompt({
         {/* Spacer */}
         <div style={{ flex: 1 }} />
 
-        {/* AI suggestion chips — right-aligned in the prompt row */}
-        {aiSuggestions.length > 0 && aiSuggestions.map((cmd, i) => (
-          <SuggestionChip key={i} cmd={cmd} index={i} onPick={onSuggestionPick} />
-        ))}
 
         {/* Timing — always visible but minimal; hover reveals full timestamp */}
         {duration != null && (

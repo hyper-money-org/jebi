@@ -82,6 +82,7 @@ const InputBar = forwardRef(function InputBar(
         display: "flex",
         flexDirection: "column",
         flexShrink: 0,
+        background: 'color-mix(in srgb, #000 20%, var(--bg-surface))',
       }}
     >
       {/* Prompt row — pills + right-aligned suggestion chips */}

@@ -32,11 +32,11 @@ export function neonGlassStyle({ tint, onClick, minimal, accentBorder = false })
     gap: '6px',
     lineHeight: 1,
     padding: '5px 10px',
-    background: 'color-mix(in srgb, var(--text-muted) 10%, var(--bg-elevated))',
+    background: 'color-mix(in srgb, var(---tab-accent) 20%, var(--bg-elevated))',
     color: 'var(--text-primary)',
     borderLeft: accentBorder
-      ? `3px solid color-mix(in srgb, ${tint} 75%, transparent)`
-      : `3px solid color-mix(in srgb, ${tint} 35%, transparent)`,
+      ? `6px solid color-mix(in srgb, ${tint} 75%, transparent)`
+      : `2px solid color-mix(in srgb, ${tint} 35%, transparent)`,
     borderTop: 'none',
     borderRight: 'none',
     borderBottom: 'none',

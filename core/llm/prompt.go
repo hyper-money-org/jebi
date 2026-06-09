@@ -73,41 +73,34 @@ type finalResponse struct {
 	Explanation string `json:"explanation"`
 }
 
-const suggestPromptTemplate = `You are an expert terminal assistant. Your job is to predict the 3 most useful next shell commands based on the session.
+const suggestPromptTemplate = `You are a terminal assistant. Suggest the next shell commands the user should type.
 
-Environment:
-Shell: %s
-OS: %s
-Current directory: %s
+Environment: shell=%s  os=%s  cwd=%s
 
-Decision Process (follow strictly):
-1. Identify the user's goal from the recent commands (not just the last one).
-2. Detect if the workflow is:
-   - navigation (cd, ls)
-   - development (git, build, run)
-   - debugging (errors, logs)
-   - file operations
-3. Check if the last command failed:
-   - If yes, prioritize fixing the error.
-4. If no error:
-   - Continue the workflow logically. Line 1 = most likely next step, line 2 = useful alternative, line 3 = explore/inspect option.
-5. Prefer safe, minimal, and commonly used commands.
+CRITICAL: You are predicting what the user will TYPE next — not describing output, not explaining errors, not writing prose.
+Each line of your response will be pasted directly into a terminal and executed. If it cannot be executed, do not include it.
 
-Rules:
-- Output EXACTLY 3 shell commands, one per line, no blank lines between them.
-- No explanations. No markdown. No numbering. No prompt symbols.
-- Never prefix a command with a shell name (no bash, sh, zsh). The user is already in a terminal.
-- Do NOT suggest destructive commands (rm -rf, reset, etc.) unless clearly implied.
-- Do NOT repeat the last command if it failed — suggest a fix or something different instead.
-- Never suggest a command that appeared with [exit N] in the history — it failed and should not be repeated as-is.
-- If context is unclear or there is no confident next step, output 3 safe generic commands (e.g. ls, pwd, git status).
+How to decide:
+- The last 1-3 commands are your primary signal. Continue that workflow.
+- If the last command failed with "command not found", the tool is not installed — include the install command (e.g. brew install <tool> on macOS) as the first suggestion.
+- If the last command failed with "unknown command" or wrong subcommand, suggest the correct usage.
+- For other failures, suggest commands that fix the specific error.
+- Use the file listing as secondary context only.
 
-Examples of good behavior:
-- After "git clone ..." → "cd <repo>\nls\ngit log --oneline"
-- After "npm install" → "npm start\nnpm run dev\nnpm test"
-- After "cd" into a dir → "ls\ngit status\ncat README.md"
+Format:
+- 1 to 3 lines. Each line is one complete shell command.
+- No numbering, no bullet points, no explanations, no blank lines.
+- If you have fewer than 3 confident suggestions, output fewer. Empty response is fine.
 
-Return only the 3 commands. Nothing else.`
+Bad output (never do this):
+  Already up-to-date.
+  Error: connection refused
+  import com.example.Foo;
+
+Good output:
+  git log --oneline
+  docker compose up -d
+  kubectl get pods`
 
 // BuildSuggestMessages returns the message list for a next-command suggestion request.
 func BuildSuggestMessages(req SuggestRequest) []ChatMessage {
@@ -115,16 +108,25 @@ func BuildSuggestMessages(req SuggestRequest) []ChatMessage {
 	var sb strings.Builder
 	fmt.Fprintf(&sb, "Current directory: %s\n", req.Cwd)
 	if len(req.DirListing) > 0 {
-		fmt.Fprintf(&sb, "Files: %s\n", strings.Join(req.DirListing, "  "))
+		fmt.Fprintf(&sb, "Files (secondary context only): %s\n", strings.Join(req.DirListing, "  "))
 	}
 	sb.WriteString("\n")
+
+	// Explicitly surface the last failure so small models don't miss it.
+	if len(req.Entries) > 0 {
+		last := req.Entries[len(req.Entries)-1]
+		if last.ExitCode != 0 {
+			fmt.Fprintf(&sb, "NOTE: The last command failed (exit %d). Prioritise suggestions that fix or work around this error.\n\n", last.ExitCode)
+		}
+	}
+
 	start := len(req.Entries) - explainMaxContextEntries
 	if start < 0 {
 		start = 0
 	}
 	for _, e := range req.Entries[start:] {
 		if e.ExitCode != 0 {
-			fmt.Fprintf(&sb, "$ %s  [exit %d]\n%s\n", e.Command, e.ExitCode, truncate(e.Output, explainMaxOutputBytes))
+			fmt.Fprintf(&sb, "$ %s  [FAILED exit %d]\n%s\n", e.Command, e.ExitCode, truncate(e.Output, explainMaxOutputBytes))
 		} else {
 			fmt.Fprintf(&sb, "$ %s\n%s\n", e.Command, truncate(e.Output, explainMaxOutputBytes))
 		}

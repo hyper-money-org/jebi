@@ -9,6 +9,7 @@ import { registerFocus, unregisterFocus } from "../../hooks/paneFocusRegistry";
 import OutputArea from "../OutputArea";
 import InputBar from "../InputBar";
 import ExplanationPanel from "../ExplanationPanel";
+import KeyBadge from "../KeyBadge";
 
 export default function TerminalPane({
   paneId,
@@ -175,6 +176,7 @@ export default function TerminalPane({
   callbacksRef.current.onAIBannerToken = (token) => setBanner(prev => prev ? { ...prev, text: prev.text + token } : null);
   callbacksRef.current.onAIBannerCancel = () => setBanner(null);
   callbacksRef.current.onDismissExplanation = () => setBanner(null);
+  callbacksRef.current.onDismissSuggestions = () => setAiSuggestions([]);
 
   callbacksRef.current.onGit = (data) => {
     setGitData(data);
@@ -350,9 +352,9 @@ export default function TerminalPane({
   }, [isActive, aiSuggestions, handleSubmit])
 
   useKeyboardShortcuts({
-    'Meta+1': () => pickSuggestion(0),
-    'Meta+2': () => pickSuggestion(1),
-    'Meta+3': () => pickSuggestion(2),
+    'Meta+Shift+1': () => pickSuggestion(0),
+    'Meta+Shift+2': () => pickSuggestion(1),
+    'Meta+Shift+3': () => pickSuggestion(2),
   })
 
   const handleFilePreview = useCallback((entry) => {
@@ -475,6 +477,69 @@ export default function TerminalPane({
           type={banner.type}
           onDismiss={() => setBanner(null)}
         />
+      )}
+      {aiSuggestions.length > 0 && !running && (
+        <div style={{
+          borderTop: '1px solid color-mix(in srgb, var(--tab-accent) 30%, transparent)',
+          borderLeft: '5px solid var(--tab-accent)',
+          background: 'color-mix(in srgb, var(--tab-accent) 7%, var(--bg-surface))',
+          animation: 'bannerSlideIn 0.2s ease-out',
+          fontFamily: 'var(--font-mono)',
+          fontSize: 'var(--font-size-mono)',
+          userSelect: 'none',
+          marginBottom: -8,
+        }}>
+          {/* Header */}
+          <div style={{ display: 'flex', alignItems: 'center', padding: '6px 12px 0' }}>
+            {/* <span style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 600,
+              color: 'var(--tab-accent)', letterSpacing: '0.04em', textTransform: 'uppercase',
+            }}>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="13" height="13">
+                <polygon points="78,159 181,96 434,96 331,159" fill="currentColor"/>
+                <polygon points="331,159 434,96 434,354 331,417" fill="currentColor" opacity="0.6"/>
+                <polygon points="78,159 331,159 331,417 78,417" fill="#060a12"/>
+                <polyline points="126,247 172,288 126,330" fill="none" stroke="currentColor" strokeWidth="23" strokeLinecap="round" strokeLinejoin="round" opacity="0.7"/>
+                <rect x="186" y="310" width="83" height="16" rx="4" fill="white" opacity=".85"/>
+              </svg>
+              What's next?
+            </span> */}
+          </div>
+          {/* List */}
+          <div style={{ padding: '0px 12px 9px 5px', lineHeight: 1.65, display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 0 }}>
+            {aiSuggestions.map((cmd, i) => (
+              <>
+                <div
+                  key={i}
+                  onClick={() => { setAiSuggestions([]); handleSubmit(cmd); }}
+                  style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 8, 
+                    cursor: 'pointer',
+                    padding: '2px 6px',
+                    margin: '4px',
+                    borderRadius: 6,
+                    border: '1px solid var(--tab-accent)' }}
+                  onMouseEnter={e => e.currentTarget.style.opacity = '0.75'}
+                  onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                >
+                  <KeyBadge
+                    keys={['cmd', 'shift', String(i + 1)]}
+                    style={{ color: 'var(--tab-accent)', borderColor: 'color-mix(in srgb, var(--tab-accent) 40%, transparent)' }}
+                  />
+                  <span style={{ 
+                    color: 'var(--text-primary)', 
+                    fontSize: '12px',
+                    marginRight: 3,
+                    marginTop: 2,
+                    marginLeft: -5 }}>{cmd}</span>
+                </div>
+              </>
+            ))}
+          </div>
+        </div>
       )}
       {!running && !fileListOpen && !historyOpen && !runOpen && !portsOpen && !customList && !previewFile && !askOpen && (
         <InputBar

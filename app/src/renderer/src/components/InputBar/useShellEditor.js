@@ -320,6 +320,7 @@ export function useShellEditor(callbacksRef) {
         key: 'Escape',
         run(view) {
           callbacksRef.current.onDismissExplanation?.()
+          callbacksRef.current.onDismissSuggestions?.()
           if (view.state.doc.length === 0) return false
           view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: '' } })
           callbacksRef.current.resetNavigation?.()
@@ -393,6 +394,12 @@ export function useShellEditor(callbacksRef) {
 
           const { head } = view.state.selection.main
           if (head === 0) {
+            // If input is empty and suggestions exist, fill in the first one
+            const suggestions = callbacksRef.current.commandContext?.aiSuggestions
+            if (suggestions?.length > 0) {
+              view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: suggestions[0] } })
+              callbacksRef.current.commandContext?.onTabSuggestion?.()
+            }
             return true // consume Tab — never let it blur the input
           }
 
