@@ -4,8 +4,8 @@
 
 <p align="center">
   <a href="https://github.com/jebi-sh/jebi/releases/latest"><img src="https://img.shields.io/github/v/release/jebi-sh/jebi?style=flat-square&color=3b82f6&label=Download" alt="Latest release"/></a>
-  <img src="https://img.shields.io/badge/macOS-12%2B-flat-square?style=flat-square&color=1d4ed8" alt="macOS 12+"/>
-  <img src="https://img.shields.io/badge/license-MIT-flat-square?style=flat-square&color=475569" alt="MIT"/>
+  <img src="https://img.shields.io/badge/macOS-12%2B-1d4ed8?style=flat-square" alt="macOS 12+"/>
+  <img src="https://img.shields.io/badge/license-MIT-475569?style=flat-square" alt="MIT"/>
 </p>
 
 ---
