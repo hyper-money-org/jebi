@@ -1,11 +1,21 @@
 import { useAIStatus } from '../../hooks/useAIStatus'
 import { useStatusMessage } from '../../hooks/useStatusMessage'
+import { useUpdateStatus } from '../../hooks/useUpdateStatus'
+
+const pulseStyle = `
+  @keyframes jebi-update-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(1.6); }
+  }
+`
 
 export default function StatusBar({ onOpenAISettings }) {
   const aiStatus = useAIStatus()
   const message = useStatusMessage()
+  const updateStatus = useUpdateStatus()
+  const version = updateStatus.currentVersion || __APP_VERSION__
 
-  if (aiStatus.status === 'unknown' && !message) return null
+  if (aiStatus.status === 'unknown' && !message && !version) return null
 
   const available = aiStatus.status === 'available'
 
@@ -21,6 +31,37 @@ export default function StatusBar({ onOpenAISettings }) {
       gap: 6,
       minHeight: 24,
     }}>
+      <style>{pulseStyle}</style>
+
+      {/* Version chip — left */}
+      <span
+        title={updateStatus.available ? `v${updateStatus.latestVersion} available` : undefined}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 5,
+          fontFamily: 'var(--font-mono)',
+          fontSize: '11px',
+          color: 'var(--text-muted)',
+          opacity: 0.6,
+          flexShrink: 0,
+          userSelect: 'none',
+        }}
+      >
+        {updateStatus.available && (
+          <span style={{
+            width: 6,
+            height: 6,
+            borderRadius: '50%',
+            background: 'var(--accent)',
+            display: 'inline-block',
+            flexShrink: 0,
+            animation: 'jebi-update-pulse 1.8s ease-in-out infinite',
+          }} />
+        )}
+        v{version}
+      </span>
+
       {/* Transient message — left */}
       <span style={{
         fontFamily: 'var(--font-mono)',

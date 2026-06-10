@@ -19,6 +19,14 @@ contextBridge.exposeInMainWorld('electron', {
     save: (cmds) => ipcRenderer.invoke('commands:save', cmds),
     runItemsFrom: (command, cwd) => ipcRenderer.invoke('commands:run-items-from', { command, cwd }),
   },
+  update: {
+    check: () => ipcRenderer.invoke('update:check'),
+    onStatus: (cb) => {
+      const handler = (_, data) => cb(data)
+      ipcRenderer.on('update:status', handler)
+      return () => ipcRenderer.removeListener('update:status', handler)
+    },
+  },
   onAppShortcut: (cb) => {
     const handler = (_, name) => cb(name)
     ipcRenderer.on('app-shortcut', handler)

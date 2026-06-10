@@ -9,6 +9,7 @@ const execFileAsync = promisify(execFile)
 import { promises as fs } from 'fs'
 import { homedir } from 'os'
 import net from 'net'
+import https from 'https'
 
 // ─── Model registry ──────────────────────────────────────────────────────────
 
@@ -226,6 +227,48 @@ function waitForCore(port, timeout = 10000) {
       })
     }
     attempt()
+  })
+}
+
+// ─── Update check ─────────────────────────────────────────────────────────────
+
+function compareVersions(a, b) {
+  const pa = a.split('.').map(Number)
+  const pb = b.split('.').map(Number)
+  for (let i = 0; i < 3; i++) {
+    const diff = (pa[i] || 0) - (pb[i] || 0)
+    if (diff !== 0) return diff
+  }
+  return 0
+}
+
+function checkForUpdates(win) {
+  const current = app.getVersion()
+  const options = {
+    hostname: 'api.github.com',
+    path: '/repos/jebi-sh/jebi/releases/latest',
+    headers: { 'User-Agent': 'jebi-app' },
+  }
+  https.get(options, (res) => {
+    let data = ''
+    res.on('data', chunk => { data += chunk })
+    res.on('end', () => {
+      try {
+        const json = JSON.parse(data)
+        const latest = (json.tag_name || '').replace(/^v/, '')
+        const available = !!(latest && compareVersions(latest, current) > 0)
+        win.webContents.send('update:status', {
+          available,
+          currentVersion: current,
+          latestVersion: latest,
+          releaseUrl: json.html_url || 'https://github.com/jebi-sh/jebi/releases/latest',
+        })
+      } catch {
+        win.webContents.send('update:status', { available: false, error: true, currentVersion: current })
+      }
+    })
+  }).on('error', () => {
+    win.webContents.send('update:status', { available: false, error: true, currentVersion: current })
   })
 }
 
@@ -543,6 +586,11 @@ ipcMain.handle('ai:cancel-download', async (_, modelId) => {
   return { ok: true }
 })
 
+ipcMain.handle('update:check', () => {
+  const wins = BrowserWindow.getAllWindows()
+  if (wins.length > 0) checkForUpdates(wins[0])
+})
+
 app.whenReady().then(async () => {
   Menu.setApplicationMenu(buildAppMenu())
   corePort = await getFreePort()
@@ -553,6 +601,8 @@ app.whenReady().then(async () => {
     console.error('[core] failed to start:', e)
   }
   createWindow()
+  const wins = BrowserWindow.getAllWindows()
+  if (wins.length > 0) setTimeout(() => checkForUpdates(wins[0]), 2000)
 })
 
 app.on('before-quit', () => {

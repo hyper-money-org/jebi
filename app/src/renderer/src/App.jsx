@@ -15,6 +15,7 @@ import { ToastProvider, useToast } from './components/Toast/ToastContext.jsx'
 import ToastManager from './components/Toast'
 import { useAIStatus } from './hooks/useAIStatus'
 import { setUserCommands } from './commands/registry'
+import { initUpdateStatusListener } from './hooks/useUpdateStatus'
 
 function createTab(counter) {
   const leaf = createLeaf()
@@ -60,6 +61,10 @@ function AppInner() {
 
   useEffect(() => {
     window.electron?.commands?.load().then((cmds) => setUserCommands(cmds ?? []))
+  }, [])
+
+  useEffect(() => {
+    initUpdateStatusListener()
   }, [])
 
   // Open prefs to a specific tab (e.g. 'ai' from the status bar chip or toast).
