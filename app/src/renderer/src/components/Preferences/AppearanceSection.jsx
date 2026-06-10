@@ -39,67 +39,72 @@ export default function AppearanceSection() {
         <ThemeGrid />
       </div>
 
-      <div>
-        <div style={sectionLabel}>Terminal Font</div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{ width: '60px', fontSize: 'var(--font-size-ui)', color: 'var(--text-secondary)', fontFamily: 'var(--font-ui)', flexShrink: 0 }}>
-              Family
-            </span>
-            <select
-              value={prefs.fontFamily}
-              onChange={e => setFontFamily(e.target.value)}
-              style={selectStyle}
-            >
-              {FONT_OPTIONS.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-          </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{ width: '60px', fontSize: 'var(--font-size-ui)', color: 'var(--text-secondary)', fontFamily: 'var(--font-ui)', flexShrink: 0 }}>
-              Size
-            </span>
-            <div style={{ flex: 1 }}>
-              <FontSizeControl />
+        {/* Terminal Font */}
+        <div>
+          <div style={sectionLabel}>Terminal Font</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span style={{ width: '50px', fontSize: 'var(--font-size-ui)', color: 'var(--text-secondary)', fontFamily: 'var(--font-ui)', flexShrink: 0 }}>
+                Family
+              </span>
+              <select
+                value={prefs.fontFamily}
+                onChange={e => setFontFamily(e.target.value)}
+                style={selectStyle}
+              >
+                {FONT_OPTIONS.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span style={{ width: '50px', fontSize: 'var(--font-size-ui)', color: 'var(--text-secondary)', fontFamily: 'var(--font-ui)', flexShrink: 0 }}>
+                Size
+              </span>
+              <div style={{ flex: 1 }}>
+                <FontSizeControl />
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div>
-        <div style={sectionLabel}>UI Font</div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{ width: '60px', fontSize: 'var(--font-size-ui)', color: 'var(--text-secondary)', fontFamily: 'var(--font-ui)', flexShrink: 0 }}>
-              Family
-            </span>
-            <select
-              value={prefs.uiFontFamily ?? 'system-ui, sans-serif'}
-              onChange={e => setUiFontFamily(e.target.value)}
-              style={selectStyle}
-            >
-              {UI_FONT_OPTIONS.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{ width: '60px', fontSize: 'var(--font-size-ui)', color: 'var(--text-secondary)', fontFamily: 'var(--font-ui)', flexShrink: 0 }}>
-              Size
-            </span>
-            <select
-              value={prefs.uiFontSize ?? 13}
-              onChange={e => setUiFontSize(parseInt(e.target.value, 10))}
-              style={selectStyle}
-            >
-              {UI_SIZES.map(s => (
-                <option key={s} value={s}>{s}px</option>
-              ))}
-            </select>
+        {/* UI Font */}
+        <div>
+          <div style={sectionLabel}>UI Font</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span style={{ width: '50px', fontSize: 'var(--font-size-ui)', color: 'var(--text-secondary)', fontFamily: 'var(--font-ui)', flexShrink: 0 }}>
+                Family
+              </span>
+              <select
+                value={prefs.uiFontFamily ?? 'system-ui, sans-serif'}
+                onChange={e => setUiFontFamily(e.target.value)}
+                style={selectStyle}
+              >
+                {UI_FONT_OPTIONS.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span style={{ width: '50px', fontSize: 'var(--font-size-ui)', color: 'var(--text-secondary)', fontFamily: 'var(--font-ui)', flexShrink: 0 }}>
+                Size
+              </span>
+              <select
+                value={prefs.uiFontSize ?? 13}
+                onChange={e => setUiFontSize(parseInt(e.target.value, 10))}
+                style={selectStyle}
+              >
+                {UI_SIZES.map(s => (
+                  <option key={s} value={s}>{s}px</option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
+
       </div>
 
     </div>
