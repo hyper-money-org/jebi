@@ -100,6 +100,7 @@ export default function Prompt({
   cellHeight,
   showSeparator = true,
   running = false,
+  compact = false,
   onCopy,
   onReplay,
   startTime,
@@ -561,7 +562,7 @@ export default function Prompt({
       </div>
 
       {/* Command lines — xterm decoration only */}
-      {commandLines.map((line, i) => (
+      {(compact ? commandLines.slice(0, 1) : commandLines).map((line, i) => (
         <div
           key={i}
           style={{
@@ -571,10 +572,10 @@ export default function Prompt({
             ...(cellHeight
               ? { minHeight: `${cellHeight}px`, alignItems: "center" }
               : { lineHeight: 1.4 }),
-            overflow: "visible",
+            overflow: compact ? "hidden" : "visible",
             paddingLeft: 25,
             paddingRight: 12,
-            marginTop: -10
+            marginTop: -10,
           }}
         >
           {i === 0 && (
@@ -600,6 +601,9 @@ export default function Prompt({
               marginLeft: 10,
               color:
                 "color-mix(in srgb, var(--prompt-cwd-tint) 70%, var(--text-primary))",
+              ...(compact
+                ? { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0, flex: 1 }
+                : { wordBreak: 'break-all', whiteSpace: 'pre-wrap' }),
             }}
           >
             {line}

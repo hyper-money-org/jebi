@@ -690,6 +690,7 @@ export default function OutputArea({
             rowHeight={stickyCommand.promptHeight ?? cellHeightRef.current}
             cellHeight={stickyCommand.cellHeight ?? cellHeightRef.current}
             showSeparator={false}
+            compact={true}
             onCopy={stickyCommand.onCopy}
             onReplay={stickyCommand.onReplay}
             startTime={stickyCommand.startTime}

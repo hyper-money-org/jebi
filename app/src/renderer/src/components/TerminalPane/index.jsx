@@ -513,28 +513,35 @@ export default function TerminalPane({
                 <div
                   key={i}
                   onClick={() => { setAiSuggestions([]); handleSubmit(cmd); }}
-                  style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: 8, 
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
                     cursor: 'pointer',
                     padding: '2px 6px',
                     margin: '4px',
                     borderRadius: 6,
-                    border: '1px solid var(--tab-accent)' }}
+                    border: '1px solid var(--tab-accent)',
+                    minWidth: 0,
+                    maxWidth: 280,
+                  }}
                   onMouseEnter={e => e.currentTarget.style.opacity = '0.75'}
                   onMouseLeave={e => e.currentTarget.style.opacity = '1'}
                 >
                   <KeyBadge
                     keys={['cmd', 'shift', String(i + 1)]}
-                    style={{ color: 'var(--tab-accent)', borderColor: 'color-mix(in srgb, var(--tab-accent) 40%, transparent)' }}
+                    style={{ color: 'var(--tab-accent)', borderColor: 'color-mix(in srgb, var(--tab-accent) 40%, transparent)', flexShrink: 0 }}
                   />
-                  <span style={{ 
-                    color: 'var(--text-primary)', 
+                  <span style={{
+                    color: 'var(--text-primary)',
                     fontSize: '12px',
                     marginRight: 3,
                     marginTop: 2,
-                    marginLeft: -5 }}>{cmd}</span>
+                    marginLeft: -5,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}>{cmd}</span>
                 </div>
               </>
             ))}

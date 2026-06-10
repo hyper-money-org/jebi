@@ -183,6 +183,26 @@ func (s *Session) Reattach(conn connection) {
 }
 
 // Close kills the shell process, releases the PTY, and removes from registry.
+// writeInput sends user input to the PTY. For commands longer than 900 bytes
+// the kernel's canonical-mode buffer (MAX_CANON ≈ 1024 on macOS) would cause
+// the shell to hang, so we route long inputs through a temp file and source it.
+func (s *Session) writeInput(input string) {
+	// Strip the trailing newline added by the renderer before measuring.
+	cmd := strings.TrimSuffix(input, "\n")
+	if len(cmd) < 900 {
+		s.ptm.WriteString(input)
+		return
+	}
+	tmp, err := os.CreateTemp("", ".jebi_cmd_*")
+	if err != nil {
+		s.ptm.WriteString(input) // fallback
+		return
+	}
+	tmp.WriteString(cmd)
+	tmp.Close()
+	s.ptm.WriteString(fmt.Sprintf("source %s && rm -f %s\n", tmp.Name(), tmp.Name()))
+}
+
 func (s *Session) Close() {
 	registry.remove(s.id)
 	if s.cancelDetect != nil {
@@ -241,7 +261,7 @@ func (s *Session) Start() {
 		case wire.TypeInput:
 			var input string
 			if err := json.Unmarshal(msg.Data, &input); err == nil {
-				s.ptm.WriteString(input)
+				s.writeInput(input)
 			}
 		case wire.TypeResize:
 			var r resizeMsg

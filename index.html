@@ -1,0 +1,882 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>jebi - The AI-native terminal for Mac</title>
+  <meta name="description" content="jebi is a local-first AI terminal for Mac that explains failures, suggests commands, and keeps your shell workflow moving.">
+  <style>
+    :root {
+      color-scheme: dark;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --mono: "SFMono-Regular", "SF Mono", ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --bg: #0b0c10;
+      --bg-soft: #11141a;
+      --panel: #171a21;
+      --panel-2: #20242d;
+      --text: #f7f2e8;
+      --muted: #aeb6c7;
+      --line: rgba(255, 255, 255, 0.12);
+      --violet: #9b7cff;
+      --mint: #62e0b7;
+      --amber: #ffc86b;
+      --coral: #ff7a7a;
+      --sky: #71c7ff;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.36);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      background:
+        radial-gradient(circle at 20% 0%, rgba(155, 124, 255, 0.24), transparent 28rem),
+        radial-gradient(circle at 78% 12%, rgba(98, 224, 183, 0.15), transparent 28rem),
+        linear-gradient(180deg, #0b0c10 0%, #101219 46%, #090a0d 100%);
+      color: var(--text);
+      line-height: 1.55;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    code {
+      font-family: var(--mono);
+    }
+
+    .shell-grid {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.9), transparent 86%);
+    }
+
+    .nav {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 22px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      font-size: 1.15rem;
+    }
+
+    .brand img {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(155, 124, 255, 0.28);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .nav-links a {
+      padding: 8px 12px;
+      border-radius: 999px;
+    }
+
+    .nav-links a:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+    }
+
+    .hero {
+      width: min(1180px, calc(100% - 32px));
+      min-height: calc(100vh - 82px);
+      margin: 0 auto;
+      display: grid;
+      place-items: center;
+      gap: 28px;
+      padding: 26px 0 72px;
+      text-align: center;
+    }
+
+    .hero-copy {
+      display: grid;
+      justify-items: center;
+    }
+
+    .hero-logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 26px;
+      color: var(--text);
+      font-size: clamp(2.4rem, 5vw, 4rem);
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .hero-logo img {
+      width: clamp(54px, 7vw, 88px);
+      height: clamp(54px, 7vw, 88px);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      width: fit-content;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 22px;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .pulse {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--mint);
+      box-shadow: 0 0 0 8px rgba(98, 224, 183, 0.12);
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 1120px;
+      font-size: clamp(3.3rem, 8.6vw, 7.7rem);
+      line-height: 0.92;
+      letter-spacing: 0;
+      text-transform: uppercase;
+      text-wrap: balance;
+    }
+
+    .blue {
+      color: #3b82f6;
+      display: block;
+    }
+
+    h1,
+    h2,
+    h3,
+    .button,
+    .tag,
+    .brand {
+      letter-spacing: 0;
+    }
+
+    .tagline {
+      margin: 26px 0 0;
+      max-width: 760px;
+      color: #dce2ee;
+      font-size: clamp(1.1rem, 2vw, 1.35rem);
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 34px;
+    }
+
+    .dev-notes {
+      display: grid;
+      gap: 8px;
+      margin: 24px 0 0;
+      padding: 0;
+      max-width: 760px;
+      list-style: none;
+      color: var(--muted);
+      font-size: 0.92rem;
+      text-align: left;
+    }
+
+    .dev-notes li {
+      display: flex;
+      gap: 10px;
+      align-items: baseline;
+    }
+
+    .dev-notes code {
+      font-family: var(--mono);
+      color: var(--mint);
+      font-weight: 800;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 0 18px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      font-weight: 800;
+      transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+    }
+
+    .button.primary {
+      background: var(--text);
+      color: #101116;
+    }
+
+    .button.secondary {
+      border-color: var(--line);
+      background: rgba(255, 255, 255, 0.07);
+      color: var(--text);
+    }
+
+    .terminal-demo {
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 8px;
+      background: rgba(14, 16, 22, 0.86);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      backdrop-filter: blur(18px);
+    }
+
+    .terminal-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 42px;
+      padding: 0 14px;
+      background: rgba(255, 255, 255, 0.06);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+    }
+
+    .red { background: #ff6262; }
+    .yellow { background: #ffd166; }
+    .green { background: #6ee7a7; }
+
+    .terminal-title {
+      margin-left: 8px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .terminal-body {
+      padding: 20px;
+      font-family: var(--mono);
+      font-size: clamp(0.78rem, 1.6vw, 0.96rem);
+    }
+
+    .line {
+      display: flex;
+      gap: 10px;
+      margin: 0 0 12px;
+      color: #d7deea;
+      white-space: normal;
+    }
+
+    .prompt {
+      color: var(--mint);
+      font-weight: 800;
+      flex: 0 0 auto;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .error {
+      color: var(--coral);
+    }
+
+    .ai-box {
+      margin-top: 18px;
+      padding: 16px;
+      border: 1px solid rgba(155, 124, 255, 0.35);
+      border-radius: 8px;
+      background: linear-gradient(135deg, rgba(155, 124, 255, 0.16), rgba(98, 224, 183, 0.08));
+    }
+
+    .ai-box strong {
+      color: white;
+    }
+
+    .install-card {
+      width: min(640px, 100%);
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      border-radius: 8px;
+      background: rgba(14, 16, 22, 0.82);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      backdrop-filter: blur(18px);
+    }
+
+    .install-body {
+      padding: 18px 20px 20px;
+      font-family: var(--mono);
+      text-align: left;
+    }
+
+    .install-line {
+      margin: 0 0 12px;
+      color: #d7deea;
+      white-space: normal;
+    }
+
+    .install-line:last-child {
+      margin-bottom: 0;
+    }
+
+    .install-prompt {
+      color: #3b82f6;
+      margin-right: 10px;
+    }
+
+    .download-note {
+      margin: 16px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+      text-align: center;
+    }
+
+    .platforms {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 18px;
+      padding: 0 20px 22px;
+    }
+
+    .hero-showcase {
+      width: min(1180px, 100%);
+      margin-top: 16px;
+      perspective: 1600px;
+    }
+
+    .hero-showcase img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+      filter: drop-shadow(0 34px 80px rgba(0, 0, 0, 0.55));
+      transform: rotateX(3deg);
+      transform-origin: center top;
+    }
+
+    main {
+      overflow: hidden;
+    }
+
+    .section {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 86px 0;
+    }
+
+    #features {
+      width: min(1240px, calc(100% - 32px));
+    }
+
+    .section-title {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(260px, 0.45fr);
+      gap: 28px;
+      align-items: end;
+      margin-bottom: 34px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: clamp(2.2rem, 5vw, 4.6rem);
+      line-height: 0.95;
+      letter-spacing: 0;
+      text-wrap: balance;
+    }
+
+    .section-title p,
+    .closer p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.03rem;
+    }
+
+    .features {
+      display: grid;
+      gap: 22px;
+    }
+
+    .feature-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.55fr);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.055);
+      overflow: hidden;
+    }
+
+    .feature-card:nth-child(even) {
+      grid-template-columns: minmax(280px, 0.55fr) minmax(0, 1.45fr);
+    }
+
+    .feature-card:nth-child(even) .feature-image {
+      order: 2;
+      border-right: 0;
+      border-left: 1px solid var(--line);
+    }
+
+    .feature-image {
+      min-height: clamp(340px, 43vw, 520px);
+      display: grid;
+      place-items: center;
+      padding: 22px;
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02)),
+        repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.07) 0 1px, transparent 1px 14px);
+      border-right: 1px solid var(--line);
+    }
+
+    .feature-shot {
+      width: 100%;
+      height: 100%;
+      min-height: 300px;
+      display: block;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.32);
+    }
+
+    .feature-content {
+      padding: 30px;
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      justify-content: center;
+      gap: 18px;
+    }
+
+    .feature-content h3 {
+      margin: 0;
+      font-size: clamp(1.5rem, 2.4vw, 2.35rem);
+      line-height: 1.1;
+    }
+
+    .feature-content p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    .tag {
+      width: fit-content;
+      margin-top: auto;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.09);
+      color: #eff3fb;
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+
+    .band {
+      background: rgba(255, 255, 255, 0.045);
+      border-block: 1px solid var(--line);
+    }
+
+    .proof {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 42px;
+      align-items: center;
+    }
+
+    .proof-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .proof-item {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 16px;
+      border-radius: 8px;
+      background: rgba(11, 12, 16, 0.72);
+      border: 1px solid var(--line);
+    }
+
+    .proof-icon {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border-radius: 8px;
+      color: #101116;
+      font-weight: 900;
+    }
+
+    .proof-item:nth-child(1) .proof-icon { background: var(--mint); }
+    .proof-item:nth-child(2) .proof-icon { background: var(--amber); }
+    .proof-item:nth-child(3) .proof-icon { background: var(--sky); }
+    .proof-item:nth-child(4) .proof-icon { background: var(--violet); }
+
+    .proof-item h3 {
+      margin: 0 0 4px;
+      font-size: 1rem;
+    }
+
+    .proof-item p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.96rem;
+    }
+
+    .command-wall {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .command {
+      min-height: 120px;
+      padding: 18px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .command code {
+      color: var(--mint);
+      font-size: 1rem;
+      font-weight: 800;
+    }
+
+    .command p {
+      margin: 10px 0 0;
+      color: var(--muted);
+    }
+
+    .closer {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 28px;
+      align-items: center;
+      padding: 42px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background:
+        linear-gradient(135deg, rgba(155, 124, 255, 0.18), rgba(98, 224, 183, 0.11)),
+        rgba(255, 255, 255, 0.055);
+      box-shadow: var(--shadow);
+    }
+
+    .closer h2 {
+      font-size: clamp(2rem, 4vw, 4.2rem);
+    }
+
+    footer {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 0 0 36px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      font-size: 0.94rem;
+    }
+
+    @media (max-width: 900px) {
+      .hero,
+      .section-title,
+      .proof,
+      .closer {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        min-height: auto;
+        padding-top: 30px;
+      }
+
+      .features {
+        gap: 18px;
+      }
+
+      .feature-card,
+      .feature-card:nth-child(even) {
+        grid-template-columns: 1fr;
+      }
+
+      .feature-card:nth-child(even) .feature-image {
+        order: 0;
+        border-left: 0;
+      }
+
+      .feature-image,
+      .feature-card:nth-child(even) .feature-image {
+        min-height: 340px;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .closer {
+        padding: 28px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .nav {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .nav-links {
+        width: 100%;
+        overflow-x: auto;
+        padding-bottom: 2px;
+      }
+
+      .hero {
+        gap: 28px;
+        padding-bottom: 54px;
+      }
+
+      .hero-actions,
+      .button {
+        width: 100%;
+      }
+
+      .command-wall {
+        grid-template-columns: 1fr;
+      }
+
+      .section {
+        padding: 62px 0;
+      }
+
+      .feature-card {
+        min-height: 0;
+      }
+
+      .feature-image,
+      .feature-card:nth-child(even) .feature-image {
+        min-height: 260px;
+        padding: 14px;
+      }
+
+    }
+  </style>
+</head>
+<body>
+  <div class="shell-grid" aria-hidden="true"></div>
+
+  <header class="nav">
+    <a class="brand" href="#" aria-label="jebi home">
+      <img src="app/src/renderer/src/assets/jebi-logo.svg" alt="">
+      <span>jebi</span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#features">Features</a>
+      <a href="#commands">Slash stuff</a>
+      <a href="#download">Download</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <div class="hero-logo">
+          <img src="app/src/renderer/src/assets/jebi-logo.svg" alt="">
+          <span>jebi</span>
+        </div>
+        <div class="eyebrow"><span class="pulse"></span>Local AI. Mac-ready. No account required.</div>
+        <h1 id="hero-title">The terminal that <span class="blue">thinks with you.</span></h1>
+        <p class="tagline">jebi explains failed commands, suggests the next move, and politely tells you when the problem is not Docker, not npm, and unfortunately, probably you.</p>
+        <div class="hero-actions">
+          <a class="button primary" href="#download">Install jebi</a>
+          <a class="button secondary" href="#features">Inspect the evidence</a>
+        </div>
+        <ul class="dev-notes" aria-label="Developer notes">
+          <li><code>$</code><span>local-first AI help, because your terminal context should not need a backpack</span></li>
+          <li><code>!</code><span>turns red errors into readable next steps before Stack Overflow warms up</span></li>
+          <li><code>?</code><span>works best with developers who definitely meant to type that command</span></li>
+        </ul>
+      </div>
+
+      <div class="install-card" aria-label="jebi install commands">
+        <div class="terminal-top">
+          <span class="dot red"></span>
+          <span class="dot yellow"></span>
+          <span class="dot green"></span>
+          <span class="terminal-title">macOS - Apple Silicon and Intel</span>
+        </div>
+        <div class="install-body">
+          <p class="install-line"><span class="install-prompt">$ </span>brew tap jebi-sh/tap</p>
+          <p class="install-line"><span class="install-prompt">$ </span>brew install --cask jebi</p>
+        </div>
+        <p class="download-note">or download directly</p>
+        <div class="platforms">
+          <a class="button primary" href="https://github.com/jawahars16/jebi/releases">Apple Silicon</a>
+          <a class="button secondary" href="https://github.com/jawahars16/jebi/releases">Intel</a>
+        </div>
+      </div>
+
+      <figure class="hero-showcase">
+        <img src="marketing-assets/home-terminal-showcase.png" alt="Three jebi terminal windows showing AI explanations, command suggestions, and file browsing">
+      </figure>
+    </section>
+
+    <section class="section" id="features" aria-labelledby="features-title">
+      <div class="section-title">
+        <h2 id="features-title">Actual pixels. Fewer trust issues.</h2>
+        <p>Big screenshots because terminal details should not require detective zoom or a second monitor named "enhance."</p>
+      </div>
+
+      <div class="features">
+        <article class="feature-card">
+          <div class="feature-image">
+            <img class="feature-shot" src="marketing-assets/ai-explanation.png" alt="jebi explaining a failed Go command and suggesting a fix">
+          </div>
+          <div class="feature-content">
+            <h3>Reads the error before you rage-scroll</h3>
+            <p>When a command faceplants, jebi turns the stack trace confetti into a short explanation and a likely fix.</p>
+            <span class="tag">panic - parsed</span>
+          </div>
+        </article>
+
+        <article class="feature-card">
+          <div class="feature-image">
+            <img class="feature-shot" src="marketing-assets/jebi-ai-2.png" alt="jebi explaining a failed Node command and suggesting next commands">
+          </div>
+          <div class="feature-content">
+            <h3>Suggests what to run next</h3>
+            <p>After every command, jebi offers three useful follow-ups, because “now what?” is not a workflow.</p>
+            <span class="tag">three hints, no standup</span>
+          </div>
+        </article>
+
+        <article class="feature-card">
+          <div class="feature-image">
+            <img class="feature-shot" src="marketing-assets/jebi-ls.png" alt="jebi showing the file explorer and suggested Docker commands">
+          </div>
+          <div class="feature-content">
+            <h3>Slash commands with actual jobs</h3>
+            <p>Open files, inspect ports, pick Makefile or npm scripts, and define your own shortcuts without starting a tiny archaeology project.</p>
+            <span class="tag">/ls /ports /run</span>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="band" id="commands">
+      <div class="section proof">
+        <div>
+          <h2>Built for people who type first and read docs eventually.</h2>
+          <p class="tagline">Local-first AI help, modern terminal ergonomics, and themes that understand your monitor is not supposed to interrogate your eyeballs.</p>
+        </div>
+
+        <div class="proof-list">
+          <div class="proof-item">
+            <span class="proof-icon">1</span>
+            <div>
+              <h3>Local AI focus</h3>
+              <p>Keep assistance close to your machine and your workflow, where the “works on my machine” prophecy begins.</p>
+            </div>
+          </div>
+          <div class="proof-item">
+            <span class="proof-icon">2</span>
+            <div>
+              <h3>WebGL rendering</h3>
+              <p>Fast, smooth terminal drawing, because laggy text makes every typo feel legally binding.</p>
+            </div>
+          </div>
+          <div class="proof-item">
+            <span class="proof-icon">3</span>
+            <div>
+              <h3>Actual themes</h3>
+              <p>Catppuccin, Tokyo Night, Dracula, Nord, Gruvbox, One Dark, Monokai, and other respectable ways to avoid default gray.</p>
+            </div>
+          </div>
+          <div class="proof-item">
+            <span class="proof-icon">4</span>
+            <div>
+              <h3>Mac-native shortcuts</h3>
+              <p>New tabs, splits, search, preferences, and palette controls feel familiar, which is a feature and also a public service.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-title">
+        <h2>Slash commands, minus the ceremonial robe.</h2>
+        <p>Built-in shortcuts for terminal chores that somehow became everyone&apos;s unpaid platform engineering rotation.</p>
+      </div>
+
+      <div class="command-wall">
+        <div class="command">
+          <code>/ls</code>
+          <p>Browse files with preview, because opening Finder mid-flow is where focus goes to nap.</p>
+        </div>
+        <div class="command">
+          <code>/ports</code>
+          <p>Inspect live network ports and find the process squatting on localhost like it pays rent.</p>
+        </div>
+        <div class="command">
+          <code>/run</code>
+          <p>Pick from Makefile and npm scripts without guessing whether this repo believes in <code>dev</code>, <code>start</code>, or chaos.</p>
+        </div>
+        <div class="command">
+          <code>/commands</code>
+          <p>Add your own shortcuts in Preferences, then pretend this was always your natural productivity level.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="download">
+      <div class="closer">
+        <div>
+          <h2>Install it before your next red error gets dramatic.</h2>
+          <p>macOS - Apple Silicon and Intel. No account required. Homebrew if you like commands, direct downloads if you have already typed enough today.</p>
+        </div>
+        <a class="button primary" href="https://github.com/jawahars16/jebi/releases">Download jebi</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>jebi - AI-native terminal for Mac</span>
+    <span>macOS - Apple Silicon and Intel. No account required.</span>
+  </footer>
+</body>
+</html>

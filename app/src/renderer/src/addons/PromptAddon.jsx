@@ -264,7 +264,10 @@ export class PromptAddon {
   }
 
   commandStart(command, cwd = "") {
-    const commandLines = command ? command.split("\n").length : 0;
+    const termCols = this._term.cols || 80;
+    const commandLines = command
+      ? command.split("\n").reduce((sum, line) => sum + Math.max(1, Math.ceil(line.length / termCols)), 0)
+      : 0;
 
     const cellHeight =
       this._term._core?._renderService?.dimensions?.css?.cell?.height ??
