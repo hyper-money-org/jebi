@@ -122,8 +122,9 @@ func (p *LlamaServerProvider) start() error {
 	cmd := exec.Command(p.binaryPath,
 		"--model", p.modelPath,
 		"--port", fmt.Sprintf("%d", port),
-		"--ctx-size", "2048",
-		"--n-predict", "256",
+		"--ctx-size", "4096",
+		"--n-predict", "512",
+		"--reasoning", "off",
 	)
 	cmd.Stdout = os.Stderr
 	cmd.Stderr = os.Stderr

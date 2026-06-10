@@ -77,8 +77,9 @@ const suggestPromptTemplate = `You are a terminal assistant. Suggest the next sh
 
 Environment: shell=%s  os=%s  cwd=%s
 
-CRITICAL: You are predicting what the user will TYPE next — not describing output, not explaining errors, not writing prose.
-Each line of your response will be pasted directly into a terminal and executed. If it cannot be executed, do not include it.
+CRITICAL: Every line you output must be a shell command that can be typed into a terminal and executed.
+NEVER output terminal output, error messages, file contents, git output, or any text that is not a shell command.
+Ask yourself: "Can I type this line into a shell prompt and press Enter?" If no, do not include it.
 
 How to decide:
 - The last 1-3 commands are your primary signal. Continue that workflow.
@@ -92,12 +93,15 @@ Format:
 - No numbering, no bullet points, no explanations, no blank lines.
 - If you have fewer than 3 confident suggestions, output fewer. Empty response is fine.
 
-Bad output (never do this):
+Bad output — these are terminal output, NOT commands (never output these):
   Already up-to-date.
+  From github.com:org/repo
+  cd0c36c..bf21455  main -> main
   Error: connection refused
   import com.example.Foo;
+  warning: detached HEAD
 
-Good output:
+Good output — these are actual shell commands:
   git log --oneline
   docker compose up -d
   kubectl get pods`

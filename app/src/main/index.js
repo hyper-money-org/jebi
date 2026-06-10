@@ -24,6 +24,42 @@ const MODEL_REGISTRY = [
     filename: 'qwen2.5-1.5b-instruct-q4_k_m.gguf',
   },
   {
+    id: 'qwen3-4b',
+    name: 'Qwen3 4B',
+    description: 'Great quality · 2.5 GB',
+    quality: 'Recommended',
+    sizeBytes: 2_684_354_560,
+    url: 'https://huggingface.co/Qwen/Qwen3-4B-GGUF/resolve/main/Qwen3-4B-Q4_K_M.gguf',
+    filename: 'Qwen3-4B-Q4_K_M.gguf',
+  },
+  {
+    id: 'qwen3-8b',
+    name: 'Qwen3 8B',
+    description: 'Best quality · 5 GB',
+    quality: 'Best quality',
+    sizeBytes: 5_400_919_654,
+    url: 'https://huggingface.co/Qwen/Qwen3-8B-GGUF/resolve/main/Qwen3-8B-Q4_K_M.gguf',
+    filename: 'Qwen3-8B-Q4_K_M.gguf',
+  },
+  {
+    id: 'gemma3-4b',
+    name: 'Gemma 3 4B',
+    description: 'Balanced · 2.5 GB',
+    quality: 'Sharp answers',
+    sizeBytes: 2_672_893_747,
+    url: 'https://huggingface.co/bartowski/google_gemma-3-4b-it-GGUF/resolve/main/google_gemma-3-4b-it-Q4_K_M.gguf',
+    filename: 'google_gemma-3-4b-it-Q4_K_M.gguf',
+  },
+  {
+    id: 'qwen2.5-coder-3b',
+    name: 'Qwen2.5-Coder 3B',
+    description: 'Code-focused · 1.9 GB',
+    quality: 'Code & terminal',
+    sizeBytes: 2_072_790_016,
+    url: 'https://huggingface.co/bartowski/Qwen2.5-Coder-3B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-3B-Instruct-Q4_K_M.gguf',
+    filename: 'Qwen2.5-Coder-3B-Instruct-Q4_K_M.gguf',
+  },
+  {
     id: 'phi3-mini',
     name: 'Phi-3 Mini 3.8B',
     description: 'Higher quality · 2.2 GB',
@@ -584,6 +620,18 @@ ipcMain.handle('ai:cancel-download', async (_, modelId) => {
   const controller = activeDownloads.get(modelId)
   if (controller) { controller.abort(); activeDownloads.delete(modelId) }
   return { ok: true }
+})
+
+ipcMain.handle('ai:delete-model', async (_, modelId) => {
+  const model = MODEL_REGISTRY.find(m => m.id === modelId)
+  if (!model) return { ok: false, error: 'Unknown model' }
+  const modelPath = join(app.getPath('userData'), 'models', model.filename)
+  try {
+    await fs.unlink(modelPath)
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, error: e.message }
+  }
 })
 
 ipcMain.handle('update:check', () => {

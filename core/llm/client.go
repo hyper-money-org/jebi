@@ -50,7 +50,7 @@ func NewStreamClient(endpointURL, model string) *StreamClient {
 // Stream sends a chat completions request and streams tokens back on the
 // returned channel. Closed when the stream ends or ctx is cancelled.
 func (c *StreamClient) Stream(ctx context.Context, messages []ChatMessage) (<-chan ResponseChunk, error) {
-	body, err := json.Marshal(chatRequest{Model: c.model, Messages: messages, Stream: true, Temperature: 0, MaxTokens: 120})
+	body, err := json.Marshal(chatRequest{Model: c.model, Messages: messages, Stream: true, Temperature: 0, MaxTokens: 1024})
 	if err != nil {
 		return nil, err
 	}
@@ -78,6 +78,8 @@ func (c *StreamClient) Stream(ctx context.Context, messages []ChatMessage) (<-ch
 		defer resp.Body.Close()
 
 		var accumulated strings.Builder
+		var thinkBuf strings.Builder
+		inThink := false
 		scanner := bufio.NewScanner(resp.Body)
 
 		for scanner.Scan() {
@@ -102,6 +104,20 @@ func (c *StreamClient) Stream(ctx context.Context, messages []ChatMessage) (<-ch
 			}
 			token := delta.Choices[0].Delta.Content
 			if token == "" {
+				continue
+			}
+
+			// Suppress Qwen3-style thinking blocks (<think>...</think>).
+			// These are internal reasoning steps, not output for the user.
+			if strings.Contains(token, "<think>") {
+				inThink = true
+			}
+			if inThink {
+				thinkBuf.WriteString(token)
+				if strings.Contains(thinkBuf.String(), "</think>") {
+					inThink = false
+					thinkBuf.Reset()
+				}
 				continue
 			}
 

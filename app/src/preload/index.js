@@ -38,6 +38,7 @@ contextBridge.exposeInMainWorld('electron', {
     listModels: (activePath) => ipcRenderer.invoke('ai:list-models', activePath),
     startDownload: (modelId) => ipcRenderer.invoke('ai:start-download', modelId),
     cancelDownload: (modelId) => ipcRenderer.invoke('ai:cancel-download', modelId),
+    deleteModel: (modelId) => ipcRenderer.invoke('ai:delete-model', modelId),
     onProgress: (cb) => {
       const handler = (_, data) => cb(data)
       ipcRenderer.on('ai:download-progress', handler)

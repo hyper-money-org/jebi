@@ -42,6 +42,11 @@ export default function AISection() {
     setDownloadProgress(prev => { const n = { ...prev }; delete n[modelId]; return n })
   }, [])
 
+  const handleDelete = useCallback(async (modelId) => {
+    await window.electron.ai.deleteModel(modelId)
+    setModels(prev => prev.map(m => m.id === modelId ? { ...m, downloaded: false } : m))
+  }, [])
+
   const handleActivate = useCallback(async (model) => {
     setSaving(true)
     await window.electron.ai.saveConfig({
@@ -98,6 +103,7 @@ export default function AISection() {
               onActivate={() => handleActivate(model)}
               onDownload={() => handleDownload(model.id)}
               onCancel={() => handleCancel(model.id)}
+              onDelete={() => handleDelete(model.id)}
               downloadProgress={downloadProgress[model.id] ?? null}
             />
           ))}
