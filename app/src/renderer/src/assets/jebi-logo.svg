@@ -1,23 +1,31 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- Top face — brand blue, lit from above -->
-  <polygon points="78,159 181,96 434,96 331,159" fill="#3b82f6"/>
+  <defs>
+    <clipPath id="cube-clip">
+      <path d="M 185,96 L 414,96 Q 434,96 434,116 L 434,334 Q 434,354 416.9,364.4 L 348.1,406.6 Q 331,417 311,417 L 98,417 Q 78,417 78,397 L 78,179 Q 78,159 95.1,148.6 L 177.6,98.1 Q 181,96 185,96 Z"/>
+    </clipPath>
+  </defs>
 
-  <!-- Right face — deeper blue, shadowed -->
-  <polygon points="331,159 434,96 434,354 331,417" fill="#1d4ed8"/>
+  <g clip-path="url(#cube-clip)">
+    <!-- Top face — brand blue, lit from above -->
+    <polygon points="78,159 181,96 434,96 331,159" fill="#3b82f6"/>
 
-  <!-- Front face — dark terminal screen -->
-  <polygon points="78,159 331,159 331,417 78,417" fill="#060a12"/>
+    <!-- Right face — deeper blue, shadowed -->
+    <polygon points="331,159 434,96 434,354 331,417" fill="#1d4ed8"/>
 
-  <!-- Terminal prompt: > -->
-  <polyline
-    points="126,247 172,288 126,330"
-    fill="none"
-    stroke="#93c5fd"
-    stroke-width="23"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
+    <!-- Front face — dark terminal screen -->
+    <polygon points="78,159 331,159 331,417 78,417" fill="#060a12"/>
 
-  <!-- Cursor: _ -->
-  <rect x="186" y="310" width="83" height="16" rx="4" fill="white" opacity="0.85"/>
+    <!-- Terminal prompt: > -->
+    <polyline
+      points="126,247 172,288 126,330"
+      fill="none"
+      stroke="#93c5fd"
+      stroke-width="23"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+
+    <!-- Cursor: _ -->
+    <rect x="186" y="310" width="83" height="16" rx="4" fill="white" opacity="0.85"/>
+  </g>
 </svg>
