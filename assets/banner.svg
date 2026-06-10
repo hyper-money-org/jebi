@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 160" width="800" height="160">
+  <defs>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#ffffff" stroke-width="0.4" opacity="0.08"/>
+    </pattern>
+    <clipPath id="cube-clip">
+      <path d="M 46.3,23.5 L 97.5,23.5 Q 103,23.5 103,29 L 103,82.5 Q 103,88 97.2,91.4 L 82.7,99.7 Q 79,101.8 73,101.8 L 22.5,101.8 Q 17,101.8 17,96.3 L 17,42.8 Q 17,37.3 22.5,34 L 39.5,24.4 Q 43,23.5 46.3,23.5 Z"/>
+    </clipPath>
+  </defs>
+
+  <!-- Transparent background with grid -->
+  <rect width="800" height="160" fill="url(#grid)"/>
+
+  <!-- Cube logo — vertical center ~62.6 -->
+  <g clip-path="url(#cube-clip)">
+    <polygon points="17,42.8 39.5,24.4 103,24.4 80.5,42.8" fill="#3b82f6"/>
+    <polygon points="80.5,42.8 103,24.4 103,85 80.5,101.8" fill="#1d4ed8"/>
+    <polygon points="17,42.8 80.5,42.8 80.5,101.8 17,101.8" fill="#060a12"/>
+    <polyline points="29,62.5 41,72 29,81.5" fill="none" stroke="#93c5fd" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="44" y="76.5" width="20" height="3.8" rx="1" fill="white" opacity="0.85"/>
+  </g>
+
+  <!-- jebi — baseline tuned so cap-height center ≈ logo center (62.6) -->
+  <text
+    x="126" y="86"
+    font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif"
+    font-size="64"
+    font-weight="700"
+    fill="white"
+    letter-spacing="-1.5"
+    opacity="0.95"
+  >jebi</text>
+
+  <!-- Tagline -->
+  <text
+    x="128" y="110"
+    font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif"
+    font-size="15"
+    font-weight="400"
+    fill="#94a3b8"
+    letter-spacing="0.1"
+  >The terminal that thinks with you.</text>
+</svg>
