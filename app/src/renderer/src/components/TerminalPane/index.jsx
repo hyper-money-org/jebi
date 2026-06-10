@@ -488,6 +488,8 @@ export default function TerminalPane({
           fontSize: 'var(--font-size-mono)',
           userSelect: 'none',
           marginBottom: -8,
+          position: 'relative',
+          zIndex: 100,
         }}>
           {/* Header */}
           <div style={{ display: 'flex', alignItems: 'center', padding: '6px 12px 0' }}>
