@@ -14,11 +14,9 @@ jebi is a terminal emulator for Mac with built-in local AI. It explains failed c
 
 ---
 
-<!-- Drop a demo.mp4 into assets/ and uncomment:
 <p align="center">
-  <video src="assets/demo.mp4" width="700" autoplay loop muted playsinline></video>
+  <video src="https://github.com/user-attachments/assets/56897292-6795-4650-b63e-d10cf1778585" width="700" autoplay loop muted playsinline></video>
 </p>
--->
 
 ## Features
 
