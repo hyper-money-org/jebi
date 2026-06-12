@@ -21,10 +21,21 @@ contextBridge.exposeInMainWorld('electron', {
   },
   update: {
     check: () => ipcRenderer.invoke('update:check'),
+    install: () => ipcRenderer.invoke('update:install'),
     onStatus: (cb) => {
       const handler = (_, data) => cb(data)
       ipcRenderer.on('update:status', handler)
       return () => ipcRenderer.removeListener('update:status', handler)
+    },
+    onInstallLog: (cb) => {
+      const handler = (_, line) => cb(line)
+      ipcRenderer.on('update:install-log', handler)
+      return () => ipcRenderer.removeListener('update:install-log', handler)
+    },
+    onInstallDone: (cb) => {
+      const handler = (_, result) => cb(result)
+      ipcRenderer.on('update:install-done', handler)
+      return () => ipcRenderer.removeListener('update:install-done', handler)
     },
   },
   onAppShortcut: (cb) => {

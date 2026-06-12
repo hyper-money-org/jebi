@@ -1,27 +1,47 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import logoUrl from '../../assets/jebi-logo.svg'
 import { useUpdateStatus, checkForUpdates } from '../../hooks/useUpdateStatus'
 
 const styles = `
-  @keyframes jebi-spin {
-    to { transform: rotate(360deg); }
-  }
-  .jebi-update-link:hover {
-    text-decoration: underline !important;
-  }
-  .jebi-check-btn:hover:not(:disabled) {
-    background: var(--bg-surface) !important;
-  }
+  @keyframes jebi-spin { to { transform: rotate(360deg); } }
+  .jebi-check-btn:hover:not(:disabled) { background: var(--bg-surface) !important; }
+  .jebi-update-btn:hover:not(:disabled) { opacity: 0.85 !important; }
 `
 
 export default function AboutSection() {
   const year = new Date().getFullYear()
   const updateStatus = useUpdateStatus()
   const [checked, setChecked] = useState(false)
+  const [installing, setInstalling] = useState(false)
+  const [logs, setLogs] = useState([])
+  const [installDone, setInstallDone] = useState(null) // null | { success }
+  const logRef = useRef(null)
+
+  useEffect(() => {
+    const offLog = window.electron.update.onInstallLog((line) => {
+      setLogs(prev => [...prev, line])
+    })
+    const offDone = window.electron.update.onInstallDone((result) => {
+      setInstalling(false)
+      setInstallDone(result)
+    })
+    return () => { offLog?.(); offDone?.() }
+  }, [])
+
+  useEffect(() => {
+    if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight
+  }, [logs])
 
   async function handleCheck() {
     setChecked(true)
     await checkForUpdates()
+  }
+
+  function handleInstall() {
+    setInstalling(true)
+    setLogs([])
+    setInstallDone(null)
+    window.electron.update.install()
   }
 
   const showResult = checked && !updateStatus.checking
@@ -30,15 +50,11 @@ export default function AboutSection() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 28, padding: '24px 4px' }}>
       <style>{styles}</style>
 
-      {/* Logo + name row */}
+      {/* Logo + name */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
         <img src={logoUrl} style={{ width: 72, height: 72, flexShrink: 0 }} alt="jebi" />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-          <div style={{
-            fontSize: 18, fontWeight: 700,
-            fontFamily: 'var(--font-ui)', color: 'var(--text-primary)',
-            letterSpacing: '-0.2px',
-          }}>
+          <div style={{ fontSize: 18, fontWeight: 700, fontFamily: 'var(--font-ui)', color: 'var(--text-primary)', letterSpacing: '-0.2px' }}>
             {__APP_NAME__}
           </div>
           <div style={{ fontSize: 12, fontFamily: 'var(--font-ui)', color: 'var(--text-muted)' }}>
@@ -55,201 +71,107 @@ export default function AboutSection() {
         <button
           className="jebi-check-btn"
           onClick={handleCheck}
-          disabled={updateStatus.checking}
+          disabled={updateStatus.checking || installing}
           style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '6px 14px',
-            borderRadius: 7,
-            border: '1px solid var(--border)',
-            background: 'var(--bg-elevated)',
-            color: 'var(--text-primary)',
-            fontFamily: 'var(--font-ui)',
-            fontSize: 12,
-            fontWeight: 500,
-            cursor: updateStatus.checking ? 'default' : 'pointer',
-            opacity: updateStatus.checking ? 0.6 : 1,
-            alignSelf: 'flex-start',
-            transition: 'background 0.15s',
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            padding: '6px 14px', borderRadius: 7,
+            border: '1px solid var(--border)', background: 'var(--bg-elevated)',
+            color: 'var(--text-primary)', fontFamily: 'var(--font-ui)',
+            fontSize: 12, fontWeight: 500,
+            cursor: (updateStatus.checking || installing) ? 'default' : 'pointer',
+            opacity: (updateStatus.checking || installing) ? 0.6 : 1,
+            alignSelf: 'flex-start', transition: 'background 0.15s',
           }}
         >
-          {updateStatus.checking ? (
-            <span style={{
-              width: 11,
-              height: 11,
-              border: '1.5px solid var(--text-muted)',
-              borderTopColor: 'transparent',
-              borderRadius: '50%',
-              display: 'inline-block',
-              animation: 'jebi-spin 0.7s linear infinite',
-            }} />
-          ) : (
-            <span style={{ fontSize: 13, lineHeight: 1 }}>↻</span>
-          )}
+          {updateStatus.checking
+            ? <span style={{ width: 11, height: 11, border: '1.5px solid var(--text-muted)', borderTopColor: 'transparent', borderRadius: '50%', display: 'inline-block', animation: 'jebi-spin 0.7s linear infinite' }} />
+            : <span style={{ fontSize: 13, lineHeight: 1 }}>↻</span>
+          }
           {updateStatus.checking ? 'Checking…' : 'Check for updates'}
         </button>
 
-        {showResult && (
-          <>
-            {updateStatus.error && (
-              <p style={{
-                margin: 0,
-                fontSize: 12,
-                fontFamily: 'var(--font-ui)',
-                color: 'var(--text-muted)',
-              }}>
-                Could not check for updates. Check your connection and try again.
-              </p>
-            )}
-
-            {!updateStatus.error && !updateStatus.available && (
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 7,
-                fontSize: 12,
-                fontFamily: 'var(--font-ui)',
-                color: 'var(--text-muted)',
-              }}>
-                <span style={{
-                  width: 7, height: 7, borderRadius: '50%',
-                  background: '#22c55e', flexShrink: 0,
-                }} />
-                You're up to date.
-              </div>
-            )}
-
-            {!updateStatus.error && updateStatus.available && (
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 12,
-                padding: '14px 16px',
-                borderRadius: 8,
-                border: '1px solid var(--border)',
-                background: 'var(--bg-elevated)',
-              }}>
-                {/* Header */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{
-                    width: 7, height: 7, borderRadius: '50%',
-                    background: 'var(--accent)', flexShrink: 0,
-                  }} />
-                  <span style={{
-                    fontSize: 13, fontWeight: 600,
-                    fontFamily: 'var(--font-ui)', color: 'var(--text-primary)',
-                  }}>
-                    v{updateStatus.latestVersion} is available
-                  </span>
-                  <span style={{
-                    fontSize: 11,
-                    fontFamily: 'var(--font-ui)',
-                    color: 'var(--text-muted)',
-                    marginLeft: 2,
-                  }}>
-                    (current: v{updateStatus.currentVersion})
-                  </span>
-                </div>
-
-                {/* Divider */}
-                <div style={{ height: 1, background: 'var(--border)', opacity: 0.5 }} />
-
-                {/* Upgrade options */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  <UpgradeOption
-                    label="Homebrew"
-                    releaseUrl={updateStatus.releaseUrl}
-                  />
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    fontSize: 12,
-                    fontFamily: 'var(--font-ui)',
-                    color: 'var(--text-muted)',
-                  }}>
-                    <span style={{ fontSize: 11 }}>or</span>
-                    <a
-                      className="jebi-update-link"
-                      href="#"
-                      onClick={e => { e.preventDefault(); window.electron.openExternal(updateStatus.releaseUrl) }}
-                      style={{
-                        color: 'var(--accent)',
-                        textDecoration: 'none',
-                        fontSize: 12,
-                        fontFamily: 'var(--font-ui)',
-                      }}
-                    >
-                      Download DMG →
-                    </a>
-                  </div>
-                </div>
-              </div>
-            )}
-          </>
+        {showResult && !updateStatus.error && !updateStatus.available && !installing && !installDone && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, fontFamily: 'var(--font-ui)', color: 'var(--text-muted)' }}>
+            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#22c55e', flexShrink: 0 }} />
+            You're up to date.
+          </div>
         )}
-      </div>
-    </div>
-  )
-}
 
-function UpgradeOption({ label }) {
-  const [copied, setCopied] = useState(false)
-  const cmd = 'brew upgrade --cask jebi'
+        {showResult && updateStatus.error && (
+          <p style={{ margin: 0, fontSize: 12, fontFamily: 'var(--font-ui)', color: 'var(--text-muted)' }}>
+            Could not check for updates. Check your connection and try again.
+          </p>
+        )}
 
-  function copy() {
-    navigator.clipboard.writeText(cmd)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+        {showResult && !updateStatus.error && updateStatus.available && !installing && !installDone && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '14px 16px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-elevated)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--accent)', flexShrink: 0 }} />
+                <span style={{ fontSize: 13, fontWeight: 600, fontFamily: 'var(--font-ui)', color: 'var(--text-primary)' }}>
+                  v{updateStatus.latestVersion} is available
+                </span>
+                <span style={{ fontSize: 11, fontFamily: 'var(--font-ui)', color: 'var(--text-muted)' }}>
+                  (current: v{updateStatus.currentVersion})
+                </span>
+              </div>
+              <button
+                className="jebi-update-btn"
+                onClick={handleInstall}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  padding: '6px 14px', borderRadius: 6,
+                  border: 'none', background: 'var(--accent)',
+                  color: '#fff', fontFamily: 'var(--font-ui)',
+                  fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                  transition: 'opacity 0.15s', flexShrink: 0,
+                }}
+              >
+                ↑ Update now
+              </button>
+            </div>
+          </div>
+        )}
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-      <span style={{
-        fontSize: 11,
-        fontFamily: 'var(--font-ui)',
-        color: 'var(--text-muted)',
-        textTransform: 'uppercase',
-        letterSpacing: '0.5px',
-        opacity: 0.7,
-      }}>
-        {label}
-      </span>
-      <div style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 10,
-        background: 'var(--bg-base)',
-        border: '1px solid var(--border)',
-        borderRadius: 6,
-        padding: '6px 10px',
-        alignSelf: 'flex-start',
-      }}>
-        <span style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: 12,
-          color: 'var(--text-primary)',
-        }}>
-          {cmd}
-        </span>
-        <button
-          onClick={copy}
-          title={copied ? 'Copied!' : 'Copy'}
-          style={{
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            color: copied ? '#22c55e' : 'var(--text-muted)',
-            padding: 0,
-            fontSize: 13,
-            lineHeight: 1,
-            flexShrink: 0,
-            transition: 'color 0.15s',
-          }}
-        >
-          {copied ? '✓' : '⎘'}
-        </button>
+        {/* Install log */}
+        {(installing || installDone) && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div
+              ref={logRef}
+              style={{
+                background: 'var(--bg-base)', border: '1px solid var(--border)',
+                borderRadius: 6, padding: '10px 12px',
+                fontFamily: 'var(--font-mono)', fontSize: 11,
+                color: 'var(--text-secondary)', lineHeight: 1.6,
+                maxHeight: 160, overflowY: 'auto',
+                whiteSpace: 'pre-wrap', wordBreak: 'break-all',
+              }}
+            >
+              {logs.length === 0 && installing && <span style={{ opacity: 0.5 }}>Running brew upgrade --cask jebi…</span>}
+              {logs.map((l, i) => <div key={i}>{l}</div>)}
+            </div>
+
+            {installing && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontFamily: 'var(--font-ui)', color: 'var(--text-muted)' }}>
+                <span style={{ width: 10, height: 10, border: '1.5px solid var(--text-muted)', borderTopColor: 'transparent', borderRadius: '50%', display: 'inline-block', animation: 'jebi-spin 0.7s linear infinite' }} />
+                Installing…
+              </div>
+            )}
+
+            {installDone?.success && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, fontFamily: 'var(--font-ui)', color: '#22c55e' }}>
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#22c55e', flexShrink: 0 }} />
+                Update installed. Quit and relaunch jebi to apply.
+              </div>
+            )}
+
+            {installDone && !installDone.success && (
+              <div style={{ fontSize: 12, fontFamily: 'var(--font-ui)', color: 'var(--error)' }}>
+                Update failed. Check the log above or try running <code style={{ fontFamily: 'var(--font-mono)' }}>brew upgrade --cask jebi</code> manually.
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

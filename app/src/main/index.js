@@ -639,6 +639,29 @@ ipcMain.handle('update:check', () => {
   if (wins.length > 0) checkForUpdates(wins[0])
 })
 
+ipcMain.handle('update:install', () => {
+  const wins = BrowserWindow.getAllWindows()
+  const win = wins[0]
+  if (!win) return
+
+  const proc = spawn('brew', ['upgrade', '--cask', 'jebi'], {
+    env: { ...process.env, PATH: `/opt/homebrew/bin:/usr/local/bin:${process.env.PATH}` },
+  })
+
+  const send = (line) => win.webContents.send('update:install-log', line)
+
+  proc.stdout.on('data', (d) => d.toString().split('\n').forEach(l => l && send(l)))
+  proc.stderr.on('data', (d) => d.toString().split('\n').forEach(l => l && send(l)))
+
+  proc.on('close', (code) => {
+    win.webContents.send('update:install-done', { success: code === 0 })
+  })
+  proc.on('error', (err) => {
+    send(`Error: ${err.message}`)
+    win.webContents.send('update:install-done', { success: false })
+  })
+})
+
 app.whenReady().then(async () => {
   Menu.setApplicationMenu(buildAppMenu())
   corePort = await getFreePort()
