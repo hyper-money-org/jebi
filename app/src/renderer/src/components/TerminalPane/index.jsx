@@ -81,13 +81,25 @@ export default function TerminalPane({
   }, [paneId])
 
   useEffect(() => {
-    registerFocus(paneId, () => inputBarRef.current?.focus())
+    registerFocus(paneId, () => {
+      if (interactiveRef.current) {
+        callbacksRef.current.focusTerm?.()
+      } else {
+        inputBarRef.current?.focus()
+      }
+    })
     return () => unregisterFocus(paneId)
   }, [paneId])
 
   useEffect(() => {
     if (!isActive) return
-    setTimeout(() => inputBarRef.current?.focus(), 0)
+    setTimeout(() => {
+      if (interactiveRef.current) {
+        callbacksRef.current.focusTerm?.()
+      } else {
+        inputBarRef.current?.focus()
+      }
+    }, 0)
   }, [isActive])
   // pendingCommandRef holds the command that was just submitted but whose exit
   // code hasn't arrived yet. The OSC 9001 exit-code signal fires asynchronously
