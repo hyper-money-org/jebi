@@ -1,7 +1,7 @@
 import { FONT_OPTIONS } from './fonts'
 
 export const DEFAULT_PREFS = {
-  themeId:            'default',
+  themeId:            'indigo',
   fontFamily:         FONT_OPTIONS[0].value,
   fontSize:           15,
   uiFontFamily:       'system-ui, sans-serif',
@@ -10,4 +10,6 @@ export const DEFAULT_PREFS = {
   aiExplainErrors:    true,
   aiDirectoryContext: true,
   aiCommandSuggestions: true,
+  terminalGrain: true,
+  terminalGrainIntensity: 15,
 }

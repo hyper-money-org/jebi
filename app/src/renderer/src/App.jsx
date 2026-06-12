@@ -14,6 +14,7 @@ import PaneContextMenu from './components/PaneContextMenu'
 import { ToastProvider, useToast } from './components/Toast/ToastContext.jsx'
 import ToastManager from './components/Toast'
 import { useAIStatus } from './hooks/useAIStatus'
+import { usePreferences } from './hooks/usePreferences'
 import { setUserCommands } from './commands/registry'
 import { initUpdateStatusListener } from './hooks/useUpdateStatus'
 
@@ -38,6 +39,7 @@ export default function App() {
 }
 
 function AppInner() {
+  const { prefs } = usePreferences()
   const tabCounterRef = useRef(1)
   // Maps newPaneId → inherited cwd string, consumed once by TerminalPane on mount.
   const paneInitialCwdRef = useRef({})
@@ -419,6 +421,23 @@ function AppInner() {
   // remounts terminals when toggling tab bar between top and left.
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-[var(--bg-surface)]">
+      {/* SVG grain filter definition — hidden, referenced by the overlay below */}
+      <svg style={{ position: 'absolute', width: 0, height: 0 }} aria-hidden="true">
+        <defs>
+          <filter id="jebi-grain" x="0%" y="0%" width="100%" height="100%" colorInterpolationFilters="sRGB">
+            <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" result="noise"/>
+            <feColorMatrix type="saturate" values="0" in="noise" result="gray"/>
+            <feBlend in="SourceGraphic" in2="gray" mode="overlay"/>
+          </filter>
+        </defs>
+      </svg>
+      {prefs.terminalGrain && (
+        <div aria-hidden="true" style={{
+          position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 9999,
+          opacity: prefs.terminalGrainIntensity / 100,
+          filter: 'url(#jebi-grain)',
+        }} />
+      )}
       {/* Title bar — always at top; holds TabBar in top mode, just a drag handle in left mode */}
       <div
         className="shrink-0 flex items-center bg-[var(--bg-base)] border-b border-[var(--border)] [-webkit-app-region:drag]"

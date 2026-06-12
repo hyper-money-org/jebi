@@ -8,8 +8,8 @@ export default function ThemeGrid() {
   return (
     <div style={{
       display: 'grid',
-      gridTemplateColumns: 'repeat(4, 1fr)',
-      gap: '10px',
+      gridTemplateColumns: 'repeat(5, 1fr)',
+      gap: '8px 4px',
     }}>
       {THEME_IDS.map(id => (
         <ThemeSwatch

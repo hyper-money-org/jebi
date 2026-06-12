@@ -1,6 +1,6 @@
-import { useRef, forwardRef, useImperativeHandle } from "react";
+import { useRef, forwardRef, useImperativeHandle, useEffect } from "react";
 import Prompt from "../Prompt";
-import { useShellEditor } from "./useShellEditor";
+import { useShellEditor, ghostSuggestionsEffect } from "./useShellEditor";
 
 
 const InputBar = forwardRef(function InputBar(
@@ -58,10 +58,16 @@ const InputBar = forwardRef(function InputBar(
   callbacksRef.current.getHistory = getHistory;
   callbacksRef.current.isNavigatingHistory = isNavigatingHistory;
   callbacksRef.current.commandContext = commandContext;
+  callbacksRef.current.aiSuggestions = aiSuggestions;
+  callbacksRef.current.onSuggestionPick = onSuggestionPick;
   callbacksRef.current.cwd = cwd;
   callbacksRef.current.onDismissExplanation = onDismissExplanation;
 
-  const { editorContainerRef, viewRef } = useShellEditor(callbacksRef);
+  const { editorContainerRef, viewRef } = useShellEditor(callbacksRef)
+
+  useEffect(() => {
+    viewRef.current?.dispatch({ effects: ghostSuggestionsEffect.of(aiSuggestions) })
+  }, [aiSuggestions]);
 
   useImperativeHandle(ref, () => ({
     focus: () => viewRef.current?.focus(),

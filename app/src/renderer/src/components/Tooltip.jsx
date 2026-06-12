@@ -14,7 +14,7 @@ const tooltipStyle = `
     font-family: var(--font-ui);
     font-size: 11px;
     font-weight: 500;
-    white-space: nowrap;
+    white-space: normal;
     box-shadow: 0 4px 16px rgba(0,0,0,0.35), 0 1px 4px rgba(0,0,0,0.2);
     opacity: 0;
     transform: translateY(3px);

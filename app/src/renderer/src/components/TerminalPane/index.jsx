@@ -10,6 +10,7 @@ import OutputArea from "../OutputArea";
 import InputBar from "../InputBar";
 import ExplanationPanel from "../ExplanationPanel";
 import KeyBadge from "../KeyBadge";
+import Tooltip from "../Tooltip";
 
 export default function TerminalPane({
   paneId,
@@ -509,11 +510,11 @@ export default function TerminalPane({
             </span> */}
           </div>
           {/* List */}
-          <div style={{ padding: '0px 12px 9px 5px', lineHeight: 1.65, display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 0 }}>
+          <div style={{ padding: '0px 12px 9px 5px', lineHeight: 1.65, display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 0, overflow: 'visible' }}>
             {aiSuggestions.map((cmd, i) => (
               <>
+                <Tooltip key={i} text={<span style={{ display: 'flex', flexDirection: 'column', gap: 3 }}><span>{cmd}</span><span style={{ color: 'var(--text-muted)', fontSize: '10px' }}>click to run</span></span>} placement="top">
                 <div
-                  key={i}
                   onClick={() => { setAiSuggestions([]); handleSubmit(cmd); }}
                   style={{
                     display: 'flex',
@@ -545,6 +546,7 @@ export default function TerminalPane({
                     textOverflow: 'ellipsis',
                   }}>{cmd}</span>
                 </div>
+                </Tooltip>
               </>
             ))}
           </div>

@@ -11,7 +11,7 @@ const sectionLabel = {
   letterSpacing: '0.06em',
   textTransform: 'uppercase',
   color: 'var(--text-muted)',
-  marginBottom: '10px',
+  marginBottom: '8px',
   fontFamily: 'var(--font-ui)',
 }
 
@@ -29,13 +29,13 @@ const selectStyle = {
 }
 
 export default function AppearanceSection() {
-  const { prefs, setFontFamily, setUiFontSize, setUiFontFamily } = usePreferences()
+  const { prefs, setFontFamily, setUiFontSize, setUiFontFamily, setTerminalGrain, setTerminalGrainIntensity } = usePreferences()
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
       <div>
-        <div style={sectionLabel}>Theme</div>
+        <div style={sectionLabel}>Background</div>
         <ThemeGrid />
       </div>
 
@@ -105,6 +105,35 @@ export default function AppearanceSection() {
           </div>
         </div>
 
+      </div>
+
+      {/* Grain */}
+      <div>
+        <div style={sectionLabel}>Grain</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div
+            onClick={() => setTerminalGrain(!prefs.terminalGrain)}
+            style={{
+              width: '36px', height: '20px', borderRadius: '10px', cursor: 'pointer',
+              background: prefs.terminalGrain ? 'var(--accent)' : 'var(--border)',
+              position: 'relative', transition: 'background 0.2s', flexShrink: 0,
+            }}
+          >
+            <div style={{
+              position: 'absolute', top: '3px',
+              left: prefs.terminalGrain ? '19px' : '3px',
+              width: '14px', height: '14px', borderRadius: '50%',
+              background: '#fff', transition: 'left 0.2s',
+            }} />
+          </div>
+          <input
+            type="range" min="1" max="20" step="1"
+            value={prefs.terminalGrainIntensity}
+            onChange={e => setTerminalGrainIntensity(parseInt(e.target.value, 10))}
+            disabled={!prefs.terminalGrain}
+            style={{ flex: 1, accentColor: 'var(--accent)', opacity: prefs.terminalGrain ? 1 : 0.3 }}
+          />
+        </div>
       </div>
 
     </div>

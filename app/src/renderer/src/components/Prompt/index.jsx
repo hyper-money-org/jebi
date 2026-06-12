@@ -3,48 +3,66 @@ import { useState, useSyncExternalStore } from "react";
 function SuggestionChip({ cmd, onPick, index }) {
   const [hovered, setHovered] = useState(false)
   return (
-    <button
-      tabIndex={-1}
-      title={cmd}
-      onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); onPick?.(cmd) }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 6,
-        padding: '1px 8px',
-        borderRadius: 3,
-        border: '1px solid color-mix(in srgb, var(--text-muted) 22%, transparent)',
-        background: hovered
-          ? 'color-mix(in srgb, var(--text-muted) 14%, var(--bg-elevated))'
-          : 'var(--bg-elevated)',
-        fontFamily: 'var(--font-mono)',
-        fontSize: 'var(--font-size-mono)',
-        fontWeight: 600,
-        color: 'var(--text-primary)',
-        cursor: 'pointer',
-        userSelect: 'none',
-        flexShrink: 1,
-        minWidth: 0,
-        maxWidth: 200,
-        margin: 4,
-        transition: 'background 0.1s',
-      }}
-    >
-      {index != null && (
-        <span style={{
+    <div style={{ position: 'relative', flexShrink: 1, minWidth: 0, margin: 4 }}>
+      <button
+        tabIndex={-1}
+        onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); onPick?.(cmd) }}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 6,
+          padding: '1px 8px',
+          borderRadius: 3,
+          border: '1px solid color-mix(in srgb, var(--text-muted) 22%, transparent)',
+          background: hovered
+            ? 'color-mix(in srgb, var(--text-muted) 14%, var(--bg-elevated))'
+            : 'var(--bg-elevated)',
+          fontFamily: 'var(--font-mono)',
           fontSize: 'var(--font-size-mono)',
-          color: 'var(--text-muted)',
-          opacity: 0.7,
-          flexShrink: 0,
-          fontWeight: 400,
-        }}>⌘{index + 1}</span>
+          fontWeight: 600,
+          color: 'var(--text-primary)',
+          cursor: 'pointer',
+          userSelect: 'none',
+          minWidth: 0,
+          maxWidth: 200,
+          transition: 'background 0.1s',
+        }}
+      >
+        {index != null && (
+          <span style={{
+            fontSize: 'var(--font-size-mono)',
+            color: 'var(--text-muted)',
+            opacity: 0.7,
+            flexShrink: 0,
+            fontWeight: 400,
+          }}>⌘{index + 1}</span>
+        )}
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
+          {cmd}
+        </span>
+      </button>
+      {hovered && (
+        <div style={{
+          position: 'absolute', bottom: 'calc(100% + 6px)', left: '50%',
+          transform: 'translateX(-50%)',
+          background: 'var(--bg-elevated)',
+          border: '1px solid var(--border)',
+          borderRadius: 5,
+          padding: '4px 8px',
+          fontFamily: 'var(--font-mono)',
+          fontSize: 'var(--font-size-mono)',
+          color: 'var(--text-primary)',
+          whiteSpace: 'nowrap',
+          pointerEvents: 'none',
+          zIndex: 1000,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+        }}>
+          {cmd}
+        </div>
       )}
-      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
-        {cmd}
-      </span>
-    </button>
+    </div>
   )
 }
 import { VscCopy, VscCheck, VscDebugRestart, VscWatch } from "react-icons/vsc";

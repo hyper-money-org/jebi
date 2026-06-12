@@ -172,15 +172,19 @@ function makeGhostPlugin(callbacksRef) {
 
     update(update) {
       let cycled = false
+      let suggestionsChanged = false
       for (const tr of update.transactions) {
         for (const e of tr.effects) {
           if (e.is(ghostCycleEffect)) {
             this._cycle(e.value, update.view)
             cycled = true
           }
+          if (e.is(ghostSuggestionsEffect)) {
+            suggestionsChanged = true
+          }
         }
       }
-      if (!cycled && (update.docChanged || update.selectionSet)) {
+      if (!cycled && (update.docChanged || update.selectionSet || suggestionsChanged)) {
         this._recompute(update.view)
       }
     }
@@ -202,7 +206,7 @@ function makeGhostPlugin(callbacksRef) {
     _recompute(view) {
       const doc = view.state.doc.toString()
       if (!doc.trim()) {
-        const aiSuggestions = callbacksRef.current.commandContext?.aiSuggestions ?? []
+        const aiSuggestions = callbacksRef.current.aiSuggestions ?? []
         if (aiSuggestions.length > 0) {
           this.suggestion = aiSuggestions[0]
           this.matchIndex = 0
@@ -403,10 +407,9 @@ export function useShellEditor(callbacksRef) {
           const { head } = view.state.selection.main
           if (head === 0) {
             // If input is empty and suggestions exist, fill in the first one
-            const suggestions = callbacksRef.current.commandContext?.aiSuggestions
+            const suggestions = callbacksRef.current.aiSuggestions
             if (suggestions?.length > 0) {
               view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: suggestions[0] } })
-              callbacksRef.current.commandContext?.onTabSuggestion?.()
             }
             return true // consume Tab — never let it blur the input
           }

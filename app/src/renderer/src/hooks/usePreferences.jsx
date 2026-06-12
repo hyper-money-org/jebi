@@ -24,7 +24,7 @@ export function PreferencesProvider({ children }) {
   const [prefs, setPrefs] = useState(() => {
     const loaded = loadPrefs()
     // Apply immediately so there's no flash of default colors on first paint.
-    const colors = THEMES[loaded.themeId]?.colors ?? THEMES['default'].colors
+    const colors = THEMES[loaded.themeId]?.colors ?? THEMES['indigo'].colors
     applyThemeToCSSVars(colors, loaded.fontSize, loaded.fontFamily, loaded.uiFontSize, loaded.uiFontFamily)
     // Seed module-level stores so xterm-decoration React roots
     // (outside this provider) pick up the user's choices on first paint.
@@ -35,7 +35,7 @@ export function PreferencesProvider({ children }) {
   // Whenever prefs change: apply CSS vars + persist + mirror prompt style
   // to the module store for out-of-tree consumers.
   useEffect(() => {
-    const colors = THEMES[prefs.themeId]?.colors ?? THEMES['default'].colors
+    const colors = THEMES[prefs.themeId]?.colors ?? THEMES['indigo'].colors
     applyThemeToCSSVars(colors, prefs.fontSize, prefs.fontFamily, prefs.uiFontSize, prefs.uiFontFamily)
     setPromptStyleId('pill')
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs)) } catch {}
@@ -46,7 +46,7 @@ export function PreferencesProvider({ children }) {
   }, [prefs])
 
   const activeColors = useMemo(() =>
-    THEMES[prefs.themeId]?.colors ?? THEMES['default'].colors,
+    THEMES[prefs.themeId]?.colors ?? THEMES['indigo'].colors,
     [prefs.themeId]
   )
 
@@ -88,7 +88,16 @@ export function PreferencesProvider({ children }) {
     setPrefs(prev => ({ ...prev, aiCommandSuggestions: value }))
   }
 
-  const value = { prefs, activeColors, setTheme, setFontFamily, setFontSize, setUiFontSize, setUiFontFamily, setPromptStyle, setAiExplainErrors, setAiDirectoryContext, setAiCommandSuggestions }
+  function setTerminalGrain(value) {
+    setPrefs(prev => ({ ...prev, terminalGrain: value }))
+  }
+
+  function setTerminalGrainIntensity(value) {
+    const clamped = Math.min(20, Math.max(1, Math.round(value)))
+    setPrefs(prev => ({ ...prev, terminalGrainIntensity: clamped }))
+  }
+
+  const value = { prefs, activeColors, setTheme, setFontFamily, setFontSize, setUiFontSize, setUiFontFamily, setPromptStyle, setAiExplainErrors, setAiDirectoryContext, setAiCommandSuggestions, setTerminalGrain, setTerminalGrainIntensity }
 
   return (
     <PreferencesContext.Provider value={value}>
