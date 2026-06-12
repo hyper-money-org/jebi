@@ -139,6 +139,7 @@ function buildHighlightStyle(cssVar) {
 // ─── Ghost text ───────────────────────────────────────────────────────────────
 
 const ghostCycleEffect = StateEffect.define()
+export const ghostSuggestionsEffect = StateEffect.define()
 
 class GhostWidget extends WidgetType {
   constructor(text) {
@@ -201,6 +202,13 @@ function makeGhostPlugin(callbacksRef) {
     _recompute(view) {
       const doc = view.state.doc.toString()
       if (!doc.trim()) {
+        const aiSuggestions = callbacksRef.current.commandContext?.aiSuggestions ?? []
+        if (aiSuggestions.length > 0) {
+          this.suggestion = aiSuggestions[0]
+          this.matchIndex = 0
+          this._buildDecoration(view, doc)
+          return
+        }
         this._clear()
         return
       }
