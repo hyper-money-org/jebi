@@ -356,7 +356,11 @@ export default function OutputArea({
         if (data.includes('\x1b[?2004l')) callbacksRef.current.onInteractiveExit?.();
 
         if (isVisibleRef.current) {
-          term.write(data, () => term.scrollToBottom());
+          term.write(data, () => {
+            const buf = term.buffer.active;
+            const atBottom = buf.viewportY >= buf.length - term.rows;
+            if (atBottom) term.scrollToBottom();
+          });
         } else {
           pendingRef.current.push(data);
           pendingSizeRef.current += data.length;

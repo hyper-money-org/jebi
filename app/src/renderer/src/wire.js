@@ -1,5 +1,6 @@
 // Message type constants — must stay in sync with core/wire/types.go
 export const TypeInput    = 'input'
+export const TypeRawInput = 'raw_input'
 export const TypeOutput   = 'output'
 export const TypeCwd      = 'cwd'
 export const TypeExitCode = 'exit_code'

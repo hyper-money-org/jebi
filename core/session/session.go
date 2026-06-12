@@ -263,6 +263,11 @@ func (s *Session) Start() {
 			if err := json.Unmarshal(msg.Data, &input); err == nil {
 				s.writeInput(input)
 			}
+		case wire.TypeRawInput:
+			var input string
+			if err := json.Unmarshal(msg.Data, &input); err == nil {
+				s.ptm.WriteString(input)
+			}
 		case wire.TypeResize:
 			var r resizeMsg
 			if err := json.Unmarshal(msg.Data, &r); err == nil {

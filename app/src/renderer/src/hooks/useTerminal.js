@@ -156,7 +156,7 @@ export function useTerminal(paneId, callbacksRef, initialCwd) {
 
   const sendRaw = useCallback((data) => {
     if (ws.current?.readyState !== WebSocket.OPEN) return
-    ws.current.send(JSON.stringify({ type: wire.TypeInput, data }))
+    ws.current.send(JSON.stringify({ type: wire.TypeRawInput, data }))
   }, [paneId])
 
   const sendResize = useCallback((cols, rows) => {

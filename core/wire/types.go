@@ -2,6 +2,7 @@ package wire
 
 const (
 	TypeInput    = "input"
+	TypeRawInput = "raw_input"
 	TypeOutput   = "output"
 	TypeCwd      = "cwd"
 	TypeExitCode = "exit_code"
