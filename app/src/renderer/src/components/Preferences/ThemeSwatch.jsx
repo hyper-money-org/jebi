@@ -1,34 +1,39 @@
+import { useState } from 'react'
+
 export default function ThemeSwatch({ theme, isActive, onSelect }) {
   const { name, colors } = theme
+  const [hovered, setHovered] = useState(false)
 
   return (
     <button
       onClick={onSelect}
       title={name}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       style={{
-        background: 'none', border: 'none', padding: 0,
-        cursor: 'pointer', display: 'flex', flexDirection: 'column',
-        alignItems: 'center', gap: 5, outline: 'none',
+        background: colors.bgBase,
+        border: 'none',
+        padding: 0,
+        cursor: 'pointer',
+        borderRadius: 4,
+        aspectRatio: '1',
+        width: '100%',
+        position: 'relative',
+        outline: isActive ? '2px solid var(--brand)' : hovered ? '2px solid rgba(255,255,255,0.4)' : '2px solid transparent',
+        outlineOffset: '2px',
+        transform: hovered && !isActive ? 'scale(1.15)' : 'scale(1)',
+        transition: 'outline-color 0.12s, transform 0.12s',
+        zIndex: hovered ? 1 : 0,
       }}
     >
-      <div style={{
-        width: 36, height: 36, borderRadius: '50%',
-        background: colors.bgBase,
-        border: `2px solid ${isActive ? 'var(--brand)' : colors.border}`,
-        boxShadow: isActive
-          ? `0 0 0 3px var(--brand-glow), inset 0 0 0 3px ${colors.bgElevated}`
-          : `inset 0 0 0 3px ${colors.bgElevated}`,
-        transition: 'border-color 0.15s, box-shadow 0.15s',
-      }} />
-      <span style={{
-        fontSize: 10,
-        color: isActive ? 'var(--brand)' : 'var(--text-muted)',
-        fontFamily: 'var(--font-ui)',
-        fontWeight: isActive ? 600 : 400,
-        whiteSpace: 'nowrap',
-      }}>
-        {name}
-      </span>
+      {isActive && (
+        <span style={{
+          position: 'absolute', inset: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: '#fff', fontSize: 14, fontWeight: 700,
+          textShadow: '0 1px 3px rgba(0,0,0,0.6)',
+        }}>✓</span>
+      )}
     </button>
   )
 }

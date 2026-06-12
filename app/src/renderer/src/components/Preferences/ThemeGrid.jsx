@@ -7,9 +7,12 @@ export default function ThemeGrid() {
 
   return (
     <div style={{
+      background: 'rgba(255,255,255,0.06)',
+      borderRadius: 8,
+      padding: '8px',
       display: 'grid',
-      gridTemplateColumns: 'repeat(5, 1fr)',
-      gap: '8px 4px',
+      gridTemplateColumns: 'repeat(15, 1fr)',
+      gap: '4px',
     }}>
       {THEME_IDS.map(id => (
         <ThemeSwatch
