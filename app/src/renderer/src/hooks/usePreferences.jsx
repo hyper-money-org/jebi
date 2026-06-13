@@ -23,8 +23,10 @@ export function PreferencesProvider({ children }) {
 
   const [prefs, setPrefs] = useState(() => {
     const loaded = loadPrefs()
+    // Fall back to default if saved themeId no longer exists in the palette list.
+    if (!THEMES[loaded.themeId]) loaded.themeId = DEFAULT_PREFS.themeId
     // Apply immediately so there's no flash of default colors on first paint.
-    const colors = THEMES[loaded.themeId]?.colors ?? THEMES['indigo'].colors
+    const colors = THEMES[loaded.themeId]?.colors ?? THEMES['midnight'].colors
     applyThemeToCSSVars(colors, loaded.fontSize, loaded.fontFamily, loaded.uiFontSize, loaded.uiFontFamily)
     // Seed module-level stores so xterm-decoration React roots
     // (outside this provider) pick up the user's choices on first paint.
@@ -35,7 +37,7 @@ export function PreferencesProvider({ children }) {
   // Whenever prefs change: apply CSS vars + persist + mirror prompt style
   // to the module store for out-of-tree consumers.
   useEffect(() => {
-    const colors = THEMES[prefs.themeId]?.colors ?? THEMES['indigo'].colors
+    const colors = THEMES[prefs.themeId]?.colors ?? THEMES['midnight'].colors
     applyThemeToCSSVars(colors, prefs.fontSize, prefs.fontFamily, prefs.uiFontSize, prefs.uiFontFamily)
     setPromptStyleId('pill')
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs)) } catch {}
@@ -46,7 +48,7 @@ export function PreferencesProvider({ children }) {
   }, [prefs])
 
   const activeColors = useMemo(() =>
-    THEMES[prefs.themeId]?.colors ?? THEMES['indigo'].colors,
+    THEMES[prefs.themeId]?.colors ?? THEMES['midnight'].colors,
     [prefs.themeId]
   )
 

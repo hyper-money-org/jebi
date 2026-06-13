@@ -89,4 +89,13 @@ export function applyThemeToCSSVars(colors, fontSize, fontFamily, uiFontSize, ui
   // Brand accent — fixed, never overridden by theme.
   el.style.setProperty('--brand', '#3b82f6')
   el.style.setProperty('--brand-glow', hexToRgba('#3b82f6', 0.15))
+  // Syntax colors — light themes need darker saturated variants so tokens are readable.
+  const bg = colors.bgBase || '#000000'
+  const h = bg.replace('#', '')
+  const lum = (parseInt(h.slice(0,2),16)*299 + parseInt(h.slice(2,4),16)*587 + parseInt(h.slice(4,6),16)*114) / 1000
+  const light = lum > 140
+  el.style.setProperty('--syntax-string',   light ? '#276b3a' : '#4caf80')
+  el.style.setProperty('--syntax-variable', light ? '#8b5e00' : '#e8b84b')
+  el.style.setProperty('--syntax-number',   light ? '#b34a00' : '#e0935a')
+  el.style.setProperty('--syntax-keyword',  light ? '#5a1fb5' : 'var(--accent)')
 }

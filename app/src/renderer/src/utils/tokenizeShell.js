@@ -6,8 +6,8 @@
 export const SHELL_COLORS = {
   command:   'var(--text-primary)',
   flag:      'var(--text-secondary)',
-  string:    '#a8d8a8',   // soft green — consistent across themes
-  variable:  '#f0c674',   // yellow
+  string:    'var(--syntax-string)',
+  variable:  'var(--syntax-variable)',
   operator:  'var(--text-secondary)',
   comment:   'var(--text-muted)',
   default:   'var(--text-primary)',

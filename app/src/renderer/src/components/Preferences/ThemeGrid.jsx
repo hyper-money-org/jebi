@@ -7,11 +7,12 @@ export default function ThemeGrid() {
 
   return (
     <div style={{
-      background: 'rgba(255,255,255,0.06)',
+      background: 'var(--bg-base)',
+      border: '1px solid var(--border)',
       borderRadius: 8,
       padding: '8px',
       display: 'grid',
-      gridTemplateColumns: 'repeat(15, 1fr)',
+      gridTemplateColumns: 'repeat(7, 1fr)',
       gap: '4px',
     }}>
       {THEME_IDS.map(id => (

@@ -27,51 +27,51 @@ const autoHeightPlugin = ViewPlugin.define((view) => {
   return { update: measure }
 })
 
-function buildTheme(cssVar) {
+function buildTheme(dark) {
   return EditorView.theme({
     '&': {
       background: 'transparent',
-      color: cssVar('--text-primary'),
-      fontFamily: cssVar('--font-mono'),
-      fontSize: cssVar('--font-size-mono'),
+      color: 'var(--text-primary)',
+      fontFamily: 'var(--font-mono)',
+      fontSize: 'var(--font-size-mono)',
     },
     '&.cm-focused': { outline: 'none' },
     '.cm-scroller': { overflow: 'hidden', lineHeight: '1.2' },
     '.cm-content': {
       padding: '5px 5px',
-      caretColor: cssVar('--accent'),
-      minHeight: `calc(${cssVar('--font-size-mono')} * 1.2)`,
+      caretColor: 'var(--accent)',
+      minHeight: 'calc(var(--font-size-mono) * 1.2)',
       whiteSpace: 'pre-wrap',
       wordBreak: 'break-all',
     },
     '.cm-cursor, .cm-dropCursor': {
-      borderLeftColor: cssVar('--accent'),
+      borderLeftColor: 'var(--accent)',
       borderLeftWidth: '2px',
     },
     '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, ::selection': {
-      background: cssVar('--accent') + '44',
+      background: 'color-mix(in srgb, var(--accent) 30%, transparent)',
     },
     '.cm-activeLine': { background: 'transparent' },
     '.cm-gutters': { display: 'none' },
 
     // Autocomplete dropdown — matches the active theme via CSS vars.
     '.cm-tooltip.cm-tooltip-autocomplete': {
-      background: cssVar('--bg-elevated'),
-      border: `1px solid ${cssVar('--border')}`,
+      background: 'var(--bg-elevated)',
+      border: '1px solid var(--border)',
       borderRadius: '6px',
       boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
-      fontFamily: cssVar('--font-mono'),
-      fontSize: cssVar('--font-size-mono'),
+      fontFamily: 'var(--font-mono)',
+      fontSize: 'var(--font-size-mono)',
       padding: '4px',
       overflow: 'hidden',
     },
     '.cm-tooltip.cm-tooltip-autocomplete > ul': {
       maxHeight: '14em',
-      fontFamily: cssVar('--font-mono'),
+      fontFamily: 'var(--font-mono)',
       padding: 0,
       margin: 0,
-      scrollbarWidth: 'thin', // Firefox
-      scrollbarColor: `${cssVar('--border')} transparent`,
+      scrollbarWidth: 'thin',
+      scrollbarColor: 'var(--border) transparent',
     },
     '.cm-tooltip.cm-tooltip-autocomplete > ul::-webkit-scrollbar': {
       width: '3px',
@@ -81,7 +81,7 @@ function buildTheme(cssVar) {
       background: 'transparent',
     },
     '.cm-tooltip.cm-tooltip-autocomplete > ul::-webkit-scrollbar-thumb': {
-      background: cssVar('--border'),
+      background: 'var(--border)',
       borderRadius: '2px',
     },
     '.cm-tooltip.cm-tooltip-autocomplete > ul > li': {
@@ -90,24 +90,24 @@ function buildTheme(cssVar) {
       gap: '8px',
       padding: '4px 8px',
       borderRadius: '4px',
-      color: cssVar('--text-primary'),
+      color: 'var(--text-primary)',
       lineHeight: '1.3',
     },
     '.cm-tooltip.cm-tooltip-autocomplete > ul > li[aria-selected]': {
-      background: cssVar('--accent'),
-      color: cssVar('--on-accent'),
+      background: 'var(--accent)',
+      color: 'var(--on-accent)',
     },
     '.cm-completionLabel': { color: 'inherit' },
     '.cm-completionMatchedText': {
       textDecoration: 'none',
-      color: cssVar('--accent'),
+      color: 'var(--accent)',
       fontWeight: 600,
     },
     '.cm-tooltip.cm-tooltip-autocomplete > ul > li[aria-selected] .cm-completionMatchedText': {
-      color: cssVar('--on-accent'),
+      color: 'var(--on-accent)',
     },
     '.cm-completionDetail': {
-      color: cssVar('--text-muted'),
+      color: 'var(--text-muted)',
       fontStyle: 'normal',
       marginLeft: 'auto',
       paddingLeft: '12px',
@@ -119,20 +119,20 @@ function buildTheme(cssVar) {
       flexShrink: 0,
       objectFit: 'contain',
     },
-  }, { dark: true })
+  }, { dark })
 }
 
-function buildHighlightStyle(cssVar) {
+function buildHighlightStyle() {
   return syntaxHighlighting(HighlightStyle.define([
-    { tag: t.keyword,                        color: cssVar('--accent') },
-    { tag: t.string,                         color: SHELL_COLORS.string },
-    { tag: t.comment,                        color: cssVar('--text-muted'), fontStyle: 'italic' },
-    { tag: [t.operator, t.punctuation],      color: cssVar('--text-secondary') },
-    { tag: t.variableName,                   color: SHELL_COLORS.variable },
-    { tag: t.atom,                           color: cssVar('--text-secondary') },
-    { tag: t.number,                         color: '#de935f' },
-    { tag: t.special(t.name),               color: cssVar('--accent') },
-    { tag: t.name,                           color: cssVar('--text-primary') },
+    { tag: t.keyword,                        color: 'var(--syntax-keyword)' },
+    { tag: t.string,                         color: 'var(--syntax-string)' },
+    { tag: t.comment,                        color: 'var(--text-muted)', fontStyle: 'italic' },
+    { tag: [t.operator, t.punctuation],      color: 'var(--text-secondary)' },
+    { tag: t.variableName,                   color: 'var(--syntax-variable)' },
+    { tag: t.atom,                           color: 'var(--text-secondary)' },
+    { tag: t.number,                         color: 'var(--syntax-number)' },
+    { tag: t.special(t.name),               color: 'var(--syntax-keyword)' },
+    { tag: t.name,                           color: 'var(--text-primary)' },
   ]))
 }
 
@@ -290,7 +290,12 @@ export function useShellEditor(callbacksRef) {
     if (!container) return
 
     const style = getComputedStyle(document.documentElement)
-    const cssVar = (name) => style.getPropertyValue(name).trim()
+    const bgBase = style.getPropertyValue('--bg-base').trim()
+    const h = bgBase.replace('#', '')
+    const lum = h.length === 6
+      ? (parseInt(h.slice(0,2),16)*299 + parseInt(h.slice(2,4),16)*587 + parseInt(h.slice(4,6),16)*114) / 1000
+      : 0
+    const isDark = lum <= 140
 
     const ghostPlugin = makeGhostPlugin(callbacksRef)
     const filePathSource = makeFilePathSource(callbacksRef)
@@ -458,8 +463,8 @@ export function useShellEditor(callbacksRef) {
         doc: '',
         extensions: [
           shellLanguage,
-          buildHighlightStyle(cssVar),
-          buildTheme(cssVar),
+          buildHighlightStyle(),
+          buildTheme(isDark),
           EditorView.lineWrapping,
           autoHeightPlugin,
           // Slash-command + file-path completions.

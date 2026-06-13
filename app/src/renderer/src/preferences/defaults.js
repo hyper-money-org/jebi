@@ -1,7 +1,7 @@
 import { FONT_OPTIONS } from './fonts'
 
 export const DEFAULT_PREFS = {
-  themeId:            'indigo',
+  themeId:            'midnight',
   fontFamily:         FONT_OPTIONS[0].value,
   fontSize:           15,
   uiFontFamily:       'system-ui, sans-serif',
