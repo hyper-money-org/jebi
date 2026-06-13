@@ -37,6 +37,36 @@ type ProjectInfo struct {
 	K8s    string // "context|namespace"
 }
 
+// AnalyzeRequest is the input for the output analysis feature.
+type AnalyzeRequest struct {
+	Command  string
+	Output   string
+	ExitCode int
+	Cwd      string
+	Shell    string
+	OS       string
+}
+
+// AnalysisItem is one extracted fact from the analyzed output.
+type AnalysisItem struct {
+	Type   string `json:"type"`   // "error" | "metric" | "insight" | "warning"
+	Text   string `json:"text"`
+	Detail string `json:"detail"`
+}
+
+// AnalysisAction is an optional suggested next command.
+type AnalysisAction struct {
+	Label   string `json:"label"`
+	Command string `json:"command"`
+}
+
+// AnalysisResult is the structured output from the LLM analysis.
+type AnalysisResult struct {
+	Title  string          `json:"title"`
+	Items  []AnalysisItem  `json:"items"`
+	Action *AnalysisAction `json:"action"`
+}
+
 // Step is one action in a multi-step plan returned by the LLM.
 type Step struct {
 	Description string `json:"description"` // Human-readable label shown before the command runs

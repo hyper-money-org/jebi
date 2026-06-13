@@ -354,6 +354,44 @@ func BuildProjectContextMessages(info ProjectInfo) []ChatMessage {
 	}
 }
 
+const analyzePromptTemplate = `You are a terminal output analyzer. Given a shell command and its output, extract what matters most.
+
+Environment: shell=%s  os=%s  cwd=%s
+
+Return ONLY valid JSON with this exact structure — no markdown, no explanation:
+{"title":"...","items":[{"type":"...","text":"...","detail":"..."}],"action":{"label":"...","command":"..."}}
+
+Or if no action is relevant:
+{"title":"...","items":[{"type":"...","text":"...","detail":"..."}],"action":null}
+
+Field rules:
+- title: one short phrase summarising the outcome (e.g. "3 build errors", "47/50 tests passed", "2 pods failing", "12 files changed")
+- items: 1 to 5 key facts. For each item:
+  - type must be exactly one of: "error", "metric", "insight", "warning"
+  - type "error": a failure or problem, include file:line if present in output
+  - type "metric": a number or stat (e.g. "47/50 tests passed", "build time: 3.2s", "downloaded 142 packages")
+  - type "warning": something that may need attention but is not a failure
+  - type "insight": a useful observation or root cause hint
+  - text: under 80 characters
+  - detail: extra context or the raw error line (empty string if none)
+- action: one suggested next command if there is an obvious next step, otherwise null
+- Output ONLY the JSON. No text before or after.`
+
+// BuildAnalyzeMessages returns the message list for an output analysis request.
+func BuildAnalyzeMessages(req AnalyzeRequest) []ChatMessage {
+	system := fmt.Sprintf(analyzePromptTemplate, req.Shell, req.OS, req.Cwd)
+	var sb strings.Builder
+	exitLabel := "exit 0"
+	if req.ExitCode != 0 {
+		exitLabel = fmt.Sprintf("exit %d (FAILED)", req.ExitCode)
+	}
+	fmt.Fprintf(&sb, "$ %s  [%s]\n\n%s", req.Command, exitLabel, req.Output)
+	return []ChatMessage{
+		{Role: "system", Content: system},
+		{Role: "user", Content: sb.String()},
+	}
+}
+
 // ParseFinalResponse extracts the structured response from the accumulated
 // token string. Tries full unmarshal first, then falls back to extracting
 // the first '{' … last '}' substring to handle preamble text from the model.
