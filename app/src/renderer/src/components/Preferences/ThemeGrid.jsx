@@ -10,10 +10,10 @@ export default function ThemeGrid() {
       background: 'var(--bg-base)',
       border: '1px solid var(--border)',
       borderRadius: 8,
-      padding: '8px',
+      padding: '6px',
       display: 'grid',
-      gridTemplateColumns: 'repeat(7, 1fr)',
-      gap: '4px',
+      gridTemplateColumns: 'repeat(21, 1fr)',
+      gap: '3px',
     }}>
       {THEME_IDS.map(id => (
         <ThemeSwatch
