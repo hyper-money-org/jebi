@@ -7,5 +7,6 @@ KNOWN_BUGS.md
 **/dist
 core/term-core
 core/main
+core/core
 .DS_Store
 .claude
