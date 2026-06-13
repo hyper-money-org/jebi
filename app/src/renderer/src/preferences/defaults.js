@@ -10,6 +10,7 @@ export const DEFAULT_PREFS = {
   aiExplainErrors:    true,
   aiDirectoryContext: true,
   aiCommandSuggestions: true,
+  aiOutputAnalysis:   false,
   terminalGrain: true,
   terminalGrainIntensity: 15,
 }

@@ -90,6 +90,10 @@ export function PreferencesProvider({ children }) {
     setPrefs(prev => ({ ...prev, aiCommandSuggestions: value }))
   }
 
+  function setAiOutputAnalysis(value) {
+    setPrefs(prev => ({ ...prev, aiOutputAnalysis: value }))
+  }
+
   function setTerminalGrain(value) {
     setPrefs(prev => ({ ...prev, terminalGrain: value }))
   }
@@ -99,7 +103,7 @@ export function PreferencesProvider({ children }) {
     setPrefs(prev => ({ ...prev, terminalGrainIntensity: clamped }))
   }
 
-  const value = { prefs, activeColors, setTheme, setFontFamily, setFontSize, setUiFontSize, setUiFontFamily, setPromptStyle, setAiExplainErrors, setAiDirectoryContext, setAiCommandSuggestions, setTerminalGrain, setTerminalGrainIntensity }
+  const value = { prefs, activeColors, setTheme, setFontFamily, setFontSize, setUiFontSize, setUiFontFamily, setPromptStyle, setAiExplainErrors, setAiDirectoryContext, setAiCommandSuggestions, setAiOutputAnalysis, setTerminalGrain, setTerminalGrainIntensity }
 
   return (
     <PreferencesContext.Provider value={value}>

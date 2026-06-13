@@ -110,16 +110,19 @@ export default function OutputArea({
   sendResizeRef.current = sendResize;
   onReplayRef.current = onReplay;
 
-  // When the tab becomes visible, flush buffered output and refit.
+  // When the tab becomes visible, flush buffered output, refit, and scroll to bottom.
   useEffect(() => {
     isVisibleRef.current = isVisible;
     if (!isVisible) return;
     const term = termRef.current;
-    if (!term || pendingRef.current.length === 0) return;
-    term.write(pendingRef.current.join(""));
-    pendingRef.current = [];
-    pendingSizeRef.current = 0;
+    if (!term) return;
+    if (pendingRef.current.length > 0) {
+      term.write(pendingRef.current.join(""), () => term.scrollToBottom());
+      pendingRef.current = [];
+      pendingSizeRef.current = 0;
+    }
     fitAddonRef.current?.fit();
+    term.scrollToBottom();
   }, [isVisible]);
 
   useEffect(() => {
@@ -380,6 +383,7 @@ export default function OutputArea({
           callbacksRef.current.currentCwd ?? "",
         );
         setStickyCommand(null);
+        term.scrollToBottom();
       };
 
       callbacksRef.current.onCwdDecoration = (cwd) => {

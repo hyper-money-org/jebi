@@ -4,7 +4,7 @@ import { Toggle, ToggleRow } from './Toggle'
 import ModelCard from './ModelCard'
 
 export default function AISection() {
-  const { prefs, setAiExplainErrors, setAiDirectoryContext, setAiCommandSuggestions } = usePreferences()
+  const { prefs, setAiExplainErrors, setAiDirectoryContext, setAiCommandSuggestions, setAiOutputAnalysis } = usePreferences()
   const [models, setModels] = useState([])
   const [downloadProgress, setDownloadProgress] = useState({})
   const [saving, setSaving] = useState(false)
@@ -150,6 +150,12 @@ export default function AISection() {
               description="Show an AI summary when switching into a new directory."
               checked={prefs.aiDirectoryContext}
               onChange={setAiDirectoryContext}
+            />
+            <ToggleRow
+              label="Output analysis"
+              description="Automatically show an AI panel with extracted errors, metrics and insights after large command output."
+              checked={prefs.aiOutputAnalysis ?? false}
+              onChange={setAiOutputAnalysis}
             />
           </div>
         )}

@@ -185,7 +185,7 @@ export default function TerminalPane({
         sendAIAppend(entry);
       }
       const analysisEntry = callbacksRef.current.getLastEntryForAnalysis?.();
-      if (analysisEntry && prefs.aiCommandSuggestions !== false) {
+      if (analysisEntry && prefs.aiOutputAnalysis) {
         const lineCount = analysisEntry.output.split('\n').length;
         const charCount = analysisEntry.output.length;
         if (lineCount >= 10 || charCount >= 500) {
