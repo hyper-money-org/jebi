@@ -53,4 +53,9 @@ const (
 	TypeAskDone = "ask_done"
 	// TypeAskError signals a streaming failure: error string payload.
 	TypeAskError = "ask_error"
+
+	// TypeAIAnalyze is sent frontend → backend: JSON {"command":"…","output":"…","exitCode":N,"cwd":"…"}
+	TypeAIAnalyze = "ai_analyze"
+	// TypeAIAnalysis is sent backend → frontend: JSON AnalysisResult object.
+	TypeAIAnalysis = "ai_analysis"
 )

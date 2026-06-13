@@ -40,3 +40,6 @@ export const TypeAsk      = 'ask'
 export const TypeAskChunk = 'ask_chunk'
 export const TypeAskDone  = 'ask_done'
 export const TypeAskError = 'ask_error'
+
+export const TypeAIAnalyze  = 'ai_analyze'
+export const TypeAIAnalysis = 'ai_analysis'
