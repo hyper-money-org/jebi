@@ -330,6 +330,7 @@ export default function OutputArea({
         if (sel) navigator.clipboard.writeText(sel);
       };
       callbacksRef.current.getLastEntry = () => promptAddon.getLastEntry();
+      callbacksRef.current.getLastEntryForAnalysis = () => promptAddon.getLastEntryForAnalysis();
 
       callbacksRef.current.onOutput = (data) => {
         // Only hide empty state once a real command is running, not on shell startup output

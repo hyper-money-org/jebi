@@ -18,6 +18,13 @@ export const ALL_COMMANDS = [
     run: (ctx) => ctx.openAsk(),
   },
   {
+    id: 'summarize',
+    title: 'Summarize session',
+    description: 'AI summary of your recent commands and activity',
+    section: 'Terminal',
+    run: (ctx) => ctx.summarize(),
+  },
+  {
     id: 'run',
     title: 'Run script',
     description: 'Run a project script (npm, make, go, cargo…)',

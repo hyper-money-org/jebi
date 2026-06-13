@@ -66,6 +66,7 @@ type Session struct {
 	contextEntries []llm.HistoryEntry
 	cancelSuggest  context.CancelFunc
 	cancelAsk      context.CancelFunc // cancels any in-flight /ask stream
+	cancelAnalyze  context.CancelFunc // cancels any in-flight analysis request
 
 	// firstCwdSeen suppresses the project-context banner on initial shell
 	// startup. The first OSC 7 message is the shell's initial cwd, not the
@@ -277,6 +278,10 @@ func (s *Session) Start() {
 				// s.ptm.Write([]byte("\x0c")) // Ctrl+L
 			}
 		case wire.TypeAIAppend:
+			if s.cancelAnalyze != nil {
+				s.cancelAnalyze()
+				s.cancelAnalyze = nil
+			}
 			if s.provider == nil {
 				break
 			}
@@ -365,6 +370,82 @@ func (s *Session) Start() {
 					s.w.Send(wire.Message{Type: wire.TypeAISuggestion, Data: data})
 				}()
 			}
+
+		case wire.TypeAIAnalyze:
+			if s.provider == nil {
+				break
+			}
+			var entry struct {
+				Command  string `json:"command"`
+				Output   string `json:"output"`
+				ExitCode int    `json:"exitCode"`
+				Cwd      string `json:"cwd"`
+			}
+			if err := json.Unmarshal(msg.Data, &entry); err != nil {
+				break
+			}
+			if s.cancelAnalyze != nil {
+				s.cancelAnalyze()
+			}
+			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			s.cancelAnalyze = cancel
+			req := llm.AnalyzeRequest{
+				Command:  entry.Command,
+				Output:   entry.Output,
+				ExitCode: entry.ExitCode,
+				Cwd:      entry.Cwd,
+				Shell:    resolveShell(s.cfg),
+				OS:       runtime.GOOS + "/" + runtime.GOARCH,
+			}
+			go func() {
+				defer cancel()
+				result, err := llm.Analyze(ctx, s.provider, req)
+				if err != nil || result == nil {
+					return
+				}
+				data, err := json.Marshal(result)
+				if err != nil {
+					return
+				}
+				s.w.Send(wire.Message{Type: wire.TypeAIAnalysis, Data: data})
+			}()
+
+		case wire.TypeSummarize:
+			if s.provider == nil || len(s.contextEntries) == 0 {
+				s.w.Send(wire.Message{Type: wire.TypeAIBannerCancel})
+				break
+			}
+			if s.cancelAsk != nil {
+				s.cancelAsk()
+			}
+			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			s.cancelAsk = cancel
+			entries := make([]llm.HistoryEntry, len(s.contextEntries))
+			copy(entries, s.contextEntries)
+			req := llm.SuggestRequest{
+				Entries:    entries,
+				Cwd:        s.currentCwd,
+				Shell:      resolveShell(s.cfg),
+				OS:         runtime.GOOS + "/" + runtime.GOARCH,
+				DirListing: readDir(s.currentCwd),
+			}
+			go func() {
+				defer cancel()
+				startData, _ := json.Marshal(map[string]string{"type": "summary"})
+				s.w.Send(wire.Message{Type: wire.TypeAIBannerStart, Data: startData})
+				done := false
+				messages := llm.BuildSessionSummaryMessages(req)
+				llm.AskStream(ctx, s.provider, messages,
+					func(token string) {
+						data, _ := json.Marshal(token)
+						s.w.Send(wire.Message{Type: wire.TypeAIBannerToken, Data: data})
+					},
+					func(_ string) { done = true },
+				)
+				if !done {
+					s.w.Send(wire.Message{Type: wire.TypeAIBannerCancel})
+				}
+			}()
 
 		case wire.TypeAsk:
 			var payload struct {

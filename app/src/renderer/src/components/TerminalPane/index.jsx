@@ -9,6 +9,8 @@ import { registerFocus, unregisterFocus } from "../../hooks/paneFocusRegistry";
 import OutputArea from "../OutputArea";
 import InputBar from "../InputBar";
 import ExplanationPanel from "../ExplanationPanel";
+import AnalysisPanel from "../AnalysisPanel";
+import AnalysisLoadingBar from "../AnalysisPanel/LoadingBar";
 import KeyBadge from "../KeyBadge";
 import Tooltip from "../Tooltip";
 
@@ -33,7 +35,7 @@ export default function TerminalPane({
   // the latest values without causing extra renders or requiring re-registration.
   const callbacksRef = useRef({});
   const { prefs } = usePreferences();
-  const { sendInput, sendRaw, sendResize, sendAIAppend, sendAsk } = useTerminal(paneId, callbacksRef, initialCwd);
+  const { sendInput, sendRaw, sendResize, sendAIAppend, sendAIAnalyze, sendSummarize, sendAsk } = useTerminal(paneId, callbacksRef, initialCwd);
   const {
     push: pushHistory,
     navigate: navigateHistory,
@@ -53,6 +55,9 @@ export default function TerminalPane({
   const [customList, setCustomList] = useState(null); // { title, items } | null
   const [previewFile, setPreviewFile] = useState(null); // file path | null
   const [aiSuggestions, setAiSuggestions] = useState([]);
+  const [analysisResult, setAnalysisResult] = useState(null); // { title, items, action } | null
+  const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [bannerThinkingMsg, setBannerThinkingMsg] = useState(null);
   const [hasCommands, setHasCommands] = useState(false)
   const [askOpen, setAskOpen] = useState(false);
   const [askMessages, setAskMessages] = useState([]); // [{ role, content, streaming?, error? }]
@@ -74,6 +79,12 @@ export default function TerminalPane({
   const [condaData, setCondaData] = useState(null);
   const inputBarRef = useRef(null);
   const runningRef = useRef(false);
+
+  useEffect(() => {
+    if (!analysisLoading) return;
+    const timer = setTimeout(() => setAnalysisLoading(false), 12000);
+    return () => clearTimeout(timer);
+  }, [analysisLoading]);
 
   useEffect(() => {
     registerCopy(paneId, () => callbacksRef.current.copySelection?.())
@@ -168,26 +179,51 @@ export default function TerminalPane({
     setPaneInfo(paneId, { runningCommand: null });
     setTimeout(() => {
       inputBarRef.current?.focus();
-      // Send the just-completed command + output to the backend for AI suggestion.
       const entry = callbacksRef.current.getLastEntry?.();
       if (entry && prefs.aiCommandSuggestions !== false) {
         setAiSuggestions([]);
         sendAIAppend(entry);
       }
+      const analysisEntry = callbacksRef.current.getLastEntryForAnalysis?.();
+      if (analysisEntry && prefs.aiCommandSuggestions !== false) {
+        const lineCount = analysisEntry.output.split('\n').length;
+        const charCount = analysisEntry.output.length;
+        if (lineCount >= 10 || charCount >= 500) {
+          setAnalysisResult(null);
+          sendAIAnalyze({ ...analysisEntry, cwd: callbacksRef.current.currentCwd ?? '' });
+        }
+      }
     }, 0);
   };
 
   callbacksRef.current.onAISuggestion = (cmds) => {
-    setAiSuggestions(cmds);
+    const clean = (cmds || []).filter(c => c && c.replace(/`/g, '').trim().length > 1);
+    setAiSuggestions(clean);
   };
   callbacksRef.current.onAISuggestError = () => { setAiSuggestions([]); };
+  callbacksRef.current.onAIAnalysis = (result) => { setAnalysisLoading(false); setAnalysisResult(result); };
   callbacksRef.current.onAIBannerStart = (type) => {
     if (type === 'error' && !prefs.aiExplainErrors) return;
     if (type === 'info'  && !prefs.aiDirectoryContext) return;
     setBanner({ text: '', type });
+    if (type === 'error') {
+      const msgs = [
+        'Reading error…', 'Checking what went wrong…', 'Investigating the failure…',
+        'Diagnosing the issue…', 'Tracing the problem…', 'Examining the output…',
+      ];
+      setBannerThinkingMsg(msgs[Math.floor(Math.random() * msgs.length)]);
+    } else if (type === 'summary') {
+      setAnalysisLoading(false);
+      setBannerThinkingMsg('Summarizing session…');
+    } else {
+      setBannerThinkingMsg(null);
+    }
   };
-  callbacksRef.current.onAIBannerToken = (token) => setBanner(prev => prev ? { ...prev, text: prev.text + token } : null);
-  callbacksRef.current.onAIBannerCancel = () => setBanner(null);
+  callbacksRef.current.onAIBannerToken = (token) => {
+    setBannerThinkingMsg(null);
+    setBanner(prev => prev ? { ...prev, text: prev.text + token } : null);
+  };
+  callbacksRef.current.onAIBannerCancel = () => { setBanner(null); setBannerThinkingMsg(null); };
   callbacksRef.current.onDismissExplanation = () => setBanner(null);
   callbacksRef.current.onDismissSuggestions = () => setAiSuggestions([]);
 
@@ -249,6 +285,9 @@ export default function TerminalPane({
       }
       pendingCommandRef.current = trimmed;
       setRunning(true);
+      setAnalysisResult(null);
+      setAnalysisLoading(false);
+      setBannerThinkingMsg(null);
       runningRef.current = true;
       // Navigation commands (cd/pushd/popd) shouldn't become the tab title —
       // onCwd will clear lastCommand and the folder fallback takes over.
@@ -309,6 +348,13 @@ export default function TerminalPane({
       openRun: () => setRunOpen(true),
       openPorts: () => setPortsOpen(true),
       openAsk: () => { setAskMessages([]); setAskOpen(true) },
+      summarize: () => {
+        if (getHistory().length === 0) {
+          setBanner({ text: 'No commands to summarize yet. Run some commands first, then try /summarize.', type: 'info' });
+          return;
+        }
+        setBanner(null); setBannerThinkingMsg(null); setAnalysisLoading(true); sendSummarize();
+      },
       clearScrollback: () => callbacksRef.current.clearScrollback?.(),
       copyLastOutput: () => callbacksRef.current.copyLastOutput?.(),
     }),
@@ -484,11 +530,25 @@ export default function TerminalPane({
         onAskClose={() => { setAskOpen(false); setTimeout(() => inputBarRef.current?.focus(), 0) }}
       />
 
+      {bannerThinkingMsg && !banner?.text && (
+        <AnalysisLoadingBar message={bannerThinkingMsg} />
+      )}
       {banner?.text && (
         <ExplanationPanel
           text={banner.text}
           type={banner.type}
-          onDismiss={() => setBanner(null)}
+          onDismiss={() => { setBanner(null); setBannerThinkingMsg(null); }}
+        />
+      )}
+      {analysisLoading && !running && !analysisResult && (
+        <AnalysisLoadingBar message="Summarizing…" />
+      )}
+      {analysisResult && !running && analysisResult.title?.trim() && (analysisResult.items || []).some(i => i.text?.trim()) && (
+        <AnalysisPanel
+          result={analysisResult}
+          exitCode={exitCode}
+          onDismiss={() => setAnalysisResult(null)}
+          onAction={(cmd) => { setAnalysisResult(null); handleSubmit(cmd); }}
         />
       )}
       {aiSuggestions.length > 0 && !running && (

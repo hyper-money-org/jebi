@@ -108,6 +108,9 @@ export default function AISection() {
             />
           ))}
         </div>
+        <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-ui)', marginTop: 8, lineHeight: 1.5, opacity: 0.7 }}>
+          Smaller models respond faster; larger models give richer answers. Switch anytime to find your balance.
+        </div>
         {saving && (
           <div style={{ fontSize: 'var(--font-size-ui)', color: 'var(--text-muted)', marginTop: 8, fontFamily: 'var(--font-ui)' }}>
             Applying… reconnecting shortly

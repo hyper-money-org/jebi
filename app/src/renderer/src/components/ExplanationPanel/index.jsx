@@ -31,7 +31,16 @@ function renderWithCode(text) {
   return nodes;
 }
 
-export default function ExplanationPanel({ text, onDismiss }) {
+const PANEL_LABELS = {
+  error:      'What went wrong?',
+  summary:    'Session summary',
+  info:       'Context',
+  warning:    'Heads up',
+  suggestion: 'Suggestion',
+}
+
+export default function ExplanationPanel({ text, type, onDismiss }) {
+  const label = PANEL_LABELS[type] || PANEL_LABELS.error
   return (
     <div
       style={{
@@ -75,7 +84,7 @@ export default function ExplanationPanel({ text, onDismiss }) {
             <polyline points="126,247 172,288 126,330" fill="none" stroke="currentColor" strokeWidth="23" strokeLinecap="round" strokeLinejoin="round" opacity="0.7"/>
             <rect x="186" y="310" width="83" height="16" rx="4" fill="white" opacity=".85"/>
           </svg>
-          What went wrong?
+          {label}
         </span>
         {onDismiss && (
           <button

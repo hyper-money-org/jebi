@@ -43,3 +43,4 @@ export const TypeAskError = 'ask_error'
 
 export const TypeAIAnalyze  = 'ai_analyze'
 export const TypeAIAnalysis = 'ai_analysis'
+export const TypeSummarize  = 'summarize'

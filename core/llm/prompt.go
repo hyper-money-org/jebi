@@ -154,6 +154,12 @@ func ParseSuggestResponse(raw string) []string {
 		if t == "" {
 			continue
 		}
+		// Strip markdown code fence markers the model may emit
+		t = strings.Trim(t, "`")
+		t = strings.TrimSpace(t)
+		if t == "" {
+			continue
+		}
 		// Strip any leading shell prompt symbol or shell name the model may have echoed
 		t = strings.TrimPrefix(t, "$ ")
 		t = strings.TrimPrefix(t, "% ")
@@ -164,9 +170,11 @@ func ParseSuggestResponse(raw string) []string {
 		if i := strings.LastIndex(t, "  ["); i >= 0 && strings.HasSuffix(t, "]") {
 			t = strings.TrimSpace(t[:i])
 		}
-		if t != "" {
-			results = append(results, t)
+		// Skip anything that looks like output or explanation rather than a command
+		if t == "" || strings.HasPrefix(t, "#") {
+			continue
 		}
+		results = append(results, t)
 	}
 	return results
 }

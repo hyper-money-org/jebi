@@ -58,4 +58,7 @@ const (
 	TypeAIAnalyze = "ai_analyze"
 	// TypeAIAnalysis is sent backend → frontend: JSON AnalysisResult object.
 	TypeAIAnalysis = "ai_analysis"
+
+	// TypeSummarize is sent frontend → backend to request a session summary.
+	TypeSummarize = "summarize"
 )

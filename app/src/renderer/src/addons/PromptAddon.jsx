@@ -113,6 +113,29 @@ export class PromptAddon {
     };
   }
 
+  // Returns the last completed entry with output suitable for AI analysis.
+  // Applies first-60 + last-20 line truncation instead of the 500-char cap used by getLastEntry.
+  getLastEntryForAnalysis() {
+    const completed = this._commands.filter((e) => !e.running);
+    const last = completed[completed.length - 1];
+    if (!last) return null;
+    const fullOutput = this._getOutput(last) || '';
+    const lines = fullOutput.split('\n');
+    let truncated;
+    if (lines.length <= 80) {
+      truncated = fullOutput;
+    } else {
+      const head = lines.slice(0, 60).join('\n');
+      const tail = lines.slice(-20).join('\n');
+      truncated = head + '\n…\n' + tail;
+    }
+    return {
+      command: last.command,
+      output: truncated,
+      exitCode: last.exitCode ?? 0,
+    };
+  }
+
   // Reads the command's output from the xterm buffer as plain text.
   _getOutput(entry) {
     const buffer = this._term.buffer.active;
