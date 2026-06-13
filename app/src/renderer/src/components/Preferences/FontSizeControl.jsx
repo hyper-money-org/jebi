@@ -10,13 +10,12 @@ export default function FontSizeControl() {
       value={prefs.fontSize}
       onChange={e => setFontSize(parseInt(e.target.value, 10))}
       style={{
-        width: '100%',
-        padding: '6px 10px',
+        padding: '4px 8px',
         border: '1px solid var(--border)',
-        borderRadius: '5px',
-        background: 'var(--bg-elevated)',
+        borderRadius: 5,
+        background: 'var(--bg-base)',
         color: 'var(--text-primary)',
-        fontSize: '13px',
+        fontSize: 12,
         fontFamily: 'var(--font-mono)',
         outline: 'none',
         cursor: 'pointer',

@@ -15,7 +15,6 @@ const TABS = [
 export default function PreferencesModal({ isOpen, onClose, initialTab }) {
   const [activeTab, setActiveTab] = useState('appearance')
 
-  // Switch to initialTab whenever the modal opens with one specified.
   useEffect(() => {
     if (isOpen && initialTab) setActiveTab(initialTab)
   }, [isOpen, initialTab])
@@ -36,81 +35,35 @@ export default function PreferencesModal({ isOpen, onClose, initialTab }) {
 
   return (
     <>
-      {/* Backdrop */}
       <div
         onClick={onClose}
         style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 9999,
+          position: 'fixed', inset: 0, zIndex: 9999,
           background: 'rgba(0,0,0,0.55)',
         }}
       />
 
-      {/* Panel */}
-      <div
-        style={{
-          position: 'fixed',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          zIndex: 10000,
-          width: '900px',
-          height: '780px',
-          maxWidth: 'calc(100vw - 40px)',
-          maxHeight: 'calc(100vh - 60px)',
-          background: 'var(--bg-base)',
-          border: '1px solid var(--border)',
-          borderRadius: '10px',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-        }}
-      >
-        {/* Header */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '16px 20px',
-          borderBottom: '1px solid var(--border)',
-          flexShrink: 0,
-        }}>
-          <span style={{
-            fontSize: 'var(--font-size-ui)',
-            fontWeight: 600,
-            color: 'var(--text-primary)',
-            fontFamily: 'var(--font-ui)',
-          }}>
-            Preferences
-          </span>
-          <button
-            onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: 'var(--text-muted)',
-              fontSize: 'var(--font-size-ui)',
-              lineHeight: 1,
-              padding: '2px 4px',
-              borderRadius: '4px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-            aria-label="Close preferences"
-          >
-            ✕
-          </button>
-        </div>
-
+      <div style={{
+        position: 'fixed',
+        top: '50%', left: '50%',
+        transform: 'translate(-50%, -50%)',
+        zIndex: 10000,
+        width: 560,
+        maxWidth: 'calc(100vw - 40px)',
+        maxHeight: 'calc(100vh - 60px)',
+        background: 'var(--bg-base)',
+        border: '1px solid var(--border)',
+        borderRadius: 12,
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+      }}>
         {/* Tab strip */}
         <div style={{
           display: 'flex',
           justifyContent: 'center',
           gap: 2,
-          padding: '8px 16px',
+          padding: '10px 16px 0',
           borderBottom: '1px solid var(--border)',
           flexShrink: 0,
         }}>
@@ -125,19 +78,21 @@ export default function PreferencesModal({ isOpen, onClose, initialTab }) {
                   flexDirection: 'column',
                   alignItems: 'center',
                   gap: 4,
-                  padding: '6px 14px',
-                  borderRadius: 8,
+                  padding: '7px 16px 9px',
+                  borderRadius: '8px 8px 0 0',
                   border: 'none',
-                  background: active ? 'var(--bg-elevated)' : 'none',
+                  background: active ? 'rgba(255,255,255,0.07)' : 'none',
                   color: active ? 'var(--text-primary)' : 'var(--text-muted)',
                   cursor: 'pointer',
                   transition: 'background 0.15s, color 0.15s',
-                  minWidth: 64,
+                  minWidth: 60,
+                  borderBottom: active ? '2px solid var(--accent)' : '2px solid transparent',
+                  marginBottom: -1,
                 }}
               >
                 <tab.Icon size={20} weight={active ? 'fill' : 'regular'} />
                 <span style={{
-                  fontSize: 'var(--font-size-ui)',
+                  fontSize: 11,
                   fontFamily: 'var(--font-ui)',
                   fontWeight: active ? 600 : 400,
                   whiteSpace: 'nowrap',
@@ -153,7 +108,7 @@ export default function PreferencesModal({ isOpen, onClose, initialTab }) {
         <div style={{
           flex: 1,
           overflowY: 'auto',
-          padding: '24px 20px',
+          padding: '20px 20px',
           scrollbarWidth: 'thin',
           scrollbarColor: 'var(--border) transparent',
         }}>

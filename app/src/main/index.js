@@ -644,7 +644,7 @@ ipcMain.handle('update:install', () => {
   const win = wins[0]
   if (!win) return
 
-  const proc = spawn('brew', ['upgrade', '--cask', 'jebi'], {
+  const proc = spawn('sh', ['-c', 'brew update && brew upgrade --cask jebi'], {
     env: { ...process.env, PATH: `/opt/homebrew/bin:/usr/local/bin:${process.env.PATH}` },
   })
 
