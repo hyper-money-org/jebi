@@ -324,7 +324,8 @@ function createWindow() {
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'hidden',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      contextIsolation: true
+      contextIsolation: true,
+      devTools: process.env['ELECTRON_RENDERER_URL'] ? true : false,
     }
   })
 
