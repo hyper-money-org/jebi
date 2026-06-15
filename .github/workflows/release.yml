@@ -55,14 +55,6 @@ jobs:
           cd core && GOARCH=arm64 go build -o term-core .
           cd ../app && npm run build && npx electron-builder --mac dmg:arm64 zip:arm64 --publish never
 
-      - name: Build x64
-        run: |
-          rm -f core/bin/*.dylib core/bin/llama-server
-          curl -fL https://github.com/jebi-sh/llama-deps/releases/latest/download/llama-deps-x86_64.tar.gz -o /tmp/deps.tar.gz
-          tar -xzf /tmp/deps.tar.gz -C core/bin
-          cd core && GOARCH=amd64 go build -o term-core .
-          cd ../app && npx electron-builder --mac dmg:x64 zip:x64 --publish never
-
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -73,8 +65,6 @@ jobs:
           files: |
             app/dist/jebi-*-arm64.dmg
             app/dist/jebi-*-arm64-mac.zip
-            app/dist/jebi-*-x64.dmg
-            app/dist/jebi-*-x64-mac.zip
           body: |
             ## jebi v${{ github.event.inputs.version }}
 
@@ -85,8 +75,7 @@ jobs:
             ```
 
             ### Manual install
-            - **Apple Silicon:** download `jebi-*-arm64.dmg`
-            - **Intel:** download `jebi-*-x64.dmg`
+            - **Apple Silicon (macOS 14+):** download `jebi-*-arm64.dmg`
 
       - name: Update Homebrew tap
         env:
@@ -94,9 +83,7 @@ jobs:
           VERSION: ${{ github.event.inputs.version }}
         run: |
           ARM_DMG=$(ls app/dist/jebi-*-arm64.dmg)
-          X64_DMG=$(ls app/dist/jebi-*-x64.dmg)
           ARM_SHA=$(shasum -a 256 "$ARM_DMG" | awk '{print $1}')
-          X64_SHA=$(shasum -a 256 "$X64_DMG" | awk '{print $1}')
 
           git clone https://x-access-token:${TAP_TOKEN}@github.com/jebi-sh/homebrew-tap.git /tmp/tap
           cd /tmp/tap
@@ -106,21 +93,15 @@ jobs:
           cask "jebi" do
             version "${VERSION}"
 
-            on_arm do
-              url "https://github.com/jebi-sh/jebi/releases/download/v${VERSION}/jebi-${VERSION}-arm64.dmg"
-              sha256 "${ARM_SHA}"
-            end
-
-            on_intel do
-              url "https://github.com/jebi-sh/jebi/releases/download/v${VERSION}/jebi-${VERSION}-x64.dmg"
-              sha256 "${X64_SHA}"
-            end
+            url "https://github.com/jebi-sh/jebi/releases/download/v${VERSION}/jebi-${VERSION}-arm64.dmg"
+            sha256 "${ARM_SHA}"
 
             name "jebi"
             desc "The AI-native terminal for Mac"
             homepage "https://jebi.sh"
 
-            depends_on macos: ">= :monterey"
+            depends_on macos: ">= :sonoma"
+            depends_on arch: :arm64
 
             app "jebi.app"
             binary "#{appdir}/jebi.app/Contents/MacOS/jebi"
