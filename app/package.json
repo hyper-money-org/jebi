@@ -1,6 +1,6 @@
 {
   "name": "jebi",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "description": "A modern developer terminal",
   "main": "out/main/index.js",
   "scripts": {
@@ -39,7 +39,10 @@
       {
         "from": "../core/bin/",
         "to": ".",
-        "filter": ["llama-server", "*.dylib"]
+        "filter": [
+          "llama-server",
+          "*.dylib"
+        ]
       }
     ],
     "icon": "build/icon.icns",
