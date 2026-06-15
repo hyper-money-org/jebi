@@ -37,72 +37,9 @@
         "to": "term-core"
       },
       {
-        "from": "../core/bin/llama-server",
-        "to": "llama-server"
-      },
-      {
-        "from": "../core/bin/libggml-base.dylib",
-        "to": "libggml-base.dylib"
-      },
-      {
-        "from": "../core/bin/libggml-base.0.dylib",
-        "to": "libggml-base.0.dylib"
-      },
-      {
-        "from": "../core/bin/libggml-blas.dylib",
-        "to": "libggml-blas.dylib"
-      },
-      {
-        "from": "../core/bin/libggml-blas.0.dylib",
-        "to": "libggml-blas.0.dylib"
-      },
-      {
-        "from": "../core/bin/libggml-cpu.dylib",
-        "to": "libggml-cpu.dylib"
-      },
-      {
-        "from": "../core/bin/libggml-cpu.0.dylib",
-        "to": "libggml-cpu.0.dylib"
-      },
-      {
-        "from": "../core/bin/libggml-metal.dylib",
-        "to": "libggml-metal.dylib"
-      },
-      {
-        "from": "../core/bin/libggml-metal.0.dylib",
-        "to": "libggml-metal.0.dylib"
-      },
-      {
-        "from": "../core/bin/libggml-rpc.dylib",
-        "to": "libggml-rpc.dylib"
-      },
-      {
-        "from": "../core/bin/libggml-rpc.0.dylib",
-        "to": "libggml-rpc.0.dylib"
-      },
-      {
-        "from": "../core/bin/libggml.dylib",
-        "to": "libggml.dylib"
-      },
-      {
-        "from": "../core/bin/libggml.0.dylib",
-        "to": "libggml.0.dylib"
-      },
-      {
-        "from": "../core/bin/libllama.dylib",
-        "to": "libllama.dylib"
-      },
-      {
-        "from": "../core/bin/libllama.0.dylib",
-        "to": "libllama.0.dylib"
-      },
-      {
-        "from": "../core/bin/libmtmd.dylib",
-        "to": "libmtmd.dylib"
-      },
-      {
-        "from": "../core/bin/libmtmd.0.dylib",
-        "to": "libmtmd.0.dylib"
+        "from": "../core/bin/",
+        "to": ".",
+        "filter": ["llama-server", "*.dylib"]
       }
     ],
     "icon": "build/icon.icns",
