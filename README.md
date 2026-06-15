@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://github.com/jebi-sh/jebi/releases/latest"><img src="https://img.shields.io/github/v/release/jebi-sh/jebi?style=flat-square&color=3b82f6&label=Download" alt="Latest release"/></a>
-  <img src="https://img.shields.io/badge/macOS-Apple%20Silicon%20%26%20Intel-1d4ed8?style=flat-square" alt="macOS"/>
+  <img src="https://img.shields.io/badge/macOS%2014%2B-Apple%20Silicon-1d4ed8?style=flat-square" alt="macOS"/>
   <img src="https://img.shields.io/badge/license-FSL--1.1-475569?style=flat-square" alt="FSL-1.1"/>
 </p>
 
@@ -53,10 +53,15 @@ jebi is a terminal emulator for Mac with built-in local AI. It explains failed c
 ## Install
 
 ```bash
-brew install --cask jebi-sh/tap/jebi
+brew tap jebi-sh/tap
+brew install --cask jebi
 ```
 
-Or download the latest DMG from the [releases page](https://github.com/jebi-sh/jebi/releases) — available for Apple Silicon and Intel.
+Or download the latest DMG from the [releases page](https://github.com/jebi-sh/jebi/releases).
+
+> **Requirements:** Apple Silicon (M1 or later) · macOS 14 Sonoma or later
+
+> **First launch:** macOS may show a warning that jebi is from an unidentified developer. To open it, go to **System Settings → Privacy & Security** and click **Open Anyway**. This is expected for apps not distributed through the Mac App Store.
 
 ---
 
