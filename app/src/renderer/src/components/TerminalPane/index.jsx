@@ -612,7 +612,7 @@ export default function TerminalPane({
                   onMouseLeave={e => e.currentTarget.style.opacity = '1'}
                 >
                   <KeyBadge
-                    keys={['cmd', 'shift', String(i + 1)]}
+                    keys={['cmd', 'opt', String(i + 1)]}
                     style={{ color: 'var(--tab-accent)', borderColor: 'color-mix(in srgb, var(--tab-accent) 40%, transparent)', flexShrink: 0 }}
                   />
                   <span style={{

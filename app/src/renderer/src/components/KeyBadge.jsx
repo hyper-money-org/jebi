@@ -14,6 +14,12 @@ function ShiftIcon() {
   )
 }
 
+function OptIcon() {
+  return (
+    <div style={{ fontSize: 14, marginTop: -1 }}>⌥</div>
+  )
+}
+
 export default function KeyBadge({ keys = [], style = {} }) {
   const base = {
     display: 'inline-flex',
@@ -32,6 +38,7 @@ export default function KeyBadge({ keys = [], style = {} }) {
       {keys.map((k, i) => {
         if (k === 'cmd')   return <CmdIcon key={i} />
         if (k === 'shift') return <ShiftIcon key={i} />
+        if (k === 'opt')   return <OptIcon key={i} />
         return <span key={i} style={{ fontSize: 12, marginTop: 1 }}>{k}</span>
       })}
     </span>
