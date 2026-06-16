@@ -8,6 +8,7 @@ import { registerCopy, unregisterCopy } from "../../hooks/paneCopyRegistry";
 import { registerFocus, unregisterFocus } from "../../hooks/paneFocusRegistry";
 import OutputArea from "../OutputArea";
 import InputBar from "../InputBar";
+import SaveShortcutPopover from "../SaveShortcutPopover";
 import ExplanationPanel from "../ExplanationPanel";
 import AnalysisPanel from "../AnalysisPanel";
 import AnalysisLoadingBar from "../AnalysisPanel/LoadingBar";
@@ -62,6 +63,7 @@ export default function TerminalPane({
   const [askOpen, setAskOpen] = useState(false);
   const [askMessages, setAskMessages] = useState([]); // [{ role, content, streaming?, error? }]
   const [banner, setBanner] = useState(null); // { text: string, type: 'error'|'info'|'warning'|'suggestion' }
+  const [saveCommand, setSaveCommand] = useState(null); // command string when popover open
   const [cwd, setCwd] = useState("");
   const [exitCode, setExitCode] = useState(0);
   const [gitData, setGitData] = useState(null);
@@ -358,11 +360,15 @@ export default function TerminalPane({
       },
       clearScrollback: () => callbacksRef.current.clearScrollback?.(),
       copyLastOutput: () => callbacksRef.current.copyLastOutput?.(),
+      saveLastCommand: () => {
+        const entry = callbacksRef.current.getLastEntry?.()
+        if (entry?.command) setSaveCommand(entry.command)
+      },
     }),
     [paneId, onSplitRight, onSplitDown, onClose, onNewTab, onToggleTabPosition],
   );
 
-  callbacksRef.current.fileListOpen = fileListOpen || historyOpen || runOpen || slashOpen || portsOpen || !!customList || !!previewFile || askOpen;
+  callbacksRef.current.fileListOpen = fileListOpen || historyOpen || runOpen || slashOpen || portsOpen || !!customList || !!previewFile || askOpen || !!saveCommand;
 
   callbacksRef.current.onAskChunk = (token) => {
     setAskMessages((prev) => {
@@ -518,6 +524,7 @@ export default function TerminalPane({
         onCustomListSelect={handleCustomListSelect}
         onCustomListClose={() => setCustomList(null)}
         hasCommands={hasCommands}
+        onSaveShortcut={(cmd) => setSaveCommand(cmd)}
         askOpen={askOpen}
         askMessages={askMessages}
         onAskSend={(history, query) => {
@@ -671,6 +678,29 @@ export default function TerminalPane({
           condaData={condaData}
           onCondaClick={() => handleSubmit("conda info")}
         />
+      )}
+      {saveCommand && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 300,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'rgba(0,0,0,0.3)',
+          backdropFilter: 'blur(2px)',
+        }} onClick={() => setSaveCommand(null)}>
+          <div onClick={(e) => e.stopPropagation()}>
+            <SaveShortcutPopover
+              command={saveCommand}
+              onClose={() => setSaveCommand(null)}
+              onAliasSourced={(rcFile) => {
+                setSaveCommand(null)
+                handleSubmit(`source ${rcFile}`)
+              }}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

@@ -20,7 +20,8 @@ export class PromptAddon {
     this._elements = []; // DOM elements from onRender, for TUI visibility toggling
     this._tuiActive = false;
     this._onReplay = null; // (command) => void, set by OutputArea
-    this._commands = []; // { marker, command, cwd, exitCode, gitData, nodeData, goData, pythonData, dockerData, k8sData, root, cellHeight, onCopy, onReplay }
+    this._onSave = null;   // (command) => void, set by OutputArea
+    this._commands = []; // { marker, command, cwd, exitCode, gitData, nodeData, goData, pythonData, dockerData, k8sData, root, cellHeight, onCopy, onReplay, onSave }
   }
 
   // Registers a pane-level replay handler. Called by OutputArea so per-command
@@ -28,6 +29,10 @@ export class PromptAddon {
   // state, updates history, etc.) rather than sending input straight to the PTY.
   setOnReplay(fn) {
     this._onReplay = fn;
+  }
+
+  setOnSave(fn) {
+    this._onSave = fn;
   }
 
   activate(terminal) {
@@ -199,6 +204,7 @@ export class PromptAddon {
         cellHeight={Math.round(entry.cellHeight)}
         onCopy={entry.onCopy}
         onReplay={entry.onReplay}
+        onSave={entry.onSave}
         running={entry.running}
         startTime={entry.startTime}
         duration={entry.duration}
@@ -342,6 +348,10 @@ export class PromptAddon {
     // same path as InputBar submission (sets running state, updates history).
     entry.onReplay = entry.command
       ? () => this._onReplay?.(entry.command)
+      : null;
+
+    entry.onSave = entry.command
+      ? () => this._onSave?.(entry.command)
       : null;
 
     // xterm's padding belongs to its grid measurement. Decorations are placed

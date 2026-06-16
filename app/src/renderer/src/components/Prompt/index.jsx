@@ -121,6 +121,7 @@ export default function Prompt({
   compact = false,
   onCopy,
   onReplay,
+  onSave,
   startTime,
   duration,
   aiSuggestions = [],
@@ -164,7 +165,7 @@ export default function Prompt({
   const [timeHovered, setTimeHovered] = useState(false);
   const commandLines = command ? command.split("\n") : [];
 
-  const iconSize = 13;
+  const iconSize = 15;
 
   const rowStyle = rowHeight
     ? { minHeight: `${rowHeight}px`, alignItems: "start" }
@@ -484,6 +485,45 @@ export default function Prompt({
               </span>
             )}
           </div>
+        )}
+
+        {/* Save as shortcut */}
+        {onSave && !running && command && (
+          <button
+            onClick={onSave}
+            onMouseDown={(e) => { e.stopPropagation(); e.preventDefault() }}
+            onPointerDown={(e) => { e.stopPropagation(); e.preventDefault() }}
+            title="Save as shortcut"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginRight: 5,
+              width: iconSize + 10,
+              height: iconSize + 10,
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: "var(--text-muted)",
+              opacity: 0.5,
+              flexShrink: 0,
+              transition: "opacity 0.15s, color 0.15s",
+              borderRadius: 3,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.opacity = 1;
+              e.currentTarget.style.color = "var(--accent)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.opacity = 0.5;
+              e.currentTarget.style.color = "var(--text-muted)";
+            }}
+          >
+            <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z"/>
+              <path d="M19 15l.75 2.25L22 18l-2.25.75L19 21l-.75-2.25L16 18l2.25-.75L19 15z"/>
+            </svg>
+          </button>
         )}
 
         {/* Replay */}

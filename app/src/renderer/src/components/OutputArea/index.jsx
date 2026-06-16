@@ -80,6 +80,7 @@ export default function OutputArea({
   onAskSend,
   onAskClose,
   hasCommands = false,
+  onSaveShortcut,
 }) {
   const { prefs, activeColors } = usePreferences();
   const rootRef = useRef(null);
@@ -180,6 +181,7 @@ export default function OutputArea({
       term.loadAddon(promptAddon);
       promptAddonRef.current = promptAddon;
       promptAddon.setOnReplay((command) => onReplayRef.current?.(command));
+      promptAddon.setOnSave((command) => onSaveShortcut?.(command));
 
       term.onData((data) => {
         // Strip focus-in/out events (\x1b[I / \x1b[O) — these leak to the shell

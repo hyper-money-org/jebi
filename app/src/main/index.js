@@ -473,6 +473,24 @@ ipcMain.handle('commands:save', async (_, commands) => {
   return { ok: true }
 })
 
+// ─── Alias save IPC handler ──────────────────────────────────────────────────
+
+ipcMain.handle('alias:save', async (_, { name, command }) => {
+  const shell = process.env.SHELL || '/bin/zsh'
+  let rcFile
+  if (shell.includes('zsh'))   rcFile = join(homedir(), '.zshrc')
+  else if (shell.includes('fish')) rcFile = join(homedir(), '.config', 'fish', 'config.fish')
+  else                         rcFile = join(homedir(), '.bashrc')
+
+  const escaped = command.replace(/'/g, "'\\''")
+  const line = shell.includes('fish')
+    ? `\nabbr --add ${name} '${escaped}'\n`
+    : `\nalias ${name}='${escaped}'\n`
+
+  await fs.appendFile(rcFile, line, 'utf8')
+  return { ok: true, rcFile }
+})
+
 // ─── Ports IPC handler ───────────────────────────────────────────────────────
 
 ipcMain.handle('ports:list', async () => {

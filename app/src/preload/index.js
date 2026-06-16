@@ -19,6 +19,15 @@ contextBridge.exposeInMainWorld('electron', {
     save: (cmds) => ipcRenderer.invoke('commands:save', cmds),
     runItemsFrom: (command, cwd) => ipcRenderer.invoke('commands:run-items-from', { command, cwd }),
   },
+  alias: {
+    save: (name, command) => ipcRenderer.invoke('alias:save', { name, command }),
+  },
+  shellRcBasename: (() => {
+    const shell = process.env.SHELL || '/bin/zsh'
+    if (shell.includes('zsh')) return '.zshrc'
+    if (shell.includes('fish')) return '.config/fish/config.fish'
+    return '.bashrc'
+  })(),
   update: {
     check: () => ipcRenderer.invoke('update:check'),
     install: () => ipcRenderer.invoke('update:install'),
