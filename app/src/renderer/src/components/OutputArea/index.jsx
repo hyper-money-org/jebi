@@ -321,6 +321,7 @@ export default function OutputArea({
       });
 
       callbacksRef.current.focusTerm = () => term.focus();
+      callbacksRef.current.scrollToBottom = () => term.scrollToBottom();
       callbacksRef.current.openSearch = () => setSearchOpen(true);
 
       // Slash-command hooks — invoked from the InputBar's command executor

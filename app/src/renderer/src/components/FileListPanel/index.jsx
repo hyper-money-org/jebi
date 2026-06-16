@@ -69,6 +69,7 @@ export default function FileListPanel({ cwd, onSelect, onPreview, onClose }) {
   const [panelWidth, setPanelWidth] = useState(800)
   const panelRef = useRef(null)
   const listRef = useRef(null)
+  const keyboardNavRef = useRef(false)
 
   // Reset internal dir when shell cwd changes (e.g. user did cd externally)
   useEffect(() => { setCurrentDir(cwd) }, [cwd])
@@ -116,11 +117,13 @@ export default function FileListPanel({ cwd, onSelect, onPreview, onClose }) {
       }
       if (e.key === 'ArrowUp' || e.key === 'k') {
         e.preventDefault()
+        keyboardNavRef.current = true
         setSelected((s) => Math.max(0, s - 1))
         return
       }
       if (e.key === 'ArrowDown' || e.key === 'j') {
         e.preventDefault()
+        keyboardNavRef.current = true
         setSelected((s) => Math.min(allEntries.length - 1, s + 1))
         return
       }
@@ -252,7 +255,7 @@ export default function FileListPanel({ cwd, onSelect, onPreview, onClose }) {
       </div>
 
       {/* File rows */}
-      <div ref={listRef} style={{ overflowY: 'auto', flex: '1 1 auto', minHeight: 0 }}>
+      <div ref={listRef} onMouseMove={() => { keyboardNavRef.current = false }} style={{ overflowY: 'auto', flex: '1 1 auto', minHeight: 0 }}>
         {allEntries.map((entry, i) => (
           <div
             key={entry.isMeta ? '..' : entry.name}
@@ -262,7 +265,7 @@ export default function FileListPanel({ cwd, onSelect, onPreview, onClose }) {
               if (entry.isDir) onSelect(full)
               else onPreview?.(full)
             }}
-            onMouseEnter={() => setSelected(i)}
+            onMouseEnter={() => { if (!keyboardNavRef.current) setSelected(i) }}
             style={{
               display: 'grid',
               gridTemplateColumns: gridCols,

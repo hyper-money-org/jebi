@@ -301,6 +301,7 @@ export default function TerminalPane({
       );
 
       requestAnimationFrame(() => {
+        callbacksRef.current.scrollToBottom?.();
         sendInput(command);
         callbacksRef.current.focusTerm?.();
       });
