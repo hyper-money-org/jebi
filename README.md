@@ -109,7 +109,7 @@ Models are downloaded on demand and stored in `~/Library/Application Support/jeb
 | `⌘F` | Search scrollback |
 | `⌘,` | Open Preferences |
 | `/` | Open command palette |
-| `⌘⇧1/2/3` | Run AI suggestion 1/2/3 |
+| `⌘⌥1/2/3` | Run AI suggestion 1/2/3 |
 
 ---
 

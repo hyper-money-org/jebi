@@ -418,9 +418,9 @@ export default function TerminalPane({
   }, [isActive, aiSuggestions, handleSubmit])
 
   useKeyboardShortcuts({
-    'Meta+Shift+1': () => pickSuggestion(0),
-    'Meta+Shift+2': () => pickSuggestion(1),
-    'Meta+Shift+3': () => pickSuggestion(2),
+    'Meta+Alt+1': () => pickSuggestion(0),
+    'Meta+Alt+2': () => pickSuggestion(1),
+    'Meta+Alt+3': () => pickSuggestion(2),
   })
 
   const handleFilePreview = useCallback((entry) => {
