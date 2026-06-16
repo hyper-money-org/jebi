@@ -1,7 +1,8 @@
 import { FONT_OPTIONS } from './fonts'
 
 export const DEFAULT_PREFS = {
-  themeId:            'midnight',
+  themeId:            'iron',
+  tabBarPosition:     'top',
   fontFamily:         FONT_OPTIONS[0].value,
   fontSize:           15,
   uiFontFamily:       'system-ui, sans-serif',

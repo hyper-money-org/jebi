@@ -39,7 +39,7 @@ export default function PreferencesModal({ isOpen, onClose, initialTab }) {
         onClick={onClose}
         style={{
           position: 'fixed', inset: 0, zIndex: 9999,
-          background: 'rgba(0,0,0,0.55)',
+          background: 'transparent',
         }}
       />
 
@@ -54,6 +54,7 @@ export default function PreferencesModal({ isOpen, onClose, initialTab }) {
         background: 'var(--bg-base)',
         border: '1px solid var(--border)',
         borderRadius: 12,
+        boxShadow: '0 24px 64px rgba(0,0,0,0.6), 0 4px 16px rgba(0,0,0,0.4)',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',

@@ -103,7 +103,11 @@ export function PreferencesProvider({ children }) {
     setPrefs(prev => ({ ...prev, terminalGrainIntensity: clamped }))
   }
 
-  const value = { prefs, activeColors, setTheme, setFontFamily, setFontSize, setUiFontSize, setUiFontFamily, setPromptStyle, setAiExplainErrors, setAiDirectoryContext, setAiCommandSuggestions, setAiOutputAnalysis, setTerminalGrain, setTerminalGrainIntensity }
+  function setTabBarPosition(value) {
+    setPrefs(prev => ({ ...prev, tabBarPosition: value }))
+  }
+
+  const value = { prefs, activeColors, setTheme, setFontFamily, setFontSize, setUiFontSize, setUiFontFamily, setPromptStyle, setAiExplainErrors, setAiDirectoryContext, setAiCommandSuggestions, setAiOutputAnalysis, setTerminalGrain, setTerminalGrainIntensity, setTabBarPosition }
 
   return (
     <PreferencesContext.Provider value={value}>

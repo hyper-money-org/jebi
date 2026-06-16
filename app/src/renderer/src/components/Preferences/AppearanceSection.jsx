@@ -92,7 +92,7 @@ function Toggle({ on, onToggle }) {
 }
 
 export default function AppearanceSection() {
-  const { prefs, setFontFamily, setUiFontSize, setUiFontFamily, setTerminalGrain, setTerminalGrainIntensity } = usePreferences()
+  const { prefs, setFontFamily, setUiFontSize, setUiFontFamily, setTerminalGrain, setTerminalGrainIntensity, setTabBarPosition } = usePreferences()
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -128,6 +128,18 @@ export default function AppearanceSection() {
             <select value={prefs.uiFontSize ?? 13} onChange={e => setUiFontSize(parseInt(e.target.value, 10))} style={selectStyle}>
               {UI_SIZES.map(s => <option key={s} value={s}>{s}px</option>)}
             </select>
+          </Row>
+        </Card>
+      </div>
+
+      <div>
+        <SectionLabel>Tabs</SectionLabel>
+        <Card>
+          <Row label="Vertical tabs" last>
+            <Toggle
+              on={prefs.tabBarPosition === 'left'}
+              onToggle={() => setTabBarPosition(prefs.tabBarPosition === 'left' ? 'top' : 'left')}
+            />
           </Row>
         </Card>
       </div>

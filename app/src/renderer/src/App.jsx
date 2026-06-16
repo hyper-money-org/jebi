@@ -45,10 +45,11 @@ function AppInner() {
   const paneInitialCwdRef = useRef({})
   const [tabs, setTabs] = useState(() => [createTab(tabCounterRef.current)])
   const [activeTabId, setActiveTabId] = useState(tabs[0].id)
-  const [tabBarPosition, setTabBarPosition] = useState('top')
+  const { setTabBarPosition } = usePreferences()
+  const tabBarPosition = prefs.tabBarPosition ?? 'top'
   const toggleTabBarPosition = useCallback(
-    () => setTabBarPosition((p) => (p === 'top' ? 'left' : 'top')),
-    [],
+    () => setTabBarPosition(tabBarPosition === 'left' ? 'top' : 'left'),
+    [setTabBarPosition, tabBarPosition],
   )
 
   const activeTab = tabs.find(t => t.id === activeTabId) ?? tabs[0]

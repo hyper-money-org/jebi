@@ -29,13 +29,6 @@ function palette(id, name, bgBase, bgSurface, bgElevated, border, overrides = {}
   return { id, name, bgBase, colors: { bgBase, bgSurface, bgElevated, border, ...FIXED, ...overrides } }
 }
 
-const LIGHT_TEXT = {
-  textPrimary:   '#1c1c20',
-  textSecondary: '#52525c',
-  textMuted:     '#8888a0',
-  onAccent:      '#ffffff',
-  error:         '#c0392b',
-}
 
 export const PALETTES = [
   // Dark — pure neutrals (clearly different greys)
@@ -58,15 +51,13 @@ export const PALETTES = [
   palette('ember',    'Ember',     '#2e1406', '#200e04', '#402010', '#583018'),
   palette('gruvbox',  'Gruvbox',   '#282828', '#1d2021', '#3c3836', '#504945'),
   palette('coffee',   'Coffee',    '#2a1a0e', '#1e1208', '#38261a', '#4e3828'),
-  // Light — warm
-  palette('butter',   'Butter',    '#fdf8de', '#f8f0c8', '#fefcee', '#e4d8a8', LIGHT_TEXT),
-  palette('peach',    'Peach',     '#fdeee0', '#f8e4d0', '#fef7ee', '#eacfb0', LIGHT_TEXT),
-  // Light — cool
-  palette('frost',    'Frost',     '#e8f0fc', '#dce8f8', '#f2f7fe', '#b8ccee', LIGHT_TEXT),
-  palette('mist',     'Mist',      '#ebebf0', '#e0e0ea', '#f4f4f8', '#c8c8d8', LIGHT_TEXT),
-  // Light — tinted
-  palette('blush',    'Blush',     '#fce8ec', '#f8dce2', '#fef4f6', '#e8b8c4', LIGHT_TEXT),
-  palette('sage',     'Sage',      '#e6f2e8', '#d8eada', '#f0f8f2', '#b0d4b8', LIGHT_TEXT),
+  // Dark — additional
+  palette('abyss',    'Abyss',     '#080c18', '#050810', '#101828', '#1c2a40'),
+  palette('violet',   'Violet',    '#160a2e', '#100620', '#221040', '#342060'),
+  palette('wine',     'Wine',      '#2a0814', '#1e060e', '#3a1020', '#501828'),
+  palette('pine',     'Pine',      '#081408', '#060e06', '#101e10', '#1a3020'),
+  palette('storm',    'Storm',     '#141820', '#0e1218', '#1e2430', '#2c3448'),
+  palette('cocoa',    'Cocoa',     '#180c06', '#120804', '#261410', '#38201a'),
 ]
 
 export const PALETTE_MAP = Object.fromEntries(PALETTES.map(p => [p.id, p]))
