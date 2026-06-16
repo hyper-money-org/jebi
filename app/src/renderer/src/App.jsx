@@ -281,7 +281,7 @@ function AppInner() {
   const switchToTab = useCallback((t) => {
     if (!t) return
     setActiveTabId(t.id)
-    setTimeout(() => triggerFocus(t.activePaneId), 0)
+    setTimeout(() => triggerFocus(t.activePaneId), 50)
   }, [])
 
   const tabShortcuts = Object.fromEntries(
