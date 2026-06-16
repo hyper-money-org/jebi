@@ -47,6 +47,13 @@ contextBridge.exposeInMainWorld('electron', {
       return () => ipcRenderer.removeListener('update:install-done', handler)
     },
   },
+  onQuitRequested: (cb) => {
+    const handler = () => cb()
+    ipcRenderer.on('app:quit-requested', handler)
+    return () => ipcRenderer.removeListener('app:quit-requested', handler)
+  },
+  confirmQuit: () => ipcRenderer.send('app:confirm-quit'),
+  cancelQuit: () => ipcRenderer.send('app:cancel-quit'),
   onAppShortcut: (cb) => {
     const handler = (_, name) => cb(name)
     ipcRenderer.on('app-shortcut', handler)

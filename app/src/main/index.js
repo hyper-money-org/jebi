@@ -319,7 +319,7 @@ function createWindow() {
   const win = new BrowserWindow({
     width: 1200,
     height: 800,
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#0c1f40',
     icon: join(iconBase, 'icon.icns'),
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'hidden',
     webPreferences: {
@@ -695,8 +695,23 @@ app.whenReady().then(async () => {
   if (wins.length > 0) setTimeout(() => checkForUpdates(wins[0]), 2000)
 })
 
-app.on('before-quit', () => {
-  stopCore()
+let quitConfirmed = false
+
+app.on('before-quit', (e) => {
+  if (quitConfirmed) { stopCore(); return }
+  e.preventDefault()
+  const win = BrowserWindow.getAllWindows()[0]
+  if (!win) { quitConfirmed = true; app.quit(); return }
+  win.webContents.send('app:quit-requested')
+})
+
+ipcMain.on('app:confirm-quit', () => {
+  quitConfirmed = true
+  app.quit()
+})
+
+ipcMain.on('app:cancel-quit', () => {
+  quitConfirmed = false
 })
 
 

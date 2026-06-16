@@ -17,6 +17,7 @@ import { useAIStatus } from './hooks/useAIStatus'
 import { usePreferences } from './hooks/usePreferences'
 import { setUserCommands } from './commands/registry'
 import { initUpdateStatusListener } from './hooks/useUpdateStatus'
+import ConfirmDialog from './components/ConfirmDialog'
 
 function createTab(counter) {
   const leaf = createLeaf()
@@ -45,6 +46,7 @@ function AppInner() {
   const paneInitialCwdRef = useRef({})
   const [tabs, setTabs] = useState(() => [createTab(tabCounterRef.current)])
   const [activeTabId, setActiveTabId] = useState(tabs[0].id)
+  const [confirmPending, setConfirmPending] = useState(null) // { title, message, onConfirm }
   const { setTabBarPosition } = usePreferences()
   const tabBarPosition = prefs.tabBarPosition ?? 'top'
   const toggleTabBarPosition = useCallback(
@@ -119,19 +121,36 @@ function AppInner() {
     setActiveTabId(tab.id)
   }, [activeTab])
 
-  const closeTab = useCallback((tabId) => {
+  const isAnyPaneRunning = useCallback((paneIds) =>
+    paneIds.some(id => !!getPaneInfo(id)?.runningCommand), [])
+
+  const closeTabForce = useCallback((tabId) => {
     setTabs(prev => {
-      if (prev.length === 1) return prev // never close the last tab
+      if (prev.length === 1) return prev
       const idx = prev.findIndex(t => t.id === tabId)
       const next = prev.filter(t => t.id !== tabId)
       setActiveTabId(curr => {
         if (curr !== tabId) return curr
-        // Activate the tab to the left, or the new first tab
         return (next[idx - 1] ?? next[0]).id
       })
       return next
     })
   }, [])
+
+  const closeTab = useCallback((tabId) => {
+    const tab = tabs.find(t => t.id === tabId)
+    if (!tab) return
+    const paneIds = collectPaneIds(tab.layout)
+    if (isAnyPaneRunning(paneIds)) {
+      setConfirmPending({
+        title: 'Command is running',
+        message: 'A command is still running in this tab. Close anyway?',
+        onConfirm: () => { setConfirmPending(null); closeTabForce(tabId) },
+      })
+      return
+    }
+    closeTabForce(tabId)
+  }, [tabs, isAnyPaneRunning, closeTabForce])
 
   // --- Pane handlers ---
 
@@ -152,11 +171,11 @@ function AppInner() {
     }))
   }, [])
 
-  const closePane = useCallback((tabId, paneId) => {
+  const closePaneForce = useCallback((tabId, paneId) => {
     setTabs(prev => prev.map(t => {
       if (t.id !== tabId) return t
       const newTree = removeLeaf(t.layout, paneId)
-      if (newTree === null) return t // safety: don't remove the last pane
+      if (newTree === null) return t
       const remainingIds = collectPaneIds(newTree)
       const newActiveId = remainingIds.includes(t.activePaneId)
         ? t.activePaneId
@@ -166,6 +185,18 @@ function AppInner() {
     deleteSession(paneId)
     deletePaneInfo(paneId)
   }, [deleteSession])
+
+  const closePane = useCallback((tabId, paneId) => {
+    if (isAnyPaneRunning([paneId])) {
+      setConfirmPending({
+        title: 'Command is running',
+        message: 'A command is still running in this pane. Close anyway?',
+        onConfirm: () => { setConfirmPending(null); closePaneForce(tabId, paneId) },
+      })
+      return
+    }
+    closePaneForce(tabId, paneId)
+  }, [isAnyPaneRunning, closePaneForce])
 
   const closeActivePane = useCallback(() => {
     const paneIds = collectPaneIds(activeTab.layout)
@@ -224,6 +255,21 @@ function AppInner() {
 
   // Cmd+Shift+D is intercepted via before-input-event in main (Chromium swallows it otherwise).
   // Menu item clicks also route through here via app-shortcut IPC.
+  useEffect(() => {
+    return window.electron?.onQuitRequested?.(() => {
+      const allPaneIds = tabs.flatMap(t => collectPaneIds(t.layout))
+      const anyRunning = allPaneIds.some(id => !!getPaneInfo(id)?.runningCommand)
+      if (!anyRunning) { window.electron.confirmQuit(); return }
+      setConfirmPending({
+        title: 'Commands are still running',
+        message: 'One or more commands are still running. Quit anyway?',
+        confirmLabel: 'Quit anyway',
+        onConfirm: () => { setConfirmPending(null); window.electron.confirmQuit() },
+        onCancel: () => { setConfirmPending(null); window.electron.cancelQuit() },
+      })
+    })
+  }, [tabs])
+
   useEffect(() => {
     return window.electron?.onAppShortcut?.((name) => {
       if (name === 'split-down')   splitActivePane('vertical')
@@ -477,6 +523,17 @@ function AppInner() {
         onClose={() => setIsPrefsOpen(false)}
         initialTab={prefsInitialTab}
       />
+
+      {/* Close/quit confirmation */}
+      {confirmPending && (
+        <ConfirmDialog
+          title={confirmPending.title}
+          message={confirmPending.message}
+          confirmLabel={confirmPending.confirmLabel}
+          onConfirm={confirmPending.onConfirm}
+          onCancel={confirmPending.onCancel ?? (() => setConfirmPending(null))}
+        />
+      )}
 
       {/* Pane context menu */}
       {ctxMenu && (
