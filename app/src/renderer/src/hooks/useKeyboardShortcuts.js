@@ -40,7 +40,10 @@ function matchesShortcut(e, shortcut) {
   const key = parts[parts.length - 1]
   const modifiers = parts.slice(0, -1)
 
-  if (e.key !== key) return false
+  // e.key can be remapped by macOS Option combos (e.g. ⌥1 → '¡'), so also
+  // check e.code which is always layout-independent.
+  const keyMatches = e.key === key || e.code === 'Digit' + key || e.code === 'Key' + key.toUpperCase()
+  if (!keyMatches) return false
   if (modifiers.includes('Meta') !== e.metaKey) return false
   if (modifiers.includes('Ctrl') !== e.ctrlKey) return false
   if (modifiers.includes('Shift') !== e.shiftKey) return false

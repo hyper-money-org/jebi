@@ -55,7 +55,7 @@ export default function SaveShortcutPopover({ command, onClose, onAliasSourced }
 
   return (
     <div
-      onClick={(e) => e.stopPropagation()}
+      onClick={() => inputRef.current?.focus()}
       style={{
         background: 'var(--bg-elevated)',
         border: '1px solid var(--border)',
@@ -69,6 +69,11 @@ export default function SaveShortcutPopover({ command, onClose, onAliasSourced }
         gap: 10,
       }}
     >
+      {/* Description */}
+      <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+        Save this command as a reusable shortcut
+      </div>
+
       {/* Command preview */}
       <div style={{
         fontFamily: 'var(--font-mono)',
@@ -132,7 +137,7 @@ export default function SaveShortcutPopover({ command, onClose, onAliasSourced }
       {/* Hint */}
       <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: -4 }}>
         {type === 'alias'
-          ? `Saves to ~/${window.electron?.shellRcBasename ?? '.zshrc'} — reload shell to apply`
+          ? `Saves to ~/${window.electron?.shellRcBasename ?? '.zshrc'} — sourced automatically`
           : 'Available instantly via / menu'}
       </div>
 
