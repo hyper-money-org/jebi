@@ -33,7 +33,7 @@ jebi is a terminal emulator for Mac with built-in local AI. It explains failed c
 - `/ports` — live network port inspector
 - `/run` — Makefile & npm scripts picker
 - `/ask` — AI chat in the terminal
-- Define your own custom `/commands` in Preferences with dynamic item lists
+- Define your own custom `/commands` in Preferences with dynamic item lists — [see examples →](docs/custom-slash-commands.md)
 
 ### Workspace
 - Multiple tabs with per-tab accent colors
@@ -110,6 +110,12 @@ Models are downloaded on demand and stored in `~/Library/Application Support/jeb
 | `⌘,` | Open Preferences |
 | `/` | Open command palette |
 | `⌘⌥1/2/3` | Run AI suggestion 1/2/3 |
+
+---
+
+## Documentation
+
+- [Custom Slash Commands](docs/custom-slash-commands.md) — schema reference, command types, and examples for Git, Docker, Node, and more
 
 ---
 

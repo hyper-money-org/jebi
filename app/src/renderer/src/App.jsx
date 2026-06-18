@@ -146,6 +146,7 @@ function AppInner() {
         title: 'Command is running',
         message: 'A command is still running in this tab. Close anyway?',
         onConfirm: () => { setConfirmPending(null); closeTabForce(tabId) },
+        onCancel: () => { setConfirmPending(null); setTimeout(() => triggerFocus(activeTab.activePaneId), 0) },
       })
       return
     }
@@ -192,6 +193,7 @@ function AppInner() {
         title: 'Command is running',
         message: 'A command is still running in this pane. Close anyway?',
         onConfirm: () => { setConfirmPending(null); closePaneForce(tabId, paneId) },
+        onCancel: () => { setConfirmPending(null); setTimeout(() => triggerFocus(activeTab.activePaneId), 0) },
       })
       return
     }
@@ -265,7 +267,7 @@ function AppInner() {
         message: 'One or more commands are still running. Quit anyway?',
         confirmLabel: 'Quit anyway',
         onConfirm: () => { setConfirmPending(null); window.electron.confirmQuit() },
-        onCancel: () => { setConfirmPending(null); window.electron.cancelQuit() },
+        onCancel: () => { setConfirmPending(null); window.electron.cancelQuit(); setTimeout(() => triggerFocus(activeTab.activePaneId), 0) },
       })
     })
   }, [tabs])

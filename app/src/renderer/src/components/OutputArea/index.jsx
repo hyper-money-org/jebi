@@ -808,6 +808,7 @@ export default function OutputArea({
             compact={true}
             onCopy={stickyCommand.onCopy}
             onReplay={stickyCommand.onReplay}
+            onSave={stickyCommand.onSave}
             startTime={stickyCommand.startTime}
             duration={stickyCommand.duration}
             gitData={stickyCommand.gitData}

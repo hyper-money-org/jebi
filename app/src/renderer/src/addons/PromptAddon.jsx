@@ -102,6 +102,7 @@ export class PromptAddon {
       k8sData: best.k8sData ?? null,
       onCopy: best.onCopy,
       onReplay: best.onReplay,
+      onSave: best.onSave,
       startTime: best.startTime,
       duration: best.duration,
       promptHeight: best.promptHeight,
