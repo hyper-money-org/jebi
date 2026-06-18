@@ -22,6 +22,9 @@ export class PromptAddon {
     this._onReplay = null; // (command) => void, set by OutputArea
     this._onSave = null;   // (command) => void, set by OutputArea
     this._commands = []; // { marker, command, cwd, exitCode, gitData, nodeData, goData, pythonData, dockerData, k8sData, root, cellHeight, onCopy, onReplay, onSave }
+    // Latest known environment state — updated by every updateLast* call so new
+    // entries can be seeded with current context even before detectEnv completes.
+    this._latestEnv = { gitData: null, nodeData: null, goData: null, pythonData: null, dockerData: null, k8sData: null };
   }
 
   // Registers a pane-level replay handler. Called by OutputArea so per-command
@@ -232,6 +235,7 @@ export class PromptAddon {
 
   // Called when TypeGit arrives — updates the most recent decoration with git state.
   updateLastGit(gitData) {
+    this._latestEnv.gitData = gitData;
     const entry = this._commands[this._commands.length - 1];
     if (!entry) return;
     entry.gitData = gitData;
@@ -240,6 +244,7 @@ export class PromptAddon {
 
   // Called when TypeNode arrives — updates the most recent decoration with node state.
   updateLastNode(nodeData) {
+    this._latestEnv.nodeData = nodeData;
     const entry = this._commands[this._commands.length - 1];
     if (!entry) return;
     entry.nodeData = nodeData;
@@ -248,6 +253,7 @@ export class PromptAddon {
 
   // Called when TypeGo arrives — updates the most recent decoration with go state.
   updateLastGo(goData) {
+    this._latestEnv.goData = goData;
     const entry = this._commands[this._commands.length - 1];
     if (!entry) return;
     entry.goData = goData;
@@ -256,6 +262,7 @@ export class PromptAddon {
 
   // Called when TypePython arrives — updates the most recent decoration with python state.
   updateLastPython(pythonData) {
+    this._latestEnv.pythonData = pythonData;
     const entry = this._commands[this._commands.length - 1];
     if (!entry) return;
     entry.pythonData = pythonData;
@@ -264,6 +271,7 @@ export class PromptAddon {
 
   // Called when TypeDocker arrives — updates the most recent decoration with docker state.
   updateLastDocker(dockerData) {
+    this._latestEnv.dockerData = dockerData;
     const entry = this._commands[this._commands.length - 1];
     if (!entry) return;
     entry.dockerData = dockerData;
@@ -272,6 +280,7 @@ export class PromptAddon {
 
   // Called when TypeK8s arrives — updates the most recent decoration with k8s state.
   updateLastK8s(k8sData) {
+    this._latestEnv.k8sData = k8sData;
     const entry = this._commands[this._commands.length - 1];
     if (!entry) return;
     entry.k8sData = k8sData;
@@ -321,12 +330,12 @@ export class PromptAddon {
       command,
       cwd,
       exitCode: 0,
-      gitData: null,
-      nodeData: null,
-      goData: null,
-      pythonData: null,
-      dockerData: null,
-      k8sData: null,
+      gitData: this._latestEnv.gitData,
+      nodeData: this._latestEnv.nodeData,
+      goData: this._latestEnv.goData,
+      pythonData: this._latestEnv.pythonData,
+      dockerData: this._latestEnv.dockerData,
+      k8sData: this._latestEnv.k8sData,
       running: true,
       root: null,
       cellHeight,

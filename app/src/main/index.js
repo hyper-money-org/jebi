@@ -18,7 +18,7 @@ const MODEL_REGISTRY = [
     id: 'qwen2.5-1.5b',
     name: 'Qwen2.5 1.5B Instruct',
     description: 'Fast · 1.1 GB',
-    quality: 'Recommended',
+    quality: 'Fast',
     sizeBytes: 1_147_359_232,
     url: 'https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q4_k_m.gguf',
     filename: 'qwen2.5-1.5b-instruct-q4_k_m.gguf',
