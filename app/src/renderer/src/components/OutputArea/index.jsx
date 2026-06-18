@@ -22,15 +22,17 @@ import EmptyState from "./EmptyState";
 
 const BUFFER_CAP = 512 * 1024; // 512 KB
 
-function searchOpts(accent) {
+function searchOpts(accent, { caseSensitive = false, wholeWord = false, regex = false } = {}) {
   return {
-    caseSensitive: false,
+    caseSensitive,
+    wholeWord,
+    regex,
     decorations: {
-      matchBackground:              accent + '30',
-      matchBorder:                  accent + '90',
-      matchOverviewRuler:           accent + '90',
-      activeMatchBackground:        accent + '70',
-      activeMatchBorder:            accent,
+      matchBackground:               accent + '30',
+      matchBorder:                   accent + '90',
+      matchOverviewRuler:            accent + '90',
+      activeMatchBackground:         accent + '70',
+      activeMatchBorder:             accent,
       activeMatchColorOverviewRuler: accent,
     },
   };
@@ -39,6 +41,33 @@ function searchOpts(accent) {
 // Alternate screen enter/exit — emitted by TUI apps (vim, micro, htop, etc.)
 const TUI_ENTER = "\x1b[?1049h";
 const TUI_EXIT = "\x1b[?1049l";
+
+function SearchToggle({ label, title, active, disabled, onToggle }) {
+  return (
+    <button
+      onMouseDown={e => e.preventDefault()}
+      onClick={onToggle}
+      disabled={disabled}
+      title={title}
+      style={{
+        background: active ? 'color-mix(in srgb, var(--accent) 20%, transparent)' : 'transparent',
+        border: `1px solid ${active ? 'color-mix(in srgb, var(--accent) 60%, transparent)' : 'transparent'}`,
+        borderRadius: 4,
+        cursor: disabled ? 'default' : 'pointer',
+        color: disabled ? 'var(--text-muted)' : active ? 'var(--accent)' : 'var(--text-muted)',
+        fontFamily: 'var(--font-mono)',
+        fontSize: 11,
+        fontWeight: 600,
+        padding: '1px 5px',
+        lineHeight: '16px',
+        opacity: disabled ? 0.4 : 1,
+        userSelect: 'none',
+      }}
+    >
+      {label}
+    </button>
+  );
+}
 
 
 export default function OutputArea({
@@ -103,6 +132,10 @@ export default function OutputArea({
   const [stickyCommand, setStickyCommand] = useState(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [caseSensitive, setCaseSensitive] = useState(false);
+  const [wholeWord, setWholeWord] = useState(false);
+  const [useRegex, setUseRegex] = useState(false);
+  const [regexError, setRegexError] = useState(false);
   const searchAddonRef = useRef(null);
   const searchInputRef = useRef(null);
   const searchOpenRef = useRef(false);
@@ -476,6 +509,22 @@ export default function OutputArea({
     return () => window.removeEventListener('keydown', handler, true);
   }, []);
 
+  // Re-run search when toggle state changes while the bar is open.
+  useEffect(() => {
+    if (!searchOpen || !searchQuery) return;
+    const opts = searchOpts(tabAccentRef.current, {
+      caseSensitive,
+      wholeWord: wholeWord && !useRegex,
+      regex: useRegex,
+    });
+    try {
+      setRegexError(false);
+      searchAddonRef.current?.findNext(searchQuery, { ...opts, incremental: true });
+    } catch {
+      setRegexError(true);
+    }
+  }, [caseSensitive, wholeWord, useRegex]);
+
   // Theme colors: update synchronously so xterm's internal RAF cycle picks them up immediately.
   // Keeping this separate from the font effect avoids wrapping theme updates in the async
   // fonts.load() Promise, which could delay the canvas repaint by a microtask.
@@ -530,6 +579,15 @@ export default function OutputArea({
 
   const anyOverlayOpen = fileListOpen || !!previewFile || historyOpen || runOpen || slashOpen || portsOpen || !!customList || askOpen
 
+  function safeFind(fn, query, opts) {
+    try {
+      setRegexError(false);
+      fn(query, opts);
+    } catch {
+      setRegexError(true);
+    }
+  }
+
   return (
     <div ref={rootRef} className="flex-1 min-h-0 flex flex-col relative">
       {/* No padding here — padding is applied directly to the xterm element after
@@ -553,7 +611,9 @@ export default function OutputArea({
       />
       {!hasCommands && <EmptyState />}
       {searchOpen && (
-        <div style={{
+        <div
+          onMouseDown={e => e.stopPropagation()}
+          style={{
           position: 'absolute',
           top: 8,
           right: 12,
@@ -573,23 +633,36 @@ export default function OutputArea({
             onChange={e => {
               const q = e.target.value;
               setSearchQuery(q);
-              const opts = searchOpts(tabAccentRef.current);
+              const opts = searchOpts(tabAccentRef.current, { caseSensitive, wholeWord: wholeWord && !useRegex, regex: useRegex });
               if (q) {
-                searchAddonRef.current?.findNext(q, { ...opts, incremental: true });
+                safeFind(
+                  searchAddonRef.current.findNext.bind(searchAddonRef.current),
+                  q,
+                  { ...opts, incremental: true }
+                );
               } else {
                 searchAddonRef.current?.clearDecorations?.();
               }
             }}
             onKeyDown={e => {
-              const opts = searchOpts(tabAccentRef.current);
+              const opts = searchOpts(tabAccentRef.current, { caseSensitive, wholeWord: wholeWord && !useRegex, regex: useRegex });
               if (e.key === 'Enter') {
                 e.shiftKey
-                  ? searchAddonRef.current?.findPrevious(searchQuery, opts)
-                  : searchAddonRef.current?.findNext(searchQuery, opts);
+                  ? safeFind(
+                      searchAddonRef.current.findPrevious.bind(searchAddonRef.current),
+                      searchQuery,
+                      opts
+                    )
+                  : safeFind(
+                      searchAddonRef.current.findNext.bind(searchAddonRef.current),
+                      searchQuery,
+                      opts
+                    );
               }
               if (e.key === 'Escape') {
                 setSearchOpen(false);
                 setSearchQuery('');
+                setRegexError(false);
                 searchAddonRef.current?.clearDecorations?.();
                 termRef.current?.focus();
               }
@@ -598,27 +671,57 @@ export default function OutputArea({
             style={{
               background: 'transparent',
               border: 'none',
+              borderBottom: regexError ? '1px solid #f87171' : '1px solid transparent',
               outline: 'none',
               fontFamily: 'var(--font-mono)',
               fontSize: 'var(--font-size-ui)',
-              color: 'var(--text-primary)',
+              color: regexError ? '#f87171' : 'var(--text-primary)',
               width: 180,
             }}
           />
+          <div style={{ width: 1, height: 14, background: 'var(--border)', margin: '0 2px' }} />
+          <SearchToggle
+            label="Aa"
+            title="Match case"
+            active={caseSensitive}
+            onToggle={() => { setCaseSensitive(v => !v); searchInputRef.current?.focus(); }}
+          />
+          <SearchToggle
+            label="W"
+            title="Whole word (disabled in regex mode)"
+            active={wholeWord && !useRegex}
+            disabled={useRegex}
+            onToggle={() => { if (!useRegex) { setWholeWord(v => !v); } searchInputRef.current?.focus(); }}
+          />
+          <SearchToggle
+            label=".*"
+            title="Use regular expression"
+            active={useRegex}
+            onToggle={() => { setUseRegex(v => !v); setRegexError(false); searchInputRef.current?.focus(); }}
+          />
+          <div style={{ width: 1, height: 14, background: 'var(--border)', margin: '0 2px' }} />
           <button
-            onClick={() => searchAddonRef.current?.findPrevious(searchQuery, searchOpts(tabAccentRef.current))}
+            onClick={() => safeFind(
+              searchAddonRef.current.findPrevious.bind(searchAddonRef.current),
+              searchQuery,
+              searchOpts(tabAccentRef.current, { caseSensitive, wholeWord: wholeWord && !useRegex, regex: useRegex })
+            )}
             disabled={!searchQuery}
             title="Previous (Shift+Enter)"
             style={{ background: 'none', border: 'none', cursor: searchQuery ? 'pointer' : 'default', color: 'var(--text-muted)', fontSize: 12, padding: '0 2px' }}
           >↑</button>
           <button
-            onClick={() => searchAddonRef.current?.findNext(searchQuery, searchOpts(tabAccentRef.current))}
+            onClick={() => safeFind(
+              searchAddonRef.current.findNext.bind(searchAddonRef.current),
+              searchQuery,
+              searchOpts(tabAccentRef.current, { caseSensitive, wholeWord: wholeWord && !useRegex, regex: useRegex })
+            )}
             disabled={!searchQuery}
             title="Next (Enter)"
             style={{ background: 'none', border: 'none', cursor: searchQuery ? 'pointer' : 'default', color: 'var(--text-muted)', fontSize: 12, padding: '0 2px' }}
           >↓</button>
           <button
-            onClick={() => { setSearchOpen(false); setSearchQuery(''); searchAddonRef.current?.clearDecorations?.(); termRef.current?.focus(); }}
+            onClick={() => { setSearchOpen(false); setSearchQuery(''); setRegexError(false); searchAddonRef.current?.clearDecorations?.(); termRef.current?.focus(); }}
             title="Close (Esc)"
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 14, padding: '0 2px', lineHeight: 1 }}
           >✕</button>
