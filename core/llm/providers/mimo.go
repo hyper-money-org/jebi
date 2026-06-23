@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	mimoDefaultEndpoint = "https://api.xiaomi.com/v1"
+	mimoDefaultEndpoint = "https://api.xiaomimimo.com/v1"
 	mimoDefaultModel    = "mimo-v2.5-pro"
 )
 

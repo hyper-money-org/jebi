@@ -11,7 +11,7 @@ import (
 type Config struct {
 	Provider    string `json:"provider"`    // "ollama" | "llama-server" | "mimo"
 	Model       string `json:"model"`       // ollama: model name; llama-server: full .gguf path; mimo: model ID
-	EndpointURL string `json:"endpointURL"` // ollama default: "http://localhost:11434"; mimo default: "https://api.xiaomi.com/v1"
+	EndpointURL string `json:"endpointURL"` // ollama default: "http://localhost:11434"; mimo default: "https://api.xiaomimimo.com/v1"
 	Enabled     bool   `json:"enabled"`
 	APIKey      string `json:"apiKey,omitempty"` // mimo: Xiaomi API key
 }
