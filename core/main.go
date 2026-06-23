@@ -38,6 +38,8 @@ func resolveProvider(cfg config.Config) llm.Provider {
 			return nil
 		}
 		return p
+	case "mimo":
+		return providers.NewMiMoProvider(cfg)
 	}
 	return nil
 }

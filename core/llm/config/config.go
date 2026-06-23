@@ -9,10 +9,11 @@ import (
 
 // Config holds LLM provider settings, persisted in settings.json.
 type Config struct {
-	Provider    string `json:"provider"`    // "ollama" | "llama-server"
-	Model       string `json:"model"`       // ollama: model name; llama-server: full .gguf path
-	EndpointURL string `json:"endpointURL"` // ollama default: "http://localhost:11434"
+	Provider    string `json:"provider"`    // "ollama" | "llama-server" | "mimo"
+	Model       string `json:"model"`       // ollama: model name; llama-server: full .gguf path; mimo: model ID
+	EndpointURL string `json:"endpointURL"` // ollama default: "http://localhost:11434"; mimo default: "https://api.xiaomi.com/v1"
 	Enabled     bool   `json:"enabled"`
+	APIKey      string `json:"apiKey,omitempty"` // mimo: Xiaomi API key
 }
 
 // defaultModelsDir returns the platform-specific directory where jebi looks for
@@ -65,6 +66,10 @@ func Load() Config {
 	}
 	if cfg.EndpointURL == "" {
 		cfg.EndpointURL = Default.EndpointURL
+	}
+	// Fallback: API key from environment variable
+	if cfg.APIKey == "" {
+		cfg.APIKey = os.Getenv("MIMO_API_KEY")
 	}
 	return cfg
 }

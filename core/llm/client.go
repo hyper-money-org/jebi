@@ -33,16 +33,24 @@ type streamDelta struct {
 type StreamClient struct {
 	endpointURL string
 	model       string
+	apiKey      string // optional: for API-key-based providers like MiMo
 	httpClient  *http.Client
 }
 
 func NewStreamClient(endpointURL, model string) *StreamClient {
+	return NewStreamClientWithKey(endpointURL, model, "")
+}
+
+// NewStreamClientWithKey creates a StreamClient with an optional API key for
+// Authorization header. Used by cloud providers like MiMo.
+func NewStreamClientWithKey(endpointURL, model, apiKey string) *StreamClient {
 	transport := &http.Transport{
 		DialContext: (&net.Dialer{Timeout: 5 * time.Second}).DialContext,
 	}
 	return &StreamClient{
 		endpointURL: endpointURL,
 		model:       model,
+		apiKey:      apiKey,
 		httpClient:  &http.Client{Transport: transport},
 	}
 }
@@ -61,6 +69,9 @@ func (c *StreamClient) Stream(ctx context.Context, messages []ChatMessage) (<-ch
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
+	if c.apiKey != "" {
+		req.Header.Set("Authorization", "Bearer "+c.apiKey)
+	}
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
